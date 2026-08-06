@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Plus, ChevronRight, Users, CheckCircle, XCircle, Clock, Save, Play } from "lucide-react";
-import { Card, CardHeader, Btn } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { Btn } from "@/components/btn";
 
 export default function PoliciesPage() {
   const [simResult, setSimResult] = useState<"idle" | "allowed" | "blocked">("idle");

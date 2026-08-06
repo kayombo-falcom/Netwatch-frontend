@@ -6,7 +6,10 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
-import { Card, CardHeader, Btn, MetricCard } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { Btn } from "@/components/btn";
+import { MetricCard } from "@/components/metric-card";
 import { trafficBwData, trafficCategoryData, topUsersTraffic, peakData } from "@/app/_lib/dashboard-data";
 
 export default function TrafficPage() {

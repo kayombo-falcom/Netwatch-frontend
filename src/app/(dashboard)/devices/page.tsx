@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Search, ChevronLeft, ChevronRight, WifiOff, Pause, Ban, X, Shield } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Card, Btn, StatusBadge, ConfirmDialog } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { Btn } from "@/components/btn";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
 
 export default function DevicesPage() {

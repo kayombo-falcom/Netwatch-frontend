@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Search, Plus, Eye, Shield, Ban } from "lucide-react";
-import { Card, Btn } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { Btn } from "@/components/btn";
 import { usersData } from "@/app/_lib/dashboard-data";
 
 export default function UsersPage() {

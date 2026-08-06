@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { XCircle, AlertTriangle, Info, Eye, X, Clock, ArrowUpRight, CheckCircle } from "lucide-react";
-import { Card, SeverityBadge } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { SeverityBadge } from "@/components/severity-badge";
 import { alertsData, type Severity } from "@/app/_lib/dashboard-data";
 
 export default function AlertsPage() {

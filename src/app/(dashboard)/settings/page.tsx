@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { CheckCircle, Save } from "lucide-react";
-import { Card, CardHeader, Btn } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { Btn } from "@/components/btn";
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);

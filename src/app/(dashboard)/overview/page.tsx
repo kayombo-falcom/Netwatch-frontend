@@ -2,7 +2,12 @@
 
 import { Monitor, Users, Radio, Activity, Download, Plus, Zap, RefreshCw, XCircle, AlertTriangle, Info } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Card, CardHeader, Btn, StatusDot, StatusBadge, MetricCard } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { Btn } from "@/components/btn";
+import { StatusDot } from "@/components/status-dot";
+import { StatusBadge } from "@/components/status-badge";
+import { MetricCard } from "@/components/metric-card";
 import { alertsData, apsData, devicesData, bwData } from "@/app/_lib/dashboard-data";
 
 export default function OverviewPage() {

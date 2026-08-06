@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Radio, X, RefreshCw, Download, BarChart2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Card, CardHeader, Btn, StatusBadge } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { Btn } from "@/components/btn";
+import { StatusBadge } from "@/components/status-badge";
 import { apsData } from "@/app/_lib/dashboard-data";
 
 export default function AccessPointsPage() {
