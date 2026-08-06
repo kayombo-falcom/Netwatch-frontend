@@ -90,10 +90,10 @@ export default function AccessPointsPage() {
                 <p className="text-xs font-semibold text-muted-foreground mb-2">Load — Last Hour</p>
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={apDetailData}>
-                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} domain={[0, 100]} />
-                    <Tooltip contentStyle={{ fontSize: 11 }} formatter={(v: number) => [`${v}%`]} />
-                    <Line type="monotone" dataKey="v" stroke="#2563eb" strokeWidth={2} dot={false} />
+                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v}%`]} />
+                    <Line type="monotone" dataKey="v" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

@@ -187,10 +187,10 @@ export default function DevicesPage() {
                 <p className="text-xs font-semibold text-muted-foreground mb-2">7-Day Usage</p>
                 <ResponsiveContainer width="100%" height={120}>
                   <BarChart data={deviceUsageData}>
-                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
+                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                     <YAxis hide />
-                    <Tooltip contentStyle={{ fontSize: 11 }} formatter={(v: number) => [`${v} GB`]} />
-                    <Bar dataKey="v" fill="#2563eb" radius={[3, 3, 0, 0]} />
+                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v} GB`]} />
+                    <Bar dataKey="v" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

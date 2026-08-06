@@ -32,20 +32,20 @@ export default function OverviewPage() {
         <div className="p-5">
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={bwData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="t" tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}M`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="t" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}M`} />
               <Tooltip
-                contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }}
+                contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--popover)", color: "var(--popover-foreground)", fontSize: 12 }}
                 formatter={(v: number, name: string) => [`${v} Mbps`, name === "down" ? "Download" : "Upload"]}
               />
-              <Area type="monotone" dataKey="down" stroke="#2563eb" strokeWidth={2} fill="#2563eb" fillOpacity={0.1} />
-              <Area type="monotone" dataKey="up" stroke="#22c55e" strokeWidth={2} fill="#22c55e" fillOpacity={0.1} />
+              <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={2} fill="var(--chart-1)" fillOpacity={0.15} />
+              <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={2} fill="var(--chart-2)" fillOpacity={0.15} />
             </AreaChart>
           </ResponsiveContainer>
           <div className="flex gap-5 mt-2">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-blue-600 inline-block rounded" /> Download</span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-green-500 inline-block rounded" /> Upload</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-1 inline-block rounded" /> Download</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-2 inline-block rounded" /> Upload</span>
           </div>
         </div>
       </Card>

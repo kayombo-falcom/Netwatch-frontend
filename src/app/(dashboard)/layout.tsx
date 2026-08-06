@@ -37,18 +37,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-56 flex-shrink-0 flex flex-col transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-        style={{ background: "#0f1729" }}
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-56 flex-shrink-0 flex flex-col bg-sidebar transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-white/6">
+        <div className="px-5 py-5 border-b border-sidebar-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Wifi size={14} className="text-white" />
+            <div className="w-7 h-7 bg-sidebar-primary rounded-lg flex items-center justify-center">
+              <Wifi size={14} className="text-sidebar-primary-foreground" />
             </div>
             <div>
-              <div className="text-white font-bold text-sm tracking-tight">NetWatch</div>
-              <div className="text-blue-400 text-xs">Admin Console</div>
+              <div className="text-sidebar-foreground font-bold text-sm tracking-tight">NetWatch</div>
+              <div className="text-sidebar-foreground/60 text-xs">Admin Console</div>
             </div>
           </div>
 
@@ -57,12 +56,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <select
               value={network}
               onChange={e => setNetwork(e.target.value)}
-              className="w-full text-[#c8d0e8] text-xs rounded-lg px-3 py-2 appearance-none border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              style={{ background: "rgba(255,255,255,0.08)" }}
+              className="w-full bg-sidebar-accent text-sidebar-foreground text-xs rounded-lg px-3 py-2 appearance-none border border-sidebar-border focus:outline-none focus:ring-2 focus:ring-sidebar-ring cursor-pointer"
             >
-              {networks.map(n => <option key={n} value={n} style={{ background: "#0f1729" }}>{n}</option>)}
+              {networks.map(n => <option key={n} value={n} style={{ background: "var(--sidebar)" }}>{n}</option>)}
             </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
+            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/60 pointer-events-none" />
           </div>
         </div>
 
@@ -78,8 +76,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setSidebarOpen(false)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left relative ${
                   isActive
-                    ? "bg-blue-600 text-white"
-                    : "text-[#c8d0e8] hover:bg-white/8 hover:text-white"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
                 <Icon size={16} />
@@ -95,15 +93,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Sidebar footer */}
-        <div className="px-3 py-4 border-t border-white/6 space-y-0.5">
+        <div className="px-3 py-4 border-t border-sidebar-border space-y-0.5">
           <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg">
-            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">SC</div>
+            <div className="w-7 h-7 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground text-xs font-bold shrink-0">SC</div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-white truncate">Sarah Chen</div>
-              <div className="text-xs text-muted-foreground">Administrator</div>
+              <div className="text-xs font-medium text-sidebar-foreground truncate">Sarah Chen</div>
+              <div className="text-xs text-sidebar-foreground/60">Administrator</div>
             </div>
           </div>
-          <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted-foreground hover:text-white/60 hover:bg-white/5 text-xs transition-colors">
+          <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent text-xs transition-colors">
             <LogOut size={13} /> Sign out
           </button>
         </div>

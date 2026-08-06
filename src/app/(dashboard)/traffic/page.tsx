@@ -49,12 +49,12 @@ export default function TrafficPage() {
           <div className="p-5">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={trafficBwData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="d" tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}G`} />
-                <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number, name: string) => [`${v} GB`, name === "down" ? "Download" : "Upload"]} />
-                <Bar dataKey="down" fill="#2563eb" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="up" fill="#22c55e" radius={[3, 3, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="d" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}G`} />
+                <Tooltip contentStyle={{ fontSize: 12, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number, name: string) => [`${v} GB`, name === "down" ? "Download" : "Upload"]} />
+                <Bar dataKey="down" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="up" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -71,7 +71,7 @@ export default function TrafficPage() {
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ fontSize: 11 }} formatter={(v: number) => [`${v}%`]} />
+                <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v}%`]} />
               </PieChart>
             </ResponsiveContainer>
             <div className="space-y-2 mt-2">
@@ -102,7 +102,7 @@ export default function TrafficPage() {
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full"
+                    className="h-full bg-chart-1 rounded-full"
                     style={{ width: `${(u.usage / u.limit) * 100}%` }}
                   />
                 </div>
@@ -118,11 +118,11 @@ export default function TrafficPage() {
           <div className="p-5">
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={peakData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="h" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
-                <Tooltip contentStyle={{ fontSize: 11 }} formatter={(v: number) => [`${v}%`, "Load"]} />
-                <Area type="monotone" dataKey="v" stroke="#8b5cf6" strokeWidth={2} fill="#8b5cf6" fillOpacity={0.12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="h" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
+                <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v}%`, "Load"]} />
+                <Area type="monotone" dataKey="v" stroke="var(--chart-4)" strokeWidth={2} fill="var(--chart-4)" fillOpacity={0.18} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
