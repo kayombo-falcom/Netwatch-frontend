@@ -3,9 +3,9 @@ import type { Severity } from "@/app/_lib/dashboard-data";
 
 export const SeverityBadge = ({ severity }: { severity: Severity }) => {
   const styles: Record<Severity, string> = {
-    critical: "bg-red-50 text-red-600 border-red-200",
-    warning: "bg-amber-50 text-amber-700 border-amber-200",
-    info: "bg-blue-50 text-blue-600 border-blue-200",
+    critical: "bg-tint-navy-bg text-tint-navy-fg border-border",
+    warning: "bg-tint-amber-bg text-tint-amber-fg border-border",
+    info: "bg-tint-aqua-bg text-tint-aqua-fg border-border",
   };
   const icons: Record<Severity, React.ReactNode> = {
     critical: <XCircle size={12} />,

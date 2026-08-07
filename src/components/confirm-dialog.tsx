@@ -12,7 +12,7 @@ export const ConfirmDialog = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-card text-card-foreground rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6 animate-fade-in">
         <div className="flex items-center gap-3 mb-3">
-          <span className={`p-2 rounded-full ${variant === "danger" ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-500"}`}>
+          <span className={`p-2 rounded-full ${variant === "danger" ? "bg-destructive/10 text-destructive" : "bg-tint-aqua-bg text-tint-aqua-fg"}`}>
             {variant === "danger" ? <AlertTriangle size={18} /> : <Info size={18} />}
           </span>
           <h3 className="font-semibold text-foreground">{title}</h3>

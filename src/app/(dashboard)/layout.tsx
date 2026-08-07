@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onChange={e => setNetwork(e.target.value)}
               className="w-full bg-sidebar-accent text-sidebar-foreground text-xs rounded-lg px-3 py-2 appearance-none border border-sidebar-border focus:outline-none focus:ring-2 focus:ring-sidebar-ring cursor-pointer"
             >
-              {networks.map(n => <option key={n} value={n} style={{ background: "var(--sidebar)" }}>{n}</option>)}
+              {networks.map(n => <option key={n} value={n} style={{ background: "var(--sidebar-accent)", color: "var(--sidebar-foreground)" }}>{n}</option>)}
             </select>
             <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/60 pointer-events-none" />
           </div>
@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Icon size={16} />
                 {item.label}
                 {item.href === "/alerts" && unreadAlerts > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="ml-auto bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
                     {unreadAlerts}
                   </span>
                 )}
@@ -150,7 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Bell size={17} />
               {unreadAlerts > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
               )}
             </Link>
 
@@ -178,7 +178,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <h1 className="text-xl font-bold text-foreground">{screenTitles[activeKey]}</h1>
               {activeKey === "overview" && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-(--brand-teal) animate-pulse" />
                   Live monitoring active
                 </div>
               )}

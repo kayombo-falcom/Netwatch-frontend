@@ -122,7 +122,7 @@ export default function TrafficPage() {
                 <XAxis dataKey="h" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
                 <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v}%`, "Load"]} />
-                <Area type="monotone" dataKey="v" stroke="var(--chart-4)" strokeWidth={2} fill="var(--chart-4)" fillOpacity={0.18} />
+                <Area type="monotone" dataKey="v" stroke="var(--chart-4)" strokeWidth={1.5} fill="var(--chart-4)" fillOpacity={0.18} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

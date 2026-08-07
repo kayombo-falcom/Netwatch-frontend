@@ -43,7 +43,7 @@ export default function SettingsPage() {
                 <input
                   type={f.type}
                   defaultValue={f.value}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-card transition-colors"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:bg-card transition-colors"
                 />
               </div>
             ))}

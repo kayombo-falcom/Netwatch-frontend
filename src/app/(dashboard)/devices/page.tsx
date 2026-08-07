@@ -75,7 +75,7 @@ export default function DevicesPage() {
                 <tr key={d.id} className="hover:bg-muted transition-colors">
                   <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setDrawer(d)} className="text-left hover:text-blue-600 transition-colors">
+                    <button onClick={() => setDrawer(d)} className="text-left hover:text-primary transition-colors">
                       <div className="font-medium text-foreground text-xs">{d.name}</div>
                     </button>
                   </td>
@@ -92,17 +92,17 @@ export default function DevicesPage() {
                     <div className="flex gap-1">
                       <button
                         onClick={() => setConfirm({ type: "disconnect", device: d })}
-                        className="p-1.5 rounded hover:bg-red-50 hover:text-red-600 text-muted-foreground/60 transition-colors"
+                        className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 transition-colors"
                         title="Disconnect"
                       ><WifiOff size={13} /></button>
                       <button
                         onClick={() => setConfirm({ type: "pause", device: d })}
-                        className="p-1.5 rounded hover:bg-amber-50 hover:text-amber-600 text-muted-foreground/60 transition-colors"
+                        className="p-1.5 rounded hover:bg-tint-amber-bg hover:text-tint-amber-fg text-muted-foreground/60 transition-colors"
                         title="Pause"
                       ><Pause size={13} /></button>
                       <button
                         onClick={() => setConfirm({ type: "block", device: d })}
-                        className="p-1.5 rounded hover:bg-red-50 hover:text-red-600 text-muted-foreground/60 transition-colors"
+                        className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 transition-colors"
                         title="Block"
                       ><Ban size={13} /></button>
                     </div>
@@ -198,7 +198,7 @@ export default function DevicesPage() {
               <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-2">Applied Policy</p>
                 <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2 mb-1"><Shield size={12} className="text-blue-600" /> <span className="font-medium">Staff Default</span></div>
+                  <div className="flex items-center gap-2 mb-1"><Shield size={12} className="text-tint-aqua-fg" /> <span className="font-medium">Staff Default</span></div>
                   <p className="text-muted-foreground">Bandwidth limit: 20 Mbps · Block: P2P, Streaming (off-hours) · Session: 12h</p>
                 </div>
               </div>

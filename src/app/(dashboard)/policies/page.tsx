@@ -27,12 +27,12 @@ export default function PoliciesPage() {
         </div>
         {[
           { name: "Guest Wi-Fi", group: "Guests", color: "bg-muted text-muted-foreground border-border" },
-          { name: "Staff Default", group: "Staff", color: "bg-blue-50 text-blue-700 border-blue-200" },
-          { name: "Admin Full Access", group: "Admins", color: "bg-purple-50 text-purple-700 border-purple-200" },
-          { name: "Student Tier", group: "Students", color: "bg-green-50 text-green-700 border-green-200" },
-          { name: "IoT Isolated", group: "IoT", color: "bg-amber-50 text-amber-700 border-amber-200" },
+          { name: "Staff Default", group: "Staff", color: "bg-tint-aqua-bg text-tint-aqua-fg border-border" },
+          { name: "Admin Full Access", group: "Admins", color: "bg-tint-navy-bg text-tint-navy-fg border-border" },
+          { name: "Student Tier", group: "Students", color: "bg-tint-teal-bg text-tint-teal-fg border-border" },
+          { name: "IoT Isolated", group: "IoT", color: "bg-tint-amber-bg text-tint-amber-fg border-border" },
         ].map((p, i) => (
-          <Card key={p.name} className={`p-4 cursor-pointer hover:border-blue-300 transition-all ${i === 0 ? "ring-2 ring-blue-500 ring-offset-1" : ""}`}>
+          <Card key={p.name} className={`p-4 cursor-pointer hover:border-primary transition-all ${i === 0 ? "ring-2 ring-ring ring-offset-1" : ""}`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">{p.name}</p>
@@ -81,7 +81,7 @@ export default function PoliciesPage() {
                 <div className="space-y-1.5">
                   {["Web Browsing", "Email", "Video Calls (HD)"].map(i => (
                     <div key={i} className="flex items-center gap-2 text-xs text-foreground/80">
-                      <CheckCircle size={12} className="text-green-500 shrink-0" /> {i}
+                      <CheckCircle size={12} className="text-(--brand-teal) shrink-0" /> {i}
                     </div>
                   ))}
                 </div>
@@ -91,7 +91,7 @@ export default function PoliciesPage() {
                 <div className="space-y-1.5">
                   {["P2P / Torrents", "Gaming Servers", "Adult Content"].map(i => (
                     <div key={i} className="flex items-center gap-2 text-xs text-foreground/80">
-                      <XCircle size={12} className="text-red-500 shrink-0" /> {i}
+                      <XCircle size={12} className="text-(--brand-navy) shrink-0" /> {i}
                     </div>
                   ))}
                 </div>
@@ -138,7 +138,7 @@ export default function PoliciesPage() {
                 <select
                   value={simUser}
                   onChange={e => { setSimUser(e.target.value); setSimResult("idle"); }}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-1.5 bg-card focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-1.5 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {["Admins", "Staff", "Students", "Guests", "IoT"].map(g => <option key={g}>{g}</option>)}
                 </select>
@@ -149,7 +149,7 @@ export default function PoliciesPage() {
                   type="time"
                   value={simTime}
                   onChange={e => { setSimTime(e.target.value); setSimResult("idle"); }}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-1.5 bg-card focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-1.5 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
               <div className="flex items-end">
@@ -162,12 +162,12 @@ export default function PoliciesPage() {
             {simResult !== "idle" && (
               <div className={`flex items-center gap-3 p-4 rounded-lg border ${
                 simResult === "allowed"
-                  ? "bg-green-50 border-green-200 text-green-800"
-                  : "bg-red-50 border-red-200 text-red-800"
+                  ? "bg-tint-teal-bg border-tint-teal-fg/30 text-tint-teal-fg"
+                  : "bg-tint-navy-bg border-tint-navy-fg/30 text-tint-navy-fg"
               }`}>
                 {simResult === "allowed"
-                  ? <CheckCircle size={18} className="text-green-600 shrink-0" />
-                  : <XCircle size={18} className="text-red-600 shrink-0" />
+                  ? <CheckCircle size={18} className="text-tint-teal-fg shrink-0" />
+                  : <XCircle size={18} className="text-tint-navy-fg shrink-0" />
                 }
                 <div>
                   <p className="font-semibold text-sm">

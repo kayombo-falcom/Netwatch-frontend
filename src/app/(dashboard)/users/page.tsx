@@ -59,7 +59,9 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          u.group === "Staff" || u.group === "Guests" || u.group === "IoT" ? "text-(--brand-navy)" : "text-white"
+                        }`}
                         style={{ backgroundColor: u.color }}
                       >{u.initials}</div>
                       <span className="font-medium text-foreground text-xs">{u.name}</span>
@@ -67,11 +69,11 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded text-xs border ${
-                      u.group === "Admins" ? "bg-purple-50 text-purple-700 border-purple-200" :
-                      u.group === "Staff" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                      u.group === "Students" ? "bg-green-50 text-green-700 border-green-200" :
+                      u.group === "Admins" ? "bg-tint-navy-bg text-tint-navy-fg border-border" :
+                      u.group === "Staff" ? "bg-tint-aqua-bg text-tint-aqua-fg border-border" :
+                      u.group === "Students" ? "bg-tint-teal-bg text-tint-teal-fg border-border" :
                       u.group === "Guests" ? "bg-muted text-muted-foreground border-border" :
-                      "bg-amber-50 text-amber-700 border-amber-200"
+                      "bg-tint-amber-bg text-tint-amber-fg border-border"
                     }`}>{u.group}</span>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.devices}</td>
@@ -80,9 +82,9 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.lastSeen}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button className="p-1.5 rounded hover:bg-blue-50 hover:text-blue-600 text-muted-foreground/60 transition-colors" title="View"><Eye size={13} /></button>
-                      <button className="p-1.5 rounded hover:bg-amber-50 hover:text-amber-600 text-muted-foreground/60 transition-colors" title="Assign policy"><Shield size={13} /></button>
-                      <button className="p-1.5 rounded hover:bg-red-50 hover:text-red-500 text-muted-foreground/60 transition-colors" title="Disable"><Ban size={13} /></button>
+                      <button className="p-1.5 rounded hover:bg-tint-aqua-bg hover:text-tint-aqua-fg text-muted-foreground/60 transition-colors" title="View"><Eye size={13} /></button>
+                      <button className="p-1.5 rounded hover:bg-tint-amber-bg hover:text-tint-amber-fg text-muted-foreground/60 transition-colors" title="Assign policy"><Shield size={13} /></button>
+                      <button className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 transition-colors" title="Disable"><Ban size={13} /></button>
                     </div>
                   </td>
                 </tr>

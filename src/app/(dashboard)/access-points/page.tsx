@@ -23,13 +23,13 @@ export default function AccessPointsPage() {
         {apsData.map(ap => (
           <Card
             key={ap.id}
-            className={`cursor-pointer transition-all hover:border-blue-300 ${selected?.id === ap.id ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+            className={`cursor-pointer transition-all hover:border-primary ${selected?.id === ap.id ? "ring-2 ring-ring ring-offset-2" : ""}`}
             onClick={() => setSelected(ap)}
           >
             <div className="p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg ${ap.status === "online" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
+                  <div className={`p-2.5 rounded-lg ${ap.status === "online" ? "bg-tint-teal-bg text-tint-teal-fg" : "bg-tint-amber-bg text-tint-amber-fg"}`}>
                     <Radio size={18} />
                   </div>
                   <div>
@@ -47,7 +47,7 @@ export default function AccessPointsPage() {
                   { label: "Load", value: `${ap.load}%` },
                 ].map(m => (
                   <div key={m.label} className="text-center">
-                    <div className={`text-lg font-bold tabular-nums ${m.label === "Load" && ap.load > 70 ? "text-amber-600" : "text-foreground"}`}>
+                    <div className={`text-lg font-bold tabular-nums ${m.label === "Load" && ap.load > 70 ? "text-tint-amber-fg" : "text-foreground"}`}>
                       {m.value}
                     </div>
                     <div className="text-xs text-muted-foreground/60">{m.label}</div>
@@ -61,14 +61,14 @@ export default function AccessPointsPage() {
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${ap.load > 80 ? "bg-red-500" : ap.load > 60 ? "bg-amber-400" : "bg-green-500"}`}
+                    className={`h-full rounded-full transition-all ${ap.load > 80 ? "bg-(--brand-navy)" : ap.load > 60 ? "bg-(--brand-amber)" : "bg-(--brand-teal)"}`}
                     style={{ width: `${ap.load}%` }}
                   />
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <span className="font-mono text-xs text-muted-foreground/60">{ap.ip}</span>
-                <span className={`text-xs px-2 py-0.5 rounded ${ap.firmware === "6.4.1" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
+                <span className={`text-xs px-2 py-0.5 rounded ${ap.firmware === "6.4.1" ? "bg-tint-teal-bg text-tint-teal-fg" : "bg-tint-amber-bg text-tint-amber-fg"}`}>
                   fw {ap.firmware} {ap.firmware !== "6.4.1" && "· update available"}
                 </span>
               </div>
@@ -93,7 +93,7 @@ export default function AccessPointsPage() {
                     <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} />
                     <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v}%`]} />
-                    <Line type="monotone" dataKey="v" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="v" stroke="var(--chart-1)" strokeWidth={1.5} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

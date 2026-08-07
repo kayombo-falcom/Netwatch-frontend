@@ -9,7 +9,7 @@
   --brand-amber: #e2a54d;
   --brand-teal: #1e4b45;
   --brand-aqua: #a3ded6;
-  --brand-cream: #efeae6;
+  --brand-cream: #fdfcfa;
 
   --background: var(--brand-cream);
   --foreground: var(--brand-navy);
@@ -21,7 +21,7 @@
   --primary-foreground: #ffffff;
   --secondary: #fbeeda;
   --secondary-foreground: var(--brand-navy);
-  --muted: #f1eee9;
+  --muted: #fdfcfa;
   --muted-foreground: #6b7686;
   --accent: var(--brand-amber);
   --accent-foreground: var(--brand-navy);
@@ -29,7 +29,7 @@
   --destructive-foreground: #ffffff;
   --border: rgba(12, 44, 71, 0.12);
   --input: transparent;
-  --input-background: #f1eee9;
+  --input-background: #fdfcfa;
   --switch-background: #dcd6cd;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -38,7 +38,7 @@
   --chart-2: var(--brand-amber);
   --chart-3: var(--brand-teal);
   --chart-4: var(--brand-aqua);
-  --chart-5: #c98a6b;
+  --chart-5: color-mix(in srgb, var(--brand-navy) 50%, var(--brand-amber) 50%);
   --radius: 0.5rem;
   --sidebar: var(--brand-navy);
   --sidebar-foreground: #d9e4df;
@@ -48,6 +48,16 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.06);
   --sidebar-ring: var(--brand-amber);
+
+  /* Semantic tints — light bg + readable fg, derived only from the brand palette */
+  --tint-navy-bg: color-mix(in srgb, var(--brand-navy) 10%, white);
+  --tint-navy-fg: var(--brand-navy);
+  --tint-amber-bg: color-mix(in srgb, var(--brand-amber) 18%, white);
+  --tint-amber-fg: var(--brand-navy);
+  --tint-teal-bg: color-mix(in srgb, var(--brand-teal) 12%, white);
+  --tint-teal-fg: var(--brand-teal);
+  --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 35%, white);
+  --tint-aqua-fg: var(--brand-teal);
 }
 
 .dark {
@@ -55,9 +65,9 @@
   --brand-amber: #e2a54d;
   --brand-teal: #1e4b45;
   --brand-aqua: #a3ded6;
-  --brand-cream: #efeae6;
+  --brand-cream: #fdfcfa;
 
-  --background: #0a2439;
+  --background: #102b42;
   --foreground: #e7f0ec;
   --card: #13324c;
   --card-foreground: #e7f0ec;
@@ -82,9 +92,9 @@
   --ring: var(--brand-amber);
   --chart-1: var(--brand-amber);
   --chart-2: var(--brand-aqua);
-  --chart-3: #5a82a6;
-  --chart-4: #3e8377;
-  --chart-5: #d89a7e;
+  --chart-3: color-mix(in srgb, var(--brand-teal) 55%, white);
+  --chart-4: color-mix(in srgb, var(--brand-navy) 55%, white);
+  --chart-5: color-mix(in srgb, var(--brand-amber) 50%, var(--brand-aqua) 50%);
   --sidebar: #071a2b;
   --sidebar-foreground: #d9e4df;
   --sidebar-primary: var(--brand-amber);
@@ -93,6 +103,16 @@
   --sidebar-accent-foreground: #e7f0ec;
   --sidebar-border: rgba(255, 255, 255, 0.05);
   --sidebar-ring: var(--brand-amber);
+
+  /* Semantic tints — dark bg + readable fg, derived only from the brand palette */
+  --tint-navy-bg: color-mix(in srgb, var(--brand-navy) 45%, var(--card));
+  --tint-navy-fg: color-mix(in srgb, var(--brand-navy) 45%, white);
+  --tint-amber-bg: color-mix(in srgb, var(--brand-amber) 22%, var(--card));
+  --tint-amber-fg: var(--brand-amber);
+  --tint-teal-bg: color-mix(in srgb, var(--brand-teal) 40%, var(--card));
+  --tint-teal-fg: var(--brand-aqua);
+  --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 20%, var(--card));
+  --tint-aqua-fg: var(--brand-aqua);
 }
 
 @theme inline {
@@ -134,6 +154,14 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-tint-navy-bg: var(--tint-navy-bg);
+  --color-tint-navy-fg: var(--tint-navy-fg);
+  --color-tint-amber-bg: var(--tint-amber-bg);
+  --color-tint-amber-fg: var(--tint-amber-fg);
+  --color-tint-teal-bg: var(--tint-teal-bg);
+  --color-tint-teal-fg: var(--tint-teal-fg);
+  --color-tint-aqua-bg: var(--tint-aqua-bg);
+  --color-tint-aqua-fg: var(--tint-aqua-fg);
   --font-sans: var(--font-inter-sans);
   --font-mono: var(--font-jetbrains-mono);
 }

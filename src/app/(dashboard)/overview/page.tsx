@@ -39,8 +39,8 @@ export default function OverviewPage() {
                 contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--popover)", color: "var(--popover-foreground)", fontSize: 12 }}
                 formatter={(v: number, name: string) => [`${v} Mbps`, name === "down" ? "Download" : "Upload"]}
               />
-              <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={2} fill="var(--chart-1)" fillOpacity={0.15} />
-              <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={2} fill="var(--chart-2)" fillOpacity={0.15} />
+              <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={1.5} fill="var(--chart-1)" fillOpacity={0.15} />
+              <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={1.5} fill="var(--chart-2)" fillOpacity={0.15} />
             </AreaChart>
           </ResponsiveContainer>
           <div className="flex gap-5 mt-2">
@@ -96,7 +96,7 @@ export default function OverviewPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-xs font-mono font-semibold ${ap.load > 70 ? "text-amber-600" : "text-foreground/80"}`}>{ap.load}%</div>
+                    <div className={`text-xs font-mono font-semibold ${ap.load > 70 ? "text-tint-amber-fg" : "text-foreground/80"}`}>{ap.load}%</div>
                     <div className="text-xs text-muted-foreground/60">load</div>
                   </div>
                 </div>
@@ -110,7 +110,7 @@ export default function OverviewPage() {
               {recentAlerts.map(a => (
                 <div key={a.id} className="px-4 py-3">
                   <div className="flex items-start gap-2">
-                    <span className={`mt-0.5 shrink-0 ${a.severity === "critical" ? "text-red-500" : a.severity === "warning" ? "text-amber-500" : "text-blue-500"}`}>
+                    <span className={`mt-0.5 shrink-0 ${a.severity === "critical" ? "text-(--brand-navy)" : a.severity === "warning" ? "text-(--brand-amber)" : "text-(--brand-teal)"}`}>
                       {a.severity === "critical" ? <XCircle size={13} /> : a.severity === "warning" ? <AlertTriangle size={13} /> : <Info size={13} />}
                     </span>
                     <div>

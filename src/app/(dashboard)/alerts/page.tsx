@@ -18,9 +18,9 @@ export default function AlertsPage() {
   const unread = alerts.filter(a => !a.read).length;
 
   const severityIcon = (s: Severity) => ({
-    critical: <XCircle size={16} className="text-red-500 shrink-0" />,
-    warning: <AlertTriangle size={16} className="text-amber-500 shrink-0" />,
-    info: <Info size={16} className="text-blue-500 shrink-0" />,
+    critical: <XCircle size={16} className="text-(--brand-navy) shrink-0" />,
+    warning: <AlertTriangle size={16} className="text-(--brand-amber) shrink-0" />,
+    info: <Info size={16} className="text-(--brand-teal) shrink-0" />,
   }[s]);
 
   return (
@@ -36,7 +36,7 @@ export default function AlertsPage() {
           ))}
         </div>
         {unread > 0 && (
-          <button onClick={markAllRead} className="ml-auto text-xs text-blue-600 hover:underline">
+          <button onClick={markAllRead} className="ml-auto text-xs text-primary hover:underline">
             Mark all {unread} as read
           </button>
         )}
@@ -45,14 +45,14 @@ export default function AlertsPage() {
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <Card className="py-16 text-center">
-            <CheckCircle size={32} className="mx-auto text-green-500 mb-3" />
+            <CheckCircle size={32} className="mx-auto text-(--brand-teal) mb-3" />
             <p className="text-sm font-medium text-foreground/80">No alerts</p>
             <p className="text-xs text-muted-foreground/60 mt-1">All clear for this category.</p>
           </Card>
         ) : filtered.map(a => (
           <Card
             key={a.id}
-            className={`transition-all ${!a.read ? "border-l-4 " + (a.severity === "critical" ? "border-l-red-500" : a.severity === "warning" ? "border-l-amber-400" : "border-l-blue-500") : ""}`}
+            className={`transition-all ${!a.read ? "border-l-4 " + (a.severity === "critical" ? "border-l-(--brand-navy)" : a.severity === "warning" ? "border-l-(--brand-amber)" : "border-l-(--brand-teal)") : ""}`}
           >
             <div className="flex items-start gap-3 p-4">
               <div className="mt-0.5">{severityIcon(a.severity)}</div>
@@ -61,7 +61,7 @@ export default function AlertsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className={`text-sm font-medium ${!a.read ? "text-foreground" : "text-muted-foreground"}`}>{a.title}</p>
                     <SeverityBadge severity={a.severity} />
-                    {!a.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
+                    {!a.read && <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {!a.read && (
@@ -78,7 +78,7 @@ export default function AlertsPage() {
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-xs text-muted-foreground/60 flex items-center gap-1"><Clock size={10} />{a.time}</span>
                   {a.action && (
-                    <button className="text-xs text-blue-600 hover:underline flex items-center gap-0.5">
+                    <button className="text-xs text-primary hover:underline flex items-center gap-0.5">
                       {a.action} <ArrowUpRight size={10} />
                     </button>
                   )}

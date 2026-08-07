@@ -61,14 +61,14 @@ export const devicesData = [
 ];
 
 export const usersData = [
-  { id: 1, name: "Sarah Chen", initials: "SC", group: "Admins", devices: 3, data: "8.4 GB", policy: "Full Access", lastSeen: "now", color: "#6366f1" },
-  { id: 2, name: "Marcus Webb", initials: "MW", group: "Staff", devices: 2, data: "2.1 GB", policy: "Staff Default", lastSeen: "12m ago", color: "#2563eb" },
-  { id: 3, name: "Tom Kowalski", initials: "TK", group: "Staff", devices: 1, data: "1.4 GB", policy: "Staff Default", lastSeen: "2h ago", color: "#0891b2" },
-  { id: 4, name: "Lena Morales", initials: "LM", group: "Staff", devices: 2, data: "990 MB", policy: "Staff Default", lastSeen: "5m ago", color: "#7c3aed" },
-  { id: 5, name: "James Park", initials: "JP", group: "Students", devices: 1, data: "450 MB", policy: "Student Tier", lastSeen: "1h ago", color: "#059669" },
-  { id: 6, name: "Priya Nair", initials: "PN", group: "Students", devices: 2, data: "310 MB", policy: "Student Tier", lastSeen: "30m ago", color: "#d97706" },
-  { id: 7, name: "Guest #4821", initials: "G", group: "Guests", devices: 1, data: "55 MB", policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "#64748b" },
-  { id: 8, name: "Thermostat Hub", initials: "T", group: "IoT", devices: 4, data: "61 GB", policy: "IoT Isolated", lastSeen: "now", color: "#dc2626" },
+  { id: 1, name: "Sarah Chen", initials: "SC", group: "Admins", devices: 3, data: "8.4 GB", policy: "Full Access", lastSeen: "now", color: "var(--chart-1)" },
+  { id: 2, name: "Marcus Webb", initials: "MW", group: "Staff", devices: 2, data: "2.1 GB", policy: "Staff Default", lastSeen: "12m ago", color: "var(--chart-4)" },
+  { id: 3, name: "Tom Kowalski", initials: "TK", group: "Staff", devices: 1, data: "1.4 GB", policy: "Staff Default", lastSeen: "2h ago", color: "var(--chart-4)" },
+  { id: 4, name: "Lena Morales", initials: "LM", group: "Staff", devices: 2, data: "990 MB", policy: "Staff Default", lastSeen: "5m ago", color: "var(--chart-4)" },
+  { id: 5, name: "James Park", initials: "JP", group: "Students", devices: 1, data: "450 MB", policy: "Student Tier", lastSeen: "1h ago", color: "var(--chart-3)" },
+  { id: 6, name: "Priya Nair", initials: "PN", group: "Students", devices: 2, data: "310 MB", policy: "Student Tier", lastSeen: "30m ago", color: "var(--chart-3)" },
+  { id: 7, name: "Guest #4821", initials: "G", group: "Guests", devices: 1, data: "55 MB", policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "var(--chart-2)" },
+  { id: 8, name: "Thermostat Hub", initials: "T", group: "IoT", devices: 4, data: "61 GB", policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
 ];
 
 export const apsData = [
@@ -100,11 +100,11 @@ export const trafficBwData = [
 ];
 
 export const trafficCategoryData = [
-  { name: "Video Streaming", value: 38, color: "#2563eb" },
-  { name: "Web Browsing", value: 22, color: "#22c55e" },
-  { name: "Cloud Storage", value: 17, color: "#f59e0b" },
-  { name: "Video Calls", value: 14, color: "#8b5cf6" },
-  { name: "Other", value: 9, color: "#64748b" },
+  { name: "Video Streaming", value: 38, color: "var(--chart-1)" },
+  { name: "Web Browsing", value: 22, color: "var(--chart-3)" },
+  { name: "Cloud Storage", value: 17, color: "var(--chart-2)" },
+  { name: "Video Calls", value: 14, color: "var(--chart-4)" },
+  { name: "Other", value: 9, color: "var(--chart-5)" },
 ];
 
 export const topUsersTraffic = [
