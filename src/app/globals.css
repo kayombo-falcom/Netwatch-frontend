@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,9 +12,6 @@
   --brand-teal: #1e4b45;
   --brand-aqua: #a3ded6;
   --brand-cream: #fdfcfa;
-
-  --background: var(--brand-cream);
-  --foreground: var(--brand-navy);
   --card: #ffffff;
   --card-foreground: var(--brand-navy);
   --popover: #ffffff;
@@ -58,6 +57,8 @@
   --tint-teal-fg: var(--brand-teal);
   --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 35%, white);
   --tint-aqua-fg: var(--brand-teal);
+  --background: var(--brand-cream);
+  --foreground: var(--brand-navy);
 }
 
 .dark {
@@ -164,6 +165,10 @@
   --color-tint-aqua-fg: var(--tint-aqua-fg);
   --font-sans: var(--font-inter-sans);
   --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-inter-sans);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
@@ -178,6 +183,7 @@
 
   html {
     font-size: var(--font-size);
+    @apply font-sans;
   }
 
   h1 {
