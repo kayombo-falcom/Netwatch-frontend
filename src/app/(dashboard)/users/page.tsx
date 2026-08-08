@@ -1,18 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, Eye, Shield, Ban } from "lucide-react";
+import { Search, Plus, Eye, Pencil, Ban } from "lucide-react";
 import { Card } from "@/components/card";
 import { Btn } from "@/components/btn";
+import { Tag } from "@/components/tag";
+import { IconButton } from "@/components/icon-button";
+import { UserFormDialog, type UserFormValues } from "@/components/user-form-dialog";
+import { UserViewDialog } from "@/components/user-view-dialog";
 import { usersData } from "@/app/_lib/dashboard-data";
+import { tintContrastText, USER_ROLE_TINT, USER_STATUS_TINT, USER_STATUS_DOT, USER_STATUS_LABEL } from "@/lib/colors";
+
+const initialsFor = (name: string) => {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 1
+    ? (parts[0][0] + parts[1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase();
+};
 
 export default function UsersPage() {
+  const [users, setUsers] = useState(usersData);
   const [search, setSearch] = useState("");
-  const [groupFilter, setGroupFilter] = useState("All");
-  const groups = ["All", "Admins", "Staff", "Students", "Guests", "IoT"];
+  const [roleFilter, setRoleFilter] = useState("All");
+  const [dialog, setDialog] = useState<
+    { mode: "add" } | { mode: "edit" | "view"; user: typeof usersData[number] } | null
+  >(null);
+  const roles = ["All", "Admins", "Staff", "Students", "Guests", "IoT"];
 
-  const filtered = usersData.filter(u => {
-    if (groupFilter !== "All" && u.group !== groupFilter) return false;
+  const addUser = (values: UserFormValues) => {
+    setUsers(prev => [...prev, {
+      id: Math.max(0, ...prev.map(u => u.id)) + 1,
+      name: values.name,
+      email: values.email,
+      initials: initialsFor(values.name),
+      role: values.role,
+      status: values.status,
+      devices: 0,
+      data: "0 MB",
+      policy: values.policy,
+      lastSeen: "Never",
+      color: `var(--chart-${(prev.length % 5) + 1})`,
+    }]);
+  };
+
+  const updateUser = (id: number, values: UserFormValues) => {
+    setUsers(prev => prev.map(u => u.id === id ? {
+      ...u,
+      name: values.name,
+      email: values.email,
+      initials: initialsFor(values.name),
+      role: values.role,
+      policy: values.policy,
+      status: values.status,
+    } : u));
+  };
+
+  const filtered = users.filter(u => {
+    if (roleFilter !== "All" && u.role !== roleFilter) return false;
     if (search && !u.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -30,15 +74,15 @@ export default function UsersPage() {
           />
         </div>
         <div className="flex flex-wrap gap-1">
-          {groups.map(g => (
+          {roles.map(r => (
             <button
-              key={g}
-              onClick={() => setGroupFilter(g)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${groupFilter === g ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
-            >{g}</button>
+              key={r}
+              onClick={() => setRoleFilter(r)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${roleFilter === r ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
+            >{r}</button>
           ))}
         </div>
-        <Btn variant="primary" size="sm" className="ml-auto"><Plus size={13} /> Add User</Btn>
+        <Btn variant="primary" size="sm" className="ml-auto" onClick={() => setDialog({ mode: "add" })}><Plus size={13} /> Add User</Btn>
       </div>
 
       <Card>
@@ -46,7 +90,7 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                {["User", "Group", "Devices", "Data Used", "Policy", "Last Seen", "Actions"].map(h => (
+                {["Full Name", "Email", "Role", "Policy", "Last Seen", "Status", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -59,32 +103,29 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                          u.group === "Staff" || u.group === "Guests" || u.group === "IoT" ? "text-(--brand-navy)" : "text-white"
-                        }`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${tintContrastText(USER_ROLE_TINT[u.role] ?? "muted")}`}
                         style={{ backgroundColor: u.color }}
                       >{u.initials}</div>
                       <span className="font-medium text-foreground text-xs">{u.name}</span>
                     </div>
                   </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded text-xs border ${
-                      u.group === "Admins" ? "bg-tint-navy-bg text-tint-navy-fg border-border" :
-                      u.group === "Staff" ? "bg-tint-aqua-bg text-tint-aqua-fg border-border" :
-                      u.group === "Students" ? "bg-tint-teal-bg text-tint-teal-fg border-border" :
-                      u.group === "Guests" ? "bg-muted text-muted-foreground border-border" :
-                      "bg-tint-amber-bg text-tint-amber-fg border-border"
-                    }`}>{u.group}</span>
+                    <Tag color={USER_ROLE_TINT[u.role] ?? "muted"}>{u.role}</Tag>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{u.devices}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground/80">{u.data}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.policy}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.lastSeen}</td>
                   <td className="px-4 py-3">
+                    <Tag color={USER_STATUS_TINT[u.status]} className="font-mono">
+                      <span className={`inline-block w-2 h-2 rounded-full ${USER_STATUS_DOT[u.status]} shrink-0`} />
+                      {USER_STATUS_LABEL[u.status]}
+                    </Tag>
+                  </td>
+                  <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button className="p-1.5 rounded hover:bg-tint-aqua-bg hover:text-tint-aqua-fg text-muted-foreground/60 transition-colors" title="View"><Eye size={13} /></button>
-                      <button className="p-1.5 rounded hover:bg-tint-amber-bg hover:text-tint-amber-fg text-muted-foreground/60 transition-colors" title="Assign policy"><Shield size={13} /></button>
-                      <button className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 transition-colors" title="Disable"><Ban size={13} /></button>
+                      <IconButton color="aqua" title="View" onClick={() => setDialog({ mode: "view", user: u })} icon={<Eye size={13} />} />
+                      <IconButton color="teal" title="Edit" onClick={() => setDialog({ mode: "edit", user: u })} icon={<Pencil size={13} />} />
+                      <IconButton color="destructive" title="Disable" icon={<Ban size={13} />} />
                     </div>
                   </td>
                 </tr>
@@ -93,6 +134,29 @@ export default function UsersPage() {
           </table>
         </div>
       </Card>
+
+      {dialog?.mode === "view" && (
+        <UserViewDialog
+          key={`view-${dialog.user.id}`}
+          user={dialog.user}
+          onClose={() => setDialog(null)}
+          onEdit={() => setDialog({ mode: "edit", user: dialog.user })}
+        />
+      )}
+
+      {(dialog?.mode === "add" || dialog?.mode === "edit") && (
+        <UserFormDialog
+          key={dialog.mode === "edit" ? `edit-${dialog.user.id}` : "add"}
+          mode={dialog.mode}
+          initialValues={dialog.mode === "edit" ? dialog.user : undefined}
+          onClose={() => setDialog(null)}
+          onSubmit={values => {
+            if (dialog.mode === "add") addUser(values);
+            else updateUser(dialog.user.id, values);
+            setDialog(null);
+          }}
+        />
+      )}
     </div>
   );
 }

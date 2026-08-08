@@ -1,6 +1,6 @@
 "use client";
 
-import { Monitor, Users, Radio, Activity, Download, Plus, Zap, RefreshCw, XCircle, AlertTriangle, Info } from "lucide-react";
+import { Monitor, Users, Radio, Activity, Download, Plus, Zap, RefreshCw } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
@@ -8,6 +8,7 @@ import { Btn } from "@/components/btn";
 import { StatusDot } from "@/components/status-dot";
 import { StatusBadge } from "@/components/status-badge";
 import { MetricCard } from "@/components/metric-card";
+import { SeverityIcon } from "@/components/severity-icon";
 import { alertsData, apsData, devicesData, bwData } from "@/app/_lib/dashboard-data";
 
 export default function OverviewPage() {
@@ -16,10 +17,10 @@ export default function OverviewPage() {
     <div className="space-y-6">
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Total Devices" value="42" sub="38 authorized · 4 guest" icon={<Monitor size={18} />} color="blue" trend={{ val: "+3 today", up: true }} />
-        <MetricCard label="Active Users" value="31" sub="of 48 registered" icon={<Users size={18} />} color="green" />
+        <MetricCard label="Total Devices" value="42" sub="38 authorized · 4 guest" icon={<Monitor size={18} />} color="navy" trend={{ val: "+3 today", up: true }} />
+        <MetricCard label="Active Users" value="31" sub="of 48 registered" icon={<Users size={18} />} color="teal" />
         <MetricCard label="Access Points" value="3/4" sub="1 at high load" icon={<Radio size={18} />} color="amber" />
-        <MetricCard label="Bandwidth Used" value="68%" sub="of 200 Mbps link" icon={<Activity size={18} />} color="purple" trend={{ val: "↑ 12% vs. last hr", up: false }} />
+        <MetricCard label="Bandwidth Used" value="68%" sub="of 200 Mbps link" icon={<Activity size={18} />} color="aqua" trend={{ val: "↑ 12% vs. last hr", up: false }} />
       </div>
 
       {/* Bandwidth Chart */}
@@ -110,9 +111,7 @@ export default function OverviewPage() {
               {recentAlerts.map(a => (
                 <div key={a.id} className="px-4 py-3">
                   <div className="flex items-start gap-2">
-                    <span className={`mt-0.5 shrink-0 ${a.severity === "critical" ? "text-status-critical" : a.severity === "warning" ? "text-status-warning" : "text-status-online"}`}>
-                      {a.severity === "critical" ? <XCircle size={13} /> : a.severity === "warning" ? <AlertTriangle size={13} /> : <Info size={13} />}
-                    </span>
+                    <SeverityIcon severity={a.severity} size={13} className="mt-0.5" />
                     <div>
                       <div className="text-xs font-medium text-foreground leading-snug">{a.title}</div>
                       <div className="text-xs text-muted-foreground/60 mt-0.5">{a.time}</div>

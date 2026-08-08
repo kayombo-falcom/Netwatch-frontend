@@ -5,6 +5,16 @@ import { Plus, ChevronRight, Users, CheckCircle, XCircle, Clock, Save, Play } fr
 import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
+import { Tag } from "@/components/tag";
+import type { TintColor } from "@/lib/colors";
+
+const POLICIES: { name: string; group: string; color: TintColor }[] = [
+  { name: "Guest Wi-Fi", group: "Guests", color: "muted" },
+  { name: "Staff Default", group: "Staff", color: "aqua" },
+  { name: "Admin Full Access", group: "Admins", color: "navy" },
+  { name: "Student Tier", group: "Students", color: "teal" },
+  { name: "IoT Isolated", group: "IoT", color: "amber" },
+];
 
 export default function PoliciesPage() {
   const [simResult, setSimResult] = useState<"idle" | "allowed" | "blocked">("idle");
@@ -25,18 +35,12 @@ export default function PoliciesPage() {
           <h3 className="text-sm font-semibold text-foreground/80">Policies</h3>
           <Btn variant="primary" size="xs"><Plus size={11} /> New</Btn>
         </div>
-        {[
-          { name: "Guest Wi-Fi", group: "Guests", color: "bg-muted text-muted-foreground border-border" },
-          { name: "Staff Default", group: "Staff", color: "bg-tint-aqua-bg text-tint-aqua-fg border-border" },
-          { name: "Admin Full Access", group: "Admins", color: "bg-tint-navy-bg text-tint-navy-fg border-border" },
-          { name: "Student Tier", group: "Students", color: "bg-tint-teal-bg text-tint-teal-fg border-border" },
-          { name: "IoT Isolated", group: "IoT", color: "bg-tint-amber-bg text-tint-amber-fg border-border" },
-        ].map((p, i) => (
+        {POLICIES.map((p, i) => (
           <Card key={p.name} className={`p-4 cursor-pointer hover:border-primary transition-all ${i === 0 ? "ring-2 ring-ring ring-offset-1" : ""}`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">{p.name}</p>
-                <span className={`text-xs px-2 py-0.5 rounded border mt-1 inline-block ${p.color}`}>{p.group}</span>
+                <Tag color={p.color} className="mt-1">{p.group}</Tag>
               </div>
               <ChevronRight size={14} className="text-muted-foreground/60" />
             </div>

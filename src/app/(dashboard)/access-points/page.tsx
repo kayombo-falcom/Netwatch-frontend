@@ -7,6 +7,8 @@ import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
 import { StatusBadge } from "@/components/status-badge";
+import { IconSwatch } from "@/components/icon-swatch";
+import { Tag } from "@/components/tag";
 import { apsData } from "@/app/_lib/dashboard-data";
 
 export default function AccessPointsPage() {
@@ -29,9 +31,9 @@ export default function AccessPointsPage() {
             <div className="p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg ${ap.status === "online" ? "bg-tint-teal-bg text-tint-teal-fg" : "bg-tint-amber-bg text-tint-amber-fg"}`}>
+                  <IconSwatch color={ap.status === "online" ? "teal" : "amber"}>
                     <Radio size={18} />
-                  </div>
+                  </IconSwatch>
                   <div>
                     <h3 className="font-semibold text-foreground text-sm">{ap.name}</h3>
                     <p className="text-xs text-muted-foreground">{ap.location} · {ap.model}</p>
@@ -68,9 +70,9 @@ export default function AccessPointsPage() {
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <span className="font-mono text-xs text-muted-foreground/60">{ap.ip}</span>
-                <span className={`text-xs px-2 py-0.5 rounded ${ap.firmware === "6.4.1" ? "bg-tint-teal-bg text-tint-teal-fg" : "bg-tint-amber-bg text-tint-amber-fg"}`}>
+                <Tag color={ap.firmware === "6.4.1" ? "teal" : "amber"} bordered={false}>
                   fw {ap.firmware} {ap.firmware !== "6.4.1" && "· update available"}
-                </span>
+                </Tag>
               </div>
             </div>
           </Card>

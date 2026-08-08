@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { XCircle, AlertTriangle, Info, Eye, X, Clock, ArrowUpRight, CheckCircle } from "lucide-react";
+import { Eye, X, Clock, ArrowUpRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/card";
 import { SeverityBadge } from "@/components/severity-badge";
+import { SeverityIcon } from "@/components/severity-icon";
+import { IconButton } from "@/components/icon-button";
 import { alertsData, type Severity } from "@/app/_lib/dashboard-data";
+import { STATUS, SEVERITY_STATUS } from "@/lib/colors";
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState(alertsData);
@@ -16,12 +19,6 @@ export default function AlertsPage() {
 
   const filtered = alerts.filter(a => filter === "all" || a.severity === filter);
   const unread = alerts.filter(a => !a.read).length;
-
-  const severityIcon = (s: Severity) => ({
-    critical: <XCircle size={16} className="text-status-critical shrink-0" />,
-    warning: <AlertTriangle size={16} className="text-status-warning shrink-0" />,
-    info: <Info size={16} className="text-status-online shrink-0" />,
-  }[s]);
 
   return (
     <div className="space-y-4">
@@ -52,10 +49,10 @@ export default function AlertsPage() {
         ) : filtered.map(a => (
           <Card
             key={a.id}
-            className={`transition-all ${!a.read ? "border-l-4 " + (a.severity === "critical" ? "border-l-status-critical" : a.severity === "warning" ? "border-l-status-warning" : "border-l-status-online") : ""}`}
+            className={`transition-all ${!a.read ? `border-l-4 ${STATUS[SEVERITY_STATUS[a.severity]].borderLeft}` : ""}`}
           >
             <div className="flex items-start gap-3 p-4">
-              <div className="mt-0.5">{severityIcon(a.severity)}</div>
+              <div className="mt-0.5"><SeverityIcon severity={a.severity} size={16} /></div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -65,13 +62,9 @@ export default function AlertsPage() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {!a.read && (
-                      <button onClick={() => markRead(a.id)} className="p-1 rounded hover:bg-muted text-muted-foreground/60 text-xs" title="Mark read">
-                        <Eye size={12} />
-                      </button>
+                      <IconButton color="aqua" title="Mark read" onClick={() => markRead(a.id)} icon={<Eye size={12} />} />
                     )}
-                    <button onClick={() => dismiss(a.id)} className="p-1 rounded hover:bg-muted text-muted-foreground/60" title="Dismiss">
-                      <X size={12} />
-                    </button>
+                    <IconButton color="destructive" title="Dismiss" onClick={() => dismiss(a.id)} icon={<X size={12} />} />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{a.message}</p>

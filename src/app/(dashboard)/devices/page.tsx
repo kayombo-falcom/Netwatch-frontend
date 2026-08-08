@@ -7,6 +7,7 @@ import { Card } from "@/components/card";
 import { Btn } from "@/components/btn";
 import { StatusBadge } from "@/components/status-badge";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { IconButton } from "@/components/icon-button";
 import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
 
 export default function DevicesPage() {
@@ -90,21 +91,9 @@ export default function DevicesPage() {
                   <td className="px-4 py-3 font-mono text-xs text-foreground/80">{d.data}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button
-                        onClick={() => setConfirm({ type: "disconnect", device: d })}
-                        className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 transition-colors"
-                        title="Disconnect"
-                      ><WifiOff size={13} /></button>
-                      <button
-                        onClick={() => setConfirm({ type: "pause", device: d })}
-                        className="p-1.5 rounded hover:bg-tint-amber-bg hover:text-tint-amber-fg text-muted-foreground/60 transition-colors"
-                        title="Pause"
-                      ><Pause size={13} /></button>
-                      <button
-                        onClick={() => setConfirm({ type: "block", device: d })}
-                        className="p-1.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground/60 transition-colors"
-                        title="Block"
-                      ><Ban size={13} /></button>
+                      <IconButton color="destructive" title="Disconnect" onClick={() => setConfirm({ type: "disconnect", device: d })} icon={<WifiOff size={13} />} />
+                      <IconButton color="amber" title="Pause" onClick={() => setConfirm({ type: "pause", device: d })} icon={<Pause size={13} />} />
+                      <IconButton color="destructive" title="Block" onClick={() => setConfirm({ type: "block", device: d })} icon={<Ban size={13} />} />
                     </div>
                   </td>
                 </tr>

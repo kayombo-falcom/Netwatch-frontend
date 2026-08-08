@@ -36,10 +36,10 @@ export default function TrafficPage() {
 
       {/* Summary metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Total Downloaded" value="1.02 TB" sub="across 7 days" icon={<Download size={18} />} color="blue" />
-        <MetricCard label="Total Uploaded" value="348 GB" sub="across 7 days" icon={<Upload size={18} />} color="green" />
+        <MetricCard label="Total Downloaded" value="1.02 TB" sub="across 7 days" icon={<Download size={18} />} color="navy" />
+        <MetricCard label="Total Uploaded" value="348 GB" sub="across 7 days" icon={<Upload size={18} />} color="teal" />
         <MetricCard label="Blocked Requests" value="2,341" sub="avg 334/day" icon={<Ban size={18} />} color="amber" />
-        <MetricCard label="Peak Throughput" value="224 Mbps" sub="Friday 15:30" icon={<TrendingUp size={18} />} color="purple" />
+        <MetricCard label="Peak Throughput" value="224 Mbps" sub="Friday 15:30" icon={<TrendingUp size={18} />} color="aqua" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
