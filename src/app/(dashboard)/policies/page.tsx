@@ -7,7 +7,7 @@ import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
 import { Tag } from "@/components/tag";
 import { Dropdown } from "@/components/dropdown";
-import type { TintColor } from "@/lib/colors";
+import { TINT, type TintColor } from "@/lib/colors";
 
 const POLICIES: { name: string; group: string; color: TintColor }[] = [
   { name: "Guest Wi-Fi", group: "Guests", color: "muted" },
@@ -171,8 +171,8 @@ export default function PoliciesPage() {
                   : "bg-tint-navy-bg border-tint-navy-fg/30 text-tint-navy-fg"
               }`}>
                 {simResult === "allowed"
-                  ? <CheckCircle size={18} className="text-tint-teal-fg shrink-0" />
-                  : <XCircle size={18} className="text-tint-navy-fg shrink-0" />
+                  ? <CheckCircle size={18} className={`${TINT.teal.fg} shrink-0`} />
+                  : <XCircle size={18} className={`${TINT.navy.fg} shrink-0`} />
                 }
                 <div>
                   <p className="font-semibold text-sm">

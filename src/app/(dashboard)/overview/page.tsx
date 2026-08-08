@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { MetricCard } from "@/components/metric-card";
 import { SeverityIcon } from "@/components/severity-icon";
 import { alertsData, apsData, devicesData, bwData } from "@/app/_lib/dashboard-data";
+import { TINT } from "@/lib/colors";
 
 export default function OverviewPage() {
   const recentAlerts = alertsData.slice(0, 3);
@@ -97,7 +98,7 @@ export default function OverviewPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-xs font-mono font-semibold ${ap.load > 70 ? "text-tint-amber-fg" : "text-foreground/80"}`}>{ap.load}%</div>
+                    <div className={`text-xs font-mono font-semibold ${ap.load > 70 ? TINT.amber.fg : "text-foreground/80"}`}>{ap.load}%</div>
                     <div className="text-xs text-muted-foreground/60">load</div>
                   </div>
                 </div>

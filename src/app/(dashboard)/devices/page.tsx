@@ -11,6 +11,7 @@ import { IconButton } from "@/components/icon-button";
 import { Pagination } from "@/components/pagination";
 import { Modal } from "@/components/modal";
 import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
+import { TINT } from "@/lib/colors";
 
 export default function DevicesPage() {
   const [filter, setFilter] = useState<"all" | DeviceStatus>("all");
@@ -173,7 +174,7 @@ export default function DevicesPage() {
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-2">Applied Policy</p>
               <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2 mb-1"><Shield size={12} className="text-tint-aqua-fg" /> <span className="font-medium">Staff Default</span></div>
+                <div className="flex items-center gap-2 mb-1"><Shield size={12} className={TINT.aqua.fg} /> <span className="font-medium">Staff Default</span></div>
                 <p className="text-muted-foreground">Bandwidth limit: 20 Mbps · Block: P2P, Streaming (off-hours) · Session: 12h</p>
               </div>
             </div>

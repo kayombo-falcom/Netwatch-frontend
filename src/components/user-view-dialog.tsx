@@ -2,8 +2,9 @@ import { Pencil } from "lucide-react";
 import { Btn } from "@/components/btn";
 import { Modal } from "@/components/modal";
 import { Tag } from "@/components/tag";
+import { UserStatusBadge } from "@/components/user-status-badge";
 import type { usersData } from "@/app/_lib/dashboard-data";
-import { tintContrastText, USER_ROLE_TINT, USER_STATUS_TINT, USER_STATUS_DOT, USER_STATUS_LABEL } from "@/lib/colors";
+import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 
 export const UserViewDialog = ({
   user, onClose, onEdit,
@@ -27,12 +28,7 @@ export const UserViewDialog = ({
     <div className="grid grid-cols-2 gap-3">
       {[
         ["Role", <Tag key="role" color={USER_ROLE_TINT[user.role] ?? "muted"}>{user.role}</Tag>],
-        ["Status", (
-          <Tag key="status" color={USER_STATUS_TINT[user.status]} className="font-mono">
-            <span className={`inline-block w-2 h-2 rounded-full ${USER_STATUS_DOT[user.status]} shrink-0`} />
-            {USER_STATUS_LABEL[user.status]}
-          </Tag>
-        )],
+        ["Status", <UserStatusBadge key="status" status={user.status} />],
         ["Policy", user.policy],
         ["Last Seen", user.lastSeen],
       ].map(([label, val]) => (

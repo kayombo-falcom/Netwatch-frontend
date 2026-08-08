@@ -8,9 +8,10 @@ import { Tag } from "@/components/tag";
 import { IconButton } from "@/components/icon-button";
 import { UserFormDialog, type UserFormValues } from "@/components/user-form-dialog";
 import { UserViewDialog } from "@/components/user-view-dialog";
+import { UserStatusBadge } from "@/components/user-status-badge";
 import { Pagination } from "@/components/pagination";
 import { usersData } from "@/app/_lib/dashboard-data";
-import { tintContrastText, USER_ROLE_TINT, USER_STATUS_TINT, USER_STATUS_DOT, USER_STATUS_LABEL } from "@/lib/colors";
+import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 
 const initialsFor = (name: string) => {
   const parts = name.trim().split(/\s+/);
@@ -119,10 +120,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.policy}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.lastSeen}</td>
                   <td className="px-4 py-3">
-                    <Tag color={USER_STATUS_TINT[u.status]} className="font-mono">
-                      <span className={`inline-block w-2 h-2 rounded-full ${USER_STATUS_DOT[u.status]} shrink-0`} />
-                      {USER_STATUS_LABEL[u.status]}
-                    </Tag>
+                    <UserStatusBadge status={u.status} />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">

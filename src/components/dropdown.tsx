@@ -45,7 +45,7 @@ export const Dropdown = ({
                 className={`flex items-center justify-between gap-2 px-2.5 py-1.5 text-sm rounded-md cursor-pointer select-none text-foreground outline-none transition-colors data-highlighted:${TINT.aqua.bg} data-highlighted:${TINT.aqua.fg}`}
               >
                 <Select.ItemText>{opt.label}</Select.ItemText>
-                <Select.ItemIndicator className="text-tint-teal-fg shrink-0">
+                <Select.ItemIndicator className={`${TINT.teal.fg} shrink-0`}>
                   <Check size={13} />
                 </Select.ItemIndicator>
               </Select.Item>
