@@ -6,6 +6,7 @@ import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
 import { Tag } from "@/components/tag";
+import { Dropdown } from "@/components/dropdown";
 import type { TintColor } from "@/lib/colors";
 
 const POLICIES: { name: string; group: string; color: TintColor }[] = [
@@ -15,6 +16,8 @@ const POLICIES: { name: string; group: string; color: TintColor }[] = [
   { name: "Student Tier", group: "Students", color: "teal" },
   { name: "IoT Isolated", group: "IoT", color: "amber" },
 ];
+
+const SIM_GROUPS = ["Admins", "Staff", "Students", "Guests", "IoT"].map(g => ({ label: g, value: g }));
 
 export default function PoliciesPage() {
   const [simResult, setSimResult] = useState<"idle" | "allowed" | "blocked">("idle");
@@ -139,13 +142,11 @@ export default function PoliciesPage() {
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">User Group</label>
-                <select
+                <Dropdown
+                  options={SIM_GROUPS}
                   value={simUser}
-                  onChange={e => { setSimUser(e.target.value); setSimResult("idle"); }}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-1.5 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  {["Admins", "Staff", "Students", "Guests", "IoT"].map(g => <option key={g}>{g}</option>)}
-                </select>
+                  onChange={v => { setSimUser(v); setSimResult("idle"); }}
+                />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Time of Day</label>

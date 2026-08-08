@@ -4,11 +4,13 @@ import { useState } from "react";
 import { UserPlus, Pencil } from "lucide-react";
 import { Btn } from "@/components/btn";
 import { Modal } from "@/components/modal";
+import { Dropdown } from "@/components/dropdown";
 import type { UserStatus } from "@/app/_lib/dashboard-data";
 import { tintClass } from "@/lib/colors";
 
-const ROLES = ["Admins", "Staff", "Students", "Guests", "IoT"];
-const POLICIES = ["Full Access", "Staff Default", "Student Tier", "Guest Wi-Fi", "IoT Isolated"];
+const ROLES = ["Admins", "Staff", "Students", "Guests", "IoT"].map(r => ({ label: r, value: r }));
+const POLICIES = ["Full Access", "Staff Default", "Student Tier", "Guest Wi-Fi", "IoT Isolated"].map(p => ({ label: p, value: p }));
+const STATUSES = [{ label: "Active", value: "active" }, { label: "Suspended", value: "suspended" }];
 
 const fieldClass = "w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary";
 const labelClass = "text-xs font-medium text-muted-foreground mb-1 block";
@@ -25,8 +27,8 @@ export const UserFormDialog = ({
 }) => {
   const [name, setName] = useState(initialValues?.name ?? "");
   const [email, setEmail] = useState(initialValues?.email ?? "");
-  const [role, setRole] = useState(initialValues?.role ?? ROLES[0]);
-  const [policy, setPolicy] = useState(initialValues?.policy ?? POLICIES[0]);
+  const [role, setRole] = useState(initialValues?.role ?? ROLES[0].value);
+  const [policy, setPolicy] = useState(initialValues?.policy ?? POLICIES[0].value);
   const [status, setStatus] = useState<UserStatus>(initialValues?.status ?? "active");
 
   const submit = () => {
@@ -69,23 +71,16 @@ export const UserFormDialog = ({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelClass}>Role</label>
-            <select className={fieldClass} value={role} onChange={e => setRole(e.target.value)}>
-              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <Dropdown options={ROLES} value={role} onChange={setRole} />
           </div>
           <div>
             <label className={labelClass}>Policy</label>
-            <select className={fieldClass} value={policy} onChange={e => setPolicy(e.target.value)}>
-              {POLICIES.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+            <Dropdown options={POLICIES} value={policy} onChange={setPolicy} />
           </div>
         </div>
         <div>
           <label className={labelClass}>Status</label>
-          <select className={fieldClass} value={status} onChange={e => setStatus(e.target.value as UserStatus)}>
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
-          </select>
+          <Dropdown options={STATUSES} value={status} onChange={v => setStatus(v as UserStatus)} />
         </div>
       </div>
 

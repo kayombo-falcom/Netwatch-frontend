@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { IconSwatch } from "@/components/icon-swatch";
 import { Tag } from "@/components/tag";
 import { apsData } from "@/app/_lib/dashboard-data";
+import { TINT } from "@/lib/colors";
 
 export default function AccessPointsPage() {
   const [selected, setSelected] = useState<typeof apsData[0] | null>(null);
@@ -49,7 +50,7 @@ export default function AccessPointsPage() {
                   { label: "Load", value: `${ap.load}%` },
                 ].map(m => (
                   <div key={m.label} className="text-center">
-                    <div className={`text-lg font-bold tabular-nums ${m.label === "Load" && ap.load > 70 ? "text-tint-amber-fg" : "text-foreground"}`}>
+                    <div className={`text-lg font-bold tabular-nums ${m.label === "Load" && ap.load > 70 ? TINT.amber.fg : "text-foreground"}`}>
                       {m.value}
                     </div>
                     <div className="text-xs text-muted-foreground/60">{m.label}</div>

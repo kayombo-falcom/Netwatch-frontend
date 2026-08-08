@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronLeft, ChevronRight, WifiOff, Pause, Ban, X, Shield } from "lucide-react";
+import { Search, WifiOff, Pause, Ban, X, Shield } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/card";
 import { Btn } from "@/components/btn";
 import { StatusBadge } from "@/components/status-badge";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { IconButton } from "@/components/icon-button";
+import { Pagination } from "@/components/pagination";
+import { Modal } from "@/components/modal";
 import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
 
 export default function DevicesPage() {
@@ -101,21 +103,7 @@ export default function DevicesPage() {
             </tbody>
           </table>
         </div>
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-          <p className="text-xs text-muted-foreground">Showing {Math.min((page - 1) * perPage + 1, filtered.length)}–{Math.min(page * perPage, filtered.length)} of {filtered.length}</p>
-          <div className="flex gap-1">
-            <Btn variant="secondary" size="xs" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}><ChevronLeft size={12} /></Btn>
-            {Array.from({ length: pages }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`w-7 h-7 rounded text-xs font-medium transition-colors ${page === i + 1 ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}
-              >{i + 1}</button>
-            ))}
-            <Btn variant="secondary" size="xs" onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}><ChevronRight size={12} /></Btn>
-          </div>
-        </div>
+        <Pagination page={page} pages={pages} total={filtered.length} perPage={perPage} onPageChange={setPage} itemLabel="device" />
       </Card>
 
       {/* Cards — mobile */}
@@ -146,59 +134,56 @@ export default function DevicesPage() {
 
       {/* Detail Drawer */}
       {drawer && (
-        <div className="fixed inset-0 z-40 flex justify-end">
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setDrawer(null)} />
-          <div className="relative w-full max-w-md bg-card text-card-foreground h-full shadow-2xl flex flex-col overflow-y-auto z-50">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <h2 className="font-semibold text-foreground text-sm">{drawer.name}</h2>
-              <button onClick={() => setDrawer(null)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><X size={16} /></button>
-            </div>
-            <div className="flex-1 p-5 space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  ["Status", <StatusBadge key="status" status={drawer.status} />],
-                  ["Type", drawer.type],
-                  ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
-                  ["MAC", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
-                  ["Access Point", drawer.ap],
-                  ["Session", drawer.session],
-                  ["Data Used", drawer.data],
-                  ["User", drawer.user],
-                ].map(([label, val]) => (
-                  <div key={label as string}>
-                    <p className="text-xs text-muted-foreground/60 mb-0.5">{label as string}</p>
-                    <div className="text-xs font-medium text-foreground">{val as React.ReactNode}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">7-Day Usage</p>
-                <ResponsiveContainer width="100%" height={120}>
-                  <BarChart data={deviceUsageData}>
-                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
-                    <YAxis hide />
-                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v} GB`]} />
-                    <Bar dataKey="v" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Applied Policy</p>
-                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2 mb-1"><Shield size={12} className="text-tint-aqua-fg" /> <span className="font-medium">Staff Default</span></div>
-                  <p className="text-muted-foreground">Bandwidth limit: 20 Mbps · Block: P2P, Streaming (off-hours) · Session: 12h</p>
+        <Modal open onClose={() => setDrawer(null)} position="right" className="max-w-md flex flex-col overflow-y-auto">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground text-sm">{drawer.name}</h2>
+            <button onClick={() => setDrawer(null)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><X size={16} /></button>
+          </div>
+          <div className="flex-1 p-5 space-y-5">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["Status", <StatusBadge key="status" status={drawer.status} />],
+                ["Type", drawer.type],
+                ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
+                ["MAC", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
+                ["Access Point", drawer.ap],
+                ["Session", drawer.session],
+                ["Data Used", drawer.data],
+                ["User", drawer.user],
+              ].map(([label, val]) => (
+                <div key={label as string}>
+                  <p className="text-xs text-muted-foreground/60 mb-0.5">{label as string}</p>
+                  <div className="text-xs font-medium text-foreground">{val as React.ReactNode}</div>
                 </div>
-              </div>
+              ))}
             </div>
-            <div className="px-5 py-4 border-t border-border flex gap-2">
-              <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "disconnect", device: drawer })}><WifiOff size={13} /> Disconnect</Btn>
-              <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "pause", device: drawer })}><Pause size={13} /> Pause</Btn>
-              <Btn variant="danger" size="sm" onClick={() => setConfirm({ type: "block", device: drawer })}><Ban size={13} /> Block</Btn>
+
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">7-Day Usage</p>
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={deviceUsageData}>
+                  <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                  <YAxis hide />
+                  <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v} GB`]} />
+                  <Bar dataKey="v" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Applied Policy</p>
+              <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 mb-1"><Shield size={12} className="text-tint-aqua-fg" /> <span className="font-medium">Staff Default</span></div>
+                <p className="text-muted-foreground">Bandwidth limit: 20 Mbps · Block: P2P, Streaming (off-hours) · Session: 12h</p>
+              </div>
             </div>
           </div>
-        </div>
+          <div className="px-5 py-4 border-t border-border flex gap-2">
+            <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "disconnect", device: drawer })}><WifiOff size={13} /> Disconnect</Btn>
+            <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "pause", device: drawer })}><Pause size={13} /> Pause</Btn>
+            <Btn variant="danger" size="sm" onClick={() => setConfirm({ type: "block", device: drawer })}><Ban size={13} /> Block</Btn>
+          </div>
+        </Modal>
       )}
 
       <ConfirmDialog

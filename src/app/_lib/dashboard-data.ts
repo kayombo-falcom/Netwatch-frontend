@@ -62,14 +62,14 @@ export const devicesData = [
 ];
 
 export const usersData = [
-  { id: 1, name: "Sarah Chen", email: "sarah.chen@netwatch.io", initials: "SC", role: "Admins", status: "active" as UserStatus, devices: 3, data: "8.4 GB", policy: "Full Access", lastSeen: "now", color: "var(--chart-1)" },
-  { id: 2, name: "Marcus Webb", email: "marcus.webb@netwatch.io", initials: "MW", role: "Staff", status: "active" as UserStatus, devices: 2, data: "2.1 GB", policy: "Staff Default", lastSeen: "12m ago", color: "var(--chart-4)" },
-  { id: 3, name: "Tom Kowalski", email: "tom.kowalski@netwatch.io", initials: "TK", role: "Staff", status: "active" as UserStatus, devices: 1, data: "1.4 GB", policy: "Staff Default", lastSeen: "2h ago", color: "var(--chart-4)" },
-  { id: 4, name: "Lena Morales", email: "lena.morales@netwatch.io", initials: "LM", role: "Staff", status: "suspended" as UserStatus, devices: 2, data: "990 MB", policy: "Staff Default", lastSeen: "5m ago", color: "var(--chart-4)" },
-  { id: 5, name: "James Park", email: "james.park@student.netwatch.io", initials: "JP", role: "Students", status: "active" as UserStatus, devices: 1, data: "450 MB", policy: "Student Tier", lastSeen: "1h ago", color: "var(--chart-3)" },
-  { id: 6, name: "Priya Nair", email: "priya.nair@student.netwatch.io", initials: "PN", role: "Students", status: "active" as UserStatus, devices: 2, data: "310 MB", policy: "Student Tier", lastSeen: "30m ago", color: "var(--chart-3)" },
-  { id: 7, name: "Guest #4821", email: "guest4821@netwatch.io", initials: "G", role: "Guests", status: "active" as UserStatus, devices: 1, data: "55 MB", policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "var(--chart-2)" },
-  { id: 8, name: "Thermostat Hub", email: "thermostat-hub@iot.netwatch.io", initials: "T", role: "IoT", status: "active" as UserStatus, devices: 4, data: "61 GB", policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
+  { id: 1, name: "Sarah Chen", email: "sarah.chen@netwatch.io", initials: "SC", role: "Admins", status: "active" as UserStatus, policy: "Full Access", lastSeen: "now", color: "var(--chart-1)" },
+  { id: 2, name: "Marcus Webb", email: "marcus.webb@netwatch.io", initials: "MW", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "12m ago", color: "var(--chart-4)" },
+  { id: 3, name: "Tom Kowalski", email: "tom.kowalski@netwatch.io", initials: "TK", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "2h ago", color: "var(--chart-4)" },
+  { id: 4, name: "Lena Morales", email: "lena.morales@netwatch.io", initials: "LM", role: "Staff", status: "suspended" as UserStatus, policy: "Staff Default", lastSeen: "5m ago", color: "var(--chart-4)" },
+  { id: 5, name: "James Park", email: "james.park@student.netwatch.io", initials: "JP", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "1h ago", color: "var(--chart-3)" },
+  { id: 6, name: "Priya Nair", email: "priya.nair@student.netwatch.io", initials: "PN", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "30m ago", color: "var(--chart-3)" },
+  { id: 7, name: "Guest #4821", email: "guest4821@netwatch.io", initials: "G", role: "Guests", status: "active" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "var(--chart-2)" },
+  { id: 8, name: "Thermostat Hub", email: "thermostat-hub@iot.netwatch.io", initials: "T", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
 ];
 
 export const apsData = [

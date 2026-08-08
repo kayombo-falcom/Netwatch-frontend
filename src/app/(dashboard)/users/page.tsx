@@ -8,6 +8,7 @@ import { Tag } from "@/components/tag";
 import { IconButton } from "@/components/icon-button";
 import { UserFormDialog, type UserFormValues } from "@/components/user-form-dialog";
 import { UserViewDialog } from "@/components/user-view-dialog";
+import { Pagination } from "@/components/pagination";
 import { usersData } from "@/app/_lib/dashboard-data";
 import { tintContrastText, USER_ROLE_TINT, USER_STATUS_TINT, USER_STATUS_DOT, USER_STATUS_LABEL } from "@/lib/colors";
 
@@ -22,10 +23,12 @@ export default function UsersPage() {
   const [users, setUsers] = useState(usersData);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [page, setPage] = useState(1);
   const [dialog, setDialog] = useState<
     { mode: "add" } | { mode: "edit" | "view"; user: typeof usersData[number] } | null
   >(null);
   const roles = ["All", "Admins", "Staff", "Students", "Guests", "IoT"];
+  const perPage = 5;
 
   const addUser = (values: UserFormValues) => {
     setUsers(prev => [...prev, {
@@ -35,8 +38,6 @@ export default function UsersPage() {
       initials: initialsFor(values.name),
       role: values.role,
       status: values.status,
-      devices: 0,
-      data: "0 MB",
       policy: values.policy,
       lastSeen: "Never",
       color: `var(--chart-${(prev.length % 5) + 1})`,
@@ -60,6 +61,8 @@ export default function UsersPage() {
     if (search && !u.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+  const pages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div className="space-y-4">
@@ -68,7 +71,7 @@ export default function UsersPage() {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <input
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search users…"
             className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-56"
           />
@@ -77,7 +80,7 @@ export default function UsersPage() {
           {roles.map(r => (
             <button
               key={r}
-              onClick={() => setRoleFilter(r)}
+              onClick={() => { setRoleFilter(r); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${roleFilter === r ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
             >{r}</button>
           ))}
@@ -96,9 +99,9 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.length === 0 ? (
+              {paged.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No users match your filters.</td></tr>
-              ) : filtered.map(u => (
+              ) : paged.map(u => (
                 <tr key={u.id} className="hover:bg-muted transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -133,6 +136,7 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+        <Pagination page={page} pages={pages} total={filtered.length} perPage={perPage} onPageChange={setPage} itemLabel="user" />
       </Card>
 
       {dialog?.mode === "view" && (
