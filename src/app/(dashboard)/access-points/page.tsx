@@ -61,7 +61,7 @@ export default function AccessPointsPage() {
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${ap.load > 80 ? "bg-(--brand-navy)" : ap.load > 60 ? "bg-(--brand-amber)" : "bg-(--brand-teal)"}`}
+                    className={`h-full rounded-full transition-all ${ap.load > 80 ? "bg-status-critical" : ap.load > 60 ? "bg-status-warning" : "bg-status-online"}`}
                     style={{ width: `${ap.load}%` }}
                   />
                 </div>

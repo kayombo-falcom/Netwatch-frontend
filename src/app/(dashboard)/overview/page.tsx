@@ -110,7 +110,7 @@ export default function OverviewPage() {
               {recentAlerts.map(a => (
                 <div key={a.id} className="px-4 py-3">
                   <div className="flex items-start gap-2">
-                    <span className={`mt-0.5 shrink-0 ${a.severity === "critical" ? "text-(--brand-navy)" : a.severity === "warning" ? "text-(--brand-amber)" : "text-(--brand-teal)"}`}>
+                    <span className={`mt-0.5 shrink-0 ${a.severity === "critical" ? "text-status-critical" : a.severity === "warning" ? "text-status-warning" : "text-status-online"}`}>
                       {a.severity === "critical" ? <XCircle size={13} /> : a.severity === "warning" ? <AlertTriangle size={13} /> : <Info size={13} />}
                     </span>
                     <div>

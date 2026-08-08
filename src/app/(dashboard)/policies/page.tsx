@@ -81,7 +81,7 @@ export default function PoliciesPage() {
                 <div className="space-y-1.5">
                   {["Web Browsing", "Email", "Video Calls (HD)"].map(i => (
                     <div key={i} className="flex items-center gap-2 text-xs text-foreground/80">
-                      <CheckCircle size={12} className="text-(--brand-teal) shrink-0" /> {i}
+                      <CheckCircle size={12} className="text-status-online shrink-0" /> {i}
                     </div>
                   ))}
                 </div>
@@ -91,7 +91,7 @@ export default function PoliciesPage() {
                 <div className="space-y-1.5">
                   {["P2P / Torrents", "Gaming Servers", "Adult Content"].map(i => (
                     <div key={i} className="flex items-center gap-2 text-xs text-foreground/80">
-                      <XCircle size={12} className="text-(--brand-navy) shrink-0" /> {i}
+                      <XCircle size={12} className="text-status-critical shrink-0" /> {i}
                     </div>
                   ))}
                 </div>

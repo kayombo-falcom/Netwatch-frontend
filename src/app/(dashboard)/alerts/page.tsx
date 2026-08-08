@@ -18,9 +18,9 @@ export default function AlertsPage() {
   const unread = alerts.filter(a => !a.read).length;
 
   const severityIcon = (s: Severity) => ({
-    critical: <XCircle size={16} className="text-(--brand-navy) shrink-0" />,
-    warning: <AlertTriangle size={16} className="text-(--brand-amber) shrink-0" />,
-    info: <Info size={16} className="text-(--brand-teal) shrink-0" />,
+    critical: <XCircle size={16} className="text-status-critical shrink-0" />,
+    warning: <AlertTriangle size={16} className="text-status-warning shrink-0" />,
+    info: <Info size={16} className="text-status-online shrink-0" />,
   }[s]);
 
   return (
@@ -45,14 +45,14 @@ export default function AlertsPage() {
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <Card className="py-16 text-center">
-            <CheckCircle size={32} className="mx-auto text-(--brand-teal) mb-3" />
+            <CheckCircle size={32} className="mx-auto text-status-online mb-3" />
             <p className="text-sm font-medium text-foreground/80">No alerts</p>
             <p className="text-xs text-muted-foreground/60 mt-1">All clear for this category.</p>
           </Card>
         ) : filtered.map(a => (
           <Card
             key={a.id}
-            className={`transition-all ${!a.read ? "border-l-4 " + (a.severity === "critical" ? "border-l-(--brand-navy)" : a.severity === "warning" ? "border-l-(--brand-amber)" : "border-l-(--brand-teal)") : ""}`}
+            className={`transition-all ${!a.read ? "border-l-4 " + (a.severity === "critical" ? "border-l-status-critical" : a.severity === "warning" ? "border-l-status-warning" : "border-l-status-online") : ""}`}
           >
             <div className="flex items-start gap-3 p-4">
               <div className="mt-0.5">{severityIcon(a.severity)}</div>

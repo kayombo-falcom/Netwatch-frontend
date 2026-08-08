@@ -6,9 +6,9 @@ import { Bell, XCircle, AlertTriangle, Info, CheckCheck } from "lucide-react";
 import { alertsData, type Severity } from "@/app/_lib/dashboard-data";
 
 const severityIcon = (s: Severity) => ({
-  critical: <XCircle size={14} className="text-(--brand-navy) shrink-0" />,
-  warning: <AlertTriangle size={14} className="text-(--brand-amber) shrink-0" />,
-  info: <Info size={14} className="text-(--brand-teal) shrink-0" />,
+  critical: <XCircle size={14} className="text-status-critical shrink-0" />,
+  warning: <AlertTriangle size={14} className="text-status-warning shrink-0" />,
+  info: <Info size={14} className="text-status-online shrink-0" />,
 }[s]);
 
 export const NotificationBell = () => {

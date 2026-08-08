@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Wifi } from "lucide-react";
 import { navItems, alertsData } from "@/app/_lib/dashboard-data";
 import {
@@ -23,11 +23,16 @@ const unreadAlerts = alertsData.filter(a => !a.read).length;
 
 export const AppSidebar = () => {
   const pathname = usePathname();
-  const { toggleSidebar } = useSidebar();
+  const router = useRouter();
+  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
 
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("a, button")) return;
     toggleSidebar();
+  };
+
+  const handleNavClick = () => {
+    if (isMobile) setOpenMobile(false);
   };
 
   return (
@@ -58,7 +63,7 @@ export const AppSidebar = () => {
                       tooltip={item.label}
                       className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-active:bg-sidebar-primary/15 data-active:text-sidebar-primary data-active:font-medium"
                       render={
-                        <Link href={item.href}>
+                        <Link href={item.href} onClick={handleNavClick}>
                           <Icon size={16} />
                           <span>{item.label}</span>
                         </Link>
@@ -80,6 +85,7 @@ export const AppSidebar = () => {
       <SidebarFooter className="gap-1 border-t border-sidebar-border py-3">
         <SidebarMenuButton
           tooltip="Sign out"
+          onClick={() => router.push("/login")}
           className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-xs"
         >
           <LogOut size={13} />

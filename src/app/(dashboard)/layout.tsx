@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   ChevronRight, Search,
@@ -10,15 +9,15 @@ import { screenTitles } from "@/app/_lib/dashboard-data";
 import { NotificationBell } from "@/components/notification-bell";
 import { AppSidebar } from "@/components/sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [dark, setDark] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const activeKey = pathname.slice(1);
 
   return (
-    <div className={dark ? "dark" : ""}>
     <SidebarProvider className="h-screen bg-background overflow-hidden" style={{ fontFamily: "var(--font-sans)" }}>
       <AppSidebar />
 
@@ -40,11 +39,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="ml-auto flex items-center gap-1">
             {/* Dark mode toggle */}
             <button
-              onClick={() => setDark(d => !d)}
+              onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {dark ? <Sun size={17} /> : <Moon size={17} />}
+              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
             </button>
 
             {/* Alerts */}
@@ -70,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <h1 className="text-xl font-bold text-foreground">{screenTitles[activeKey]}</h1>
               {activeKey === "overview" && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <div className="w-1.5 h-1.5 rounded-full bg-(--brand-teal) animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-status-online animate-pulse" />
                   Live monitoring active
                 </div>
               )}
@@ -81,6 +80,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
       </div>
     </SidebarProvider>
-    </div>
   );
 }

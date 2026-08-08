@@ -21,13 +21,13 @@
   --secondary: #fbeeda;
   --secondary-foreground: var(--brand-navy);
   --muted: #fdfcfa;
-  --muted-foreground: #6b7686;
+  --muted-foreground: #526171;
   --accent: var(--brand-amber);
   --accent-foreground: var(--brand-navy);
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: rgba(12, 44, 71, 0.12);
-  --input: transparent;
+  --input: rgba(12, 44, 71, 0.18);
   --input-background: #fdfcfa;
   --switch-background: #dcd6cd;
   --font-weight-medium: 500;
@@ -57,6 +57,9 @@
   --tint-teal-fg: var(--brand-teal);
   --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 35%, white);
   --tint-aqua-fg: var(--brand-teal);
+  --status-online: #176b63;
+  --status-warning: #9a5d10;
+  --status-critical: #a32a23;
   --background: var(--brand-cream);
   --foreground: var(--brand-navy);
 }
@@ -79,7 +82,7 @@
   --secondary: var(--brand-teal);
   --secondary-foreground: #e7f0ec;
   --muted: #16344b;
-  --muted-foreground: #9fb3c4;
+  --muted-foreground: #c6d4df;
   --accent: var(--brand-teal);
   --accent-foreground: #e7f0ec;
   --destructive: #ef4444;
@@ -96,11 +99,11 @@
   --chart-3: color-mix(in srgb, var(--brand-teal) 55%, white);
   --chart-4: color-mix(in srgb, var(--brand-navy) 55%, white);
   --chart-5: color-mix(in srgb, var(--brand-amber) 50%, var(--brand-aqua) 50%);
-  --sidebar: #071a2b;
+  --sidebar: #0a2338;
   --sidebar-foreground: #d9e4df;
   --sidebar-primary: var(--brand-amber);
   --sidebar-primary-foreground: var(--brand-navy);
-  --sidebar-accent: #102a40;
+  --sidebar-accent: #16344b;
   --sidebar-accent-foreground: #e7f0ec;
   --sidebar-border: rgba(255, 255, 255, 0.05);
   --sidebar-ring: var(--brand-amber);
@@ -114,6 +117,9 @@
   --tint-teal-fg: var(--brand-aqua);
   --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 20%, var(--card));
   --tint-aqua-fg: var(--brand-aqua);
+  --status-online: #7fe0d3;
+  --status-warning: #f4c676;
+  --status-critical: #f4a39e;
 }
 
 @theme inline {
@@ -163,6 +169,9 @@
   --color-tint-teal-fg: var(--tint-teal-fg);
   --color-tint-aqua-bg: var(--tint-aqua-bg);
   --color-tint-aqua-fg: var(--tint-aqua-fg);
+  --color-status-online: var(--status-online);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
   --font-sans: var(--font-inter-sans);
   --font-mono: var(--font-jetbrains-mono);
   --font-heading: var(--font-inter-sans);
