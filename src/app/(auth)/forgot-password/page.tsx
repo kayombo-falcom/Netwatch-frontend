@@ -5,13 +5,22 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FieldError } from "@/components/field-error";
+import { RequiredMark } from "@/components/required-mark";
+import { isValidEmail } from "@/lib/validation";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+
+  const emailError = !email.trim() ? "Email is required." : !isValidEmail(email) ? "Enter a valid email address." : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAttempted(true);
+    if (emailError) return;
     setSent(true);
   };
 
@@ -38,7 +47,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div className="space-y-1.5">
                 <label htmlFor="email" className="text-sm">
-                  Email
+                  Email<RequiredMark />
                 </label>
                 <Input
                   id="email"
@@ -47,8 +56,11 @@ export default function ForgotPasswordPage() {
                   autoComplete="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  onBlur={() => setTouched(true)}
+                  aria-invalid={(touched || attempted) && !!emailError}
                   required
                 />
+                {(touched || attempted) && <FieldError message={emailError ?? undefined} />}
               </div>
 
               <Button type="submit" className="w-full">

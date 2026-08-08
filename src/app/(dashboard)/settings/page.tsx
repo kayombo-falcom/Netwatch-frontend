@@ -5,48 +5,92 @@ import { CheckCircle, Save } from "lucide-react";
 import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
+import { FieldError } from "@/components/field-error";
+import { RequiredMark } from "@/components/required-mark";
+import { isValidEmail, isValidIPv4, isInRange } from "@/lib/validation";
+
+type Field = {
+  key: string;
+  label: string;
+  value: string;
+  type: "text" | "email" | "number";
+  validate: (v: string) => string | null;
+};
+
+const required = (v: string) => (v.trim() ? null : "This field is required.");
+const email = (v: string) => (!v.trim() ? "This field is required." : isValidEmail(v) ? null : "Enter a valid email address.");
+const ip = (v: string) => (!v.trim() ? "This field is required." : isValidIPv4(v) ? null : "Enter a valid IPv4 address.");
+const percent = (v: string) => (isInRange(v, 0, 100) ? null : "Enter a number between 0 and 100.");
+
+const SECTIONS: { title: string; fields: Field[] }[] = [
+  {
+    title: "Network Configuration",
+    fields: [
+      { key: "ssid", label: "Network Name (SSID)", value: "NetWatch-Main", type: "text", validate: required },
+      { key: "adminEmail", label: "Admin Email", value: "admin@netwatch.local", type: "email", validate: email },
+      { key: "dnsPrimary", label: "DNS Primary", value: "8.8.8.8", type: "text", validate: ip },
+      { key: "dnsSecondary", label: "DNS Secondary", value: "1.1.1.1", type: "text", validate: ip },
+    ],
+  },
+  {
+    title: "Alerts & Notifications",
+    fields: [
+      { key: "alertEmail", label: "Alert Email", value: "alerts@netwatch.local", type: "email", validate: email },
+      { key: "highLoadThreshold", label: "High Load Threshold (%)", value: "75", type: "number", validate: percent },
+    ],
+  },
+];
+
+const ALL_FIELDS = SECTIONS.flatMap(s => s.fields);
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>(
+    Object.fromEntries(ALL_FIELDS.map(f => [f.key, f.value]))
+  );
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [attempted, setAttempted] = useState(false);
+
+  const errors = Object.fromEntries(ALL_FIELDS.map(f => [f.key, f.validate(values[f.key])]));
+  const hasErrors = Object.values(errors).some(Boolean);
 
   const handleSave = () => {
+    setAttempted(true);
+    if (hasErrors) return;
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleDiscard = () => {
+    setValues(Object.fromEntries(ALL_FIELDS.map(f => [f.key, f.value])));
+    setTouched({});
+    setAttempted(false);
+  };
+
   return (
     <div className="max-w-2xl space-y-6">
-      {[
-        {
-          title: "Network Configuration",
-          fields: [
-            { label: "Network Name (SSID)", value: "NetWatch-Main", type: "text" },
-            { label: "Admin Email", value: "admin@netwatch.local", type: "email" },
-            { label: "DNS Primary", value: "8.8.8.8", type: "text" },
-            { label: "DNS Secondary", value: "1.1.1.1", type: "text" },
-          ]
-        },
-        {
-          title: "Alerts & Notifications",
-          fields: [
-            { label: "Alert Email", value: "alerts@netwatch.local", type: "email" },
-            { label: "High Load Threshold (%)", value: "75", type: "number" },
-          ]
-        },
-      ].map(section => (
+      {SECTIONS.map(section => (
         <Card key={section.title}>
           <CardHeader title={section.title} />
           <div className="p-5 space-y-4">
-            {section.fields.map(f => (
-              <div key={f.label}>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">{f.label}</label>
-                <input
-                  type={f.type}
-                  defaultValue={f.value}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:bg-card transition-colors"
-                />
-              </div>
-            ))}
+            {section.fields.map(f => {
+              const showError = touched[f.key] || attempted;
+              const fieldErr = errors[f.key];
+              return (
+                <div key={f.key}>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">{f.label}<RequiredMark /></label>
+                  <input
+                    type={f.type}
+                    value={values[f.key]}
+                    onChange={e => setValues(v => ({ ...v, [f.key]: e.target.value }))}
+                    onBlur={() => setTouched(t => ({ ...t, [f.key]: true }))}
+                    aria-invalid={showError && !!fieldErr}
+                    className={`w-full text-sm border rounded-lg px-3 py-2 bg-muted/50 focus:outline-none focus:ring-2 focus:bg-card transition-colors ${showError && fieldErr ? "border-destructive focus:ring-destructive" : "border-border focus:ring-ring"}`}
+                  />
+                  {showError && <FieldError message={fieldErr ?? undefined} />}
+                </div>
+              );
+            })}
           </div>
         </Card>
       ))}
@@ -79,7 +123,7 @@ export default function SettingsPage() {
         <Btn variant="primary" size="md" onClick={handleSave}>
           {saved ? <><CheckCircle size={14} /> Saved!</> : <><Save size={14} /> Save Changes</>}
         </Btn>
-        <Btn variant="secondary" size="md">Discard</Btn>
+        <Btn variant="secondary" size="md" onClick={handleDiscard}>Discard</Btn>
       </div>
     </div>
   );

@@ -6,13 +6,25 @@ import Link from "next/link";
 import { Eye, EyeOff, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FieldError } from "@/components/field-error";
+import { RequiredMark } from "@/components/required-mark";
+import { isValidEmail } from "@/lib/validation";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
+  const [attempted, setAttempted] = useState(false);
+
+  const emailError = !email.trim() ? "Email is required." : !isValidEmail(email) ? "Enter a valid email address." : null;
+  const passwordError = !password ? "Password is required." : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAttempted(true);
+    if (emailError || passwordError) return;
     router.push("/overview");
   };
 
@@ -31,21 +43,26 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm">
-            Email
+            Email<RequiredMark />
           </label>
           <Input
             id="email"
             type="email"
             placeholder="you@company.com"
             autoComplete="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onBlur={() => setTouched(t => ({ ...t, email: true }))}
+            aria-invalid={(touched.email || attempted) && !!emailError}
             required
           />
+          {(touched.email || attempted) && <FieldError message={emailError ?? undefined} />}
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="password" className="text-sm">
-              Password
+              Password<RequiredMark />
             </label>
             <Link
               href="/forgot-password"
@@ -61,6 +78,10 @@ export default function LoginPage() {
               placeholder="••••••••"
               autoComplete="current-password"
               className="pr-9"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onBlur={() => setTouched(t => ({ ...t, password: true }))}
+              aria-invalid={(touched.password || attempted) && !!passwordError}
               required
             />
             <button
@@ -72,6 +93,7 @@ export default function LoginPage() {
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
+          {(touched.password || attempted) && <FieldError message={passwordError ?? undefined} />}
         </div>
 
         <div className="flex items-center gap-2">

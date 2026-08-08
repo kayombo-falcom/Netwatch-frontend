@@ -32,7 +32,7 @@ export default function UsersPage() {
   const perPage = 5;
 
   const addUser = (values: UserFormValues) => {
-    setUsers(prev => [...prev, {
+    setUsers(prev => [{
       id: Math.max(0, ...prev.map(u => u.id)) + 1,
       name: values.name,
       email: values.email,
@@ -42,7 +42,7 @@ export default function UsersPage() {
       policy: values.policy,
       lastSeen: "Never",
       color: `var(--chart-${(prev.length % 5) + 1})`,
-    }]);
+    }, ...prev]);
   };
 
   const updateUser = (id: number, values: UserFormValues) => {
@@ -153,8 +153,12 @@ export default function UsersPage() {
           initialValues={dialog.mode === "edit" ? dialog.user : undefined}
           onClose={() => setDialog(null)}
           onSubmit={values => {
-            if (dialog.mode === "add") addUser(values);
-            else updateUser(dialog.user.id, values);
+            if (dialog.mode === "add") {
+              addUser(values);
+              setPage(1);
+            } else {
+              updateUser(dialog.user.id, values);
+            }
             setDialog(null);
           }}
         />
