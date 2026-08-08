@@ -70,6 +70,11 @@
   --brand-teal: #1e4b45;
   --brand-aqua: #a3ded6;
   --brand-cream: #fdfcfa;
+  /* Dark-mode-only: brand-amber pulled down so it reads as a rich accent
+     instead of glowing against the dark background. Only used where amber
+     is a large fill (buttons, active nav, focus rings, chart bars) — the
+     brand-true amber is kept for small text/icon accents (tags, status). */
+  --brand-amber-accent: color-mix(in srgb, var(--brand-amber) 75%, black);
 
   --background: #102b42;
   --foreground: #e7f0ec;
@@ -77,7 +82,7 @@
   --card-foreground: #e7f0ec;
   --popover: #13324c;
   --popover-foreground: #e7f0ec;
-  --primary: var(--brand-amber);
+  --primary: var(--brand-amber-accent);
   --primary-foreground: var(--brand-navy);
   --secondary: var(--brand-teal);
   --secondary-foreground: #e7f0ec;
@@ -93,20 +98,20 @@
   --switch-background: #23496a;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: var(--brand-amber);
-  --chart-1: var(--brand-amber);
+  --ring: var(--brand-amber-accent);
+  --chart-1: var(--brand-amber-accent);
   --chart-2: var(--brand-aqua);
   --chart-3: color-mix(in srgb, var(--brand-teal) 55%, white);
   --chart-4: color-mix(in srgb, var(--brand-navy) 55%, white);
   --chart-5: color-mix(in srgb, var(--brand-amber) 50%, var(--brand-aqua) 50%);
   --sidebar: #0a2338;
   --sidebar-foreground: #d9e4df;
-  --sidebar-primary: var(--brand-amber);
+  --sidebar-primary: var(--brand-amber-accent);
   --sidebar-primary-foreground: var(--brand-navy);
   --sidebar-accent: #16344b;
   --sidebar-accent-foreground: #e7f0ec;
   --sidebar-border: rgba(255, 255, 255, 0.05);
-  --sidebar-ring: var(--brand-amber);
+  --sidebar-ring: var(--brand-amber-accent);
 
   /* Semantic tints — dark bg + readable fg, derived only from the brand palette */
   --tint-navy-bg: color-mix(in srgb, var(--brand-navy) 45%, var(--card));
