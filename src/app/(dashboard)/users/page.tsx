@@ -1,60 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search, Plus, Eye, Pencil, Ban } from "lucide-react";
 import { Card } from "@/components/card";
 import { Btn } from "@/components/btn";
 import { Tag } from "@/components/tag";
 import { IconButton } from "@/components/icon-button";
-import { UserFormDialog, type UserFormValues } from "@/components/user-form-dialog";
+import { emptyUserDraft, userToDraft } from "@/components/user-form-dialog";
+import { FilterPill } from "@/components/filter-pill";
 import { UserViewDialog } from "@/components/user-view-dialog";
 import { UserStatusBadge } from "@/components/user-status-badge";
 import { Pagination } from "@/components/pagination";
+import { Skeleton, SkeletonTableRows } from "@/components/skeleton";
 import { usersData } from "@/app/_lib/dashboard-data";
 import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
-
-const initialsFor = (name: string) => {
-  const parts = name.trim().split(/\s+/);
-  return parts.length > 1
-    ? (parts[0][0] + parts[1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase();
-};
+import { useDialogHost } from "@/hooks/use-dialog-host";
+import { useUsersStore } from "@/hooks/use-users-store";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(usersData);
+  const loading = useSimulatedLoading();
+  const { users } = useUsersStore();
+  const { openDialog } = useDialogHost();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const [dialog, setDialog] = useState<
-    { mode: "add" } | { mode: "edit" | "view"; user: typeof usersData[number] } | null
-  >(null);
+  const [perPage, setPerPage] = useState(5);
+  const [dialog, setDialog] = useState<{ mode: "view"; user: typeof usersData[number] } | null>(null);
   const roles = ["All", "Admins", "Staff", "Students", "Guests", "IoT"];
-  const perPage = 5;
 
-  const addUser = (values: UserFormValues) => {
-    setUsers(prev => [{
-      id: Math.max(0, ...prev.map(u => u.id)) + 1,
-      name: values.name,
-      email: values.email,
-      initials: initialsFor(values.name),
-      role: values.role,
-      status: values.status,
-      policy: values.policy,
-      lastSeen: "Never",
-      color: `var(--chart-${(prev.length % 5) + 1})`,
-    }, ...prev]);
-  };
+  const prevUserCount = useRef(users.length);
+  useEffect(() => {
+    if (users.length > prevUserCount.current) setPage(1);
+    prevUserCount.current = users.length;
+  }, [users.length]);
 
-  const updateUser = (id: number, values: UserFormValues) => {
-    setUsers(prev => prev.map(u => u.id === id ? {
-      ...u,
-      name: values.name,
-      email: values.email,
-      initials: initialsFor(values.name),
-      role: values.role,
-      policy: values.policy,
-      status: values.status,
-    } : u));
+  const openUserForm = (mode: "add" | "edit", user?: typeof usersData[number]) => {
+    openDialog({ mode, userId: user?.id, draft: user ? userToDraft(user) : emptyUserDraft });
   };
 
   const filtered = users.filter(u => {
@@ -79,14 +61,10 @@ export default function UsersPage() {
         </div>
         <div className="flex flex-wrap gap-1">
           {roles.map(r => (
-            <button
-              key={r}
-              onClick={() => { setRoleFilter(r); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${roleFilter === r ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
-            >{r}</button>
+            <FilterPill key={r} active={roleFilter === r} onClick={() => { setRoleFilter(r); setPage(1); }}>{r}</FilterPill>
           ))}
         </div>
-        <Btn variant="primary" size="sm" className="ml-auto" onClick={() => setDialog({ mode: "add" })}><Plus size={13} /> Add User</Btn>
+        <Btn variant="primary" size="sm" className="ml-auto" onClick={() => openUserForm("add")}><Plus size={13} /> Add User</Btn>
       </div>
 
       <Card>
@@ -95,12 +73,16 @@ export default function UsersPage() {
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 {["Full Name", "Email", "Role", "Policy", "Last Seen", "Status", "Actions"].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    {loading ? <Skeleton className="h-3 w-12" /> : h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {paged.length === 0 ? (
+              {loading ? (
+                <SkeletonTableRows columns={7} rows={perPage} />
+              ) : paged.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No users match your filters.</td></tr>
               ) : paged.map(u => (
                 <tr key={u.id} className="hover:bg-muted transition-colors">
@@ -125,7 +107,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
                       <IconButton color="aqua" title="View" onClick={() => setDialog({ mode: "view", user: u })} icon={<Eye size={13} />} />
-                      <IconButton color="teal" title="Edit" onClick={() => setDialog({ mode: "edit", user: u })} icon={<Pencil size={13} />} />
+                      <IconButton color="teal" title="Edit" onClick={() => openUserForm("edit", u)} icon={<Pencil size={13} />} />
                       <IconButton color="destructive" title="Disable" icon={<Ban size={13} />} />
                     </div>
                   </td>
@@ -134,7 +116,17 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
-        <Pagination page={page} pages={pages} total={filtered.length} perPage={perPage} onPageChange={setPage} itemLabel="user" />
+        {!loading && (
+          <Pagination
+            page={page}
+            pages={pages}
+            total={filtered.length}
+            perPage={perPage}
+            onPageChange={setPage}
+            onPerPageChange={n => { setPerPage(n); setPage(1); }}
+            itemLabel="user"
+          />
+        )}
       </Card>
 
       {dialog?.mode === "view" && (
@@ -142,25 +134,7 @@ export default function UsersPage() {
           key={`view-${dialog.user.id}`}
           user={dialog.user}
           onClose={() => setDialog(null)}
-          onEdit={() => setDialog({ mode: "edit", user: dialog.user })}
-        />
-      )}
-
-      {(dialog?.mode === "add" || dialog?.mode === "edit") && (
-        <UserFormDialog
-          key={dialog.mode === "edit" ? `edit-${dialog.user.id}` : "add"}
-          mode={dialog.mode}
-          initialValues={dialog.mode === "edit" ? dialog.user : undefined}
-          onClose={() => setDialog(null)}
-          onSubmit={values => {
-            if (dialog.mode === "add") {
-              addUser(values);
-              setPage(1);
-            } else {
-              updateUser(dialog.user.id, values);
-            }
-            setDialog(null);
-          }}
+          onEdit={() => { setDialog(null); openUserForm("edit", dialog.user); }}
         />
       )}
     </div>

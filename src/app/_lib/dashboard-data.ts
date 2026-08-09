@@ -59,6 +59,20 @@ export const devicesData = [
   { id: 6, name: "Unknown Android", user: "Guest", type: "Phone", ip: "10.0.3.99", mac: "B8:27:EB:CC:50:3D", ap: "Lobby", session: "0h 22m", data: "55 MB", status: "blocked" as DeviceStatus },
   { id: 7, name: "Surface Pro – Lena", user: "Lena Morales", type: "Laptop", ip: "10.0.1.61", mac: "60:45:CB:1A:FF:2E", ap: "Meeting Rm", session: "3h 17m", data: "780 MB", status: "paused" as DeviceStatus },
   { id: 8, name: "Sonos-Living", user: "IoT", type: "Speaker", ip: "10.0.2.44", mac: "94:9F:3E:12:CD:88", ap: "Lobby", session: "21d 2h", data: "12.7 GB", status: "online" as DeviceStatus },
+  { id: 9, name: "ThinkPad – Elena", user: "Elena Vasquez", type: "Laptop", ip: "10.0.1.63", mac: "5C:F9:38:0A:6B:12", ap: "Reception", session: "5h 21m", data: "1.8 GB", status: "online" as DeviceStatus },
+  { id: 10, name: "Galaxy S24 – David", user: "David Kim", type: "Phone", ip: "10.0.1.71", mac: "8C:79:F5:2D:44:9A", ap: "Meeting Rm", session: "0h 48m", data: "210 MB", status: "idle" as DeviceStatus },
+  { id: 11, name: "Smart TV – Lobby", user: "IoT", type: "TV", ip: "10.0.2.20", mac: "F0:B4:29:6E:11:C3", ap: "Lobby", session: "9d 14h", data: "31.2 GB", status: "online" as DeviceStatus },
+  { id: 12, name: "HP LaserJet – 2F", user: "IoT", type: "Printer", ip: "10.0.2.31", mac: "30:9C:23:88:5F:D4", ap: "Warehouse", session: "2d 6h", data: "410 MB", status: "paused" as DeviceStatus },
+  { id: 13, name: "MacBook Air – Olivia", user: "Olivia Bennett", type: "Laptop", ip: "10.0.1.66", mac: "AC:BC:32:7A:1D:E6", ap: "Reception", session: "3h 09m", data: "960 MB", status: "online" as DeviceStatus },
+  { id: 14, name: "iPad – Noah", user: "Noah Whitfield", type: "Tablet", ip: "10.0.1.74", mac: "D0:C5:F3:19:8B:2A", ap: "Meeting Rm", session: "1h 32m", data: "540 MB", status: "idle" as DeviceStatus },
+  { id: 15, name: "Pixel 8 – Ava", user: "Ava Thompson", type: "Phone", ip: "10.0.1.82", mac: "44:65:0D:9C:73:F1", ap: "Lobby", session: "0h 12m", data: "48 MB", status: "blocked" as DeviceStatus },
+  { id: 16, name: "Chromebook – Ethan", user: "Ethan Brooks", type: "Laptop", ip: "10.0.1.90", mac: "18:A6:F7:2B:5E:9C", ap: "Warehouse", session: "2h 40m", data: "620 MB", status: "online" as DeviceStatus },
+  { id: 17, name: "Unknown iPhone", user: "Guest", type: "Phone", ip: "10.0.3.14", mac: "9C:2A:70:E1:4C:88", ap: "Lobby", session: "0h 06m", data: "22 MB", status: "blocked" as DeviceStatus },
+  { id: 18, name: "Nest-Thermostat-2F", user: "IoT", type: "Thermostat", ip: "10.0.2.55", mac: "64:16:66:D3:8A:57", ap: "Warehouse", session: "14d 8h", data: "1.1 GB", status: "online" as DeviceStatus },
+  { id: 19, name: "Surface Go – Isabella", user: "Isabella Rodriguez", type: "Tablet", ip: "10.0.1.95", mac: "7C:D9:5C:41:2F:B0", ap: "Reception", session: "4h 55m", data: "1.3 GB", status: "online" as DeviceStatus },
+  { id: 20, name: "Dell Latitude – Liam", user: "Liam Foster", type: "Laptop", ip: "10.0.1.101", mac: "F4:5C:89:D6:33:7E", ap: "Meeting Rm", session: "1d 3h", data: "2.4 GB", status: "paused" as DeviceStatus },
+  { id: 21, name: "iPhone 14 – Mia", user: "Mia Chen", type: "Phone", ip: "10.0.1.108", mac: "B0:35:9F:6C:82:1A", ap: "Reception", session: "2h 17m", data: "480 MB", status: "online" as DeviceStatus },
+  { id: 22, name: "MacBook Pro – Zara", user: "Zara Ahmed", type: "Laptop", ip: "10.0.1.115", mac: "E4:8D:8C:3A:97:60", ap: "Lobby", session: "6h 02m", data: "1.9 GB", status: "online" as DeviceStatus },
 ];
 
 export const usersData = [
@@ -70,6 +84,20 @@ export const usersData = [
   { id: 6, name: "Priya Nair", email: "priya.nair@student.netwatch.io", initials: "PN", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "30m ago", color: "var(--chart-3)" },
   { id: 7, name: "Guest #4821", email: "guest4821@netwatch.io", initials: "G", role: "Guests", status: "active" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "var(--chart-2)" },
   { id: 8, name: "Thermostat Hub", email: "thermostat-hub@iot.netwatch.io", initials: "T", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
+  { id: 9, name: "Elena Vasquez", email: "elena.vasquez@netwatch.io", initials: "EV", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "5h ago", color: "var(--chart-4)" },
+  { id: 10, name: "David Kim", email: "david.kim@netwatch.io", initials: "DK", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "48m ago", color: "var(--chart-4)" },
+  { id: 11, name: "Olivia Bennett", email: "olivia.bennett@netwatch.io", initials: "OB", role: "Admins", status: "active" as UserStatus, policy: "Full Access", lastSeen: "3h ago", color: "var(--chart-1)" },
+  { id: 12, name: "Noah Whitfield", email: "noah.whitfield@student.netwatch.io", initials: "NW", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "1h ago", color: "var(--chart-3)" },
+  { id: 13, name: "Ava Thompson", email: "ava.thompson@student.netwatch.io", initials: "AT", role: "Students", status: "suspended" as UserStatus, policy: "Student Tier", lastSeen: "2d ago", color: "var(--chart-3)" },
+  { id: 14, name: "Ethan Brooks", email: "ethan.brooks@student.netwatch.io", initials: "EB", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "2h ago", color: "var(--chart-3)" },
+  { id: 15, name: "Guest #5190", email: "guest5190@netwatch.io", initials: "G", role: "Guests", status: "active" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "6m ago", color: "var(--chart-2)" },
+  { id: 16, name: "Guest #5533", email: "guest5533@netwatch.io", initials: "G", role: "Guests", status: "suspended" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "1d ago", color: "var(--chart-2)" },
+  { id: 17, name: "Security Camera Hub", email: "security-camera-hub@iot.netwatch.io", initials: "S", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
+  { id: 18, name: "Printer-2F", email: "printer-2f@iot.netwatch.io", initials: "P", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "2d ago", color: "var(--chart-2)" },
+  { id: 19, name: "Isabella Rodriguez", email: "isabella.rodriguez@netwatch.io", initials: "IR", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "4h ago", color: "var(--chart-4)" },
+  { id: 20, name: "Liam Foster", email: "liam.foster@netwatch.io", initials: "LF", role: "Staff", status: "suspended" as UserStatus, policy: "Staff Default", lastSeen: "1d ago", color: "var(--chart-4)" },
+  { id: 21, name: "Mia Chen", email: "mia.chen@student.netwatch.io", initials: "MC", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "2h ago", color: "var(--chart-3)" },
+  { id: 22, name: "Zara Ahmed", email: "zara.ahmed@netwatch.io", initials: "ZA", role: "Admins", status: "active" as UserStatus, policy: "Full Access", lastSeen: "22m ago", color: "var(--chart-1)" },
 ];
 
 export const apsData = [

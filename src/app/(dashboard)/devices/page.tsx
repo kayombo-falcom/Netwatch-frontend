@@ -10,16 +10,20 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { IconButton } from "@/components/icon-button";
 import { Pagination } from "@/components/pagination";
 import { Modal } from "@/components/modal";
+import { FilterPill } from "@/components/filter-pill";
+import { Skeleton, SkeletonTableRows } from "@/components/skeleton";
 import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
 import { TINT } from "@/lib/colors";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 export default function DevicesPage() {
+  const loading = useSimulatedLoading();
   const [filter, setFilter] = useState<"all" | DeviceStatus>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
   const [drawer, setDrawer] = useState<typeof devicesData[0] | null>(null);
   const [confirm, setConfirm] = useState<{ type: string; device: typeof devicesData[0] } | null>(null);
-  const perPage = 5;
 
   const filtered = devicesData.filter(d => {
     if (filter !== "all" && d.status !== filter) return false;
@@ -49,13 +53,9 @@ export default function DevicesPage() {
         </div>
         <div className="flex gap-1">
           {(["all", "online", "idle", "blocked", "paused"] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => { setFilter(s); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === s ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
-            >
+            <FilterPill key={s} active={filter === s} onClick={() => { setFilter(s); setPage(1); }}>
               {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
+            </FilterPill>
           ))}
         </div>
         <div className="ml-auto text-xs text-muted-foreground">{filtered.length} device{filtered.length !== 1 ? "s" : ""}</div>
@@ -68,12 +68,16 @@ export default function DevicesPage() {
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 {["Status", "Device", "User", "Type", "IP / MAC", "AP", "Session", "Data", "Actions"].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    {loading ? <Skeleton className="h-3 w-12" /> : h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {paged.length === 0 ? (
+              {loading ? (
+                <SkeletonTableRows columns={9} rows={perPage} />
+              ) : paged.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
               ) : paged.map(d => (
                 <tr key={d.id} className="hover:bg-muted transition-colors">
@@ -104,12 +108,39 @@ export default function DevicesPage() {
             </tbody>
           </table>
         </div>
-        <Pagination page={page} pages={pages} total={filtered.length} perPage={perPage} onPageChange={setPage} itemLabel="device" />
+        {!loading && (
+          <Pagination
+            page={page}
+            pages={pages}
+            total={filtered.length}
+            perPage={perPage}
+            onPageChange={setPage}
+            onPerPageChange={n => { setPerPage(n); setPage(1); }}
+            itemLabel="device"
+          />
+        )}
       </Card>
 
       {/* Cards — mobile */}
       <div className="md:hidden space-y-3">
-        {paged.map(d => (
+        {loading ? Array.from({ length: perPage }).map((_, i) => (
+          <Card key={i} className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <div className="space-y-1.5">
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 mb-3">
+              <Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-full" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-7 w-24 rounded-lg" /><Skeleton className="h-7 w-20 rounded-lg" /><Skeleton className="h-7 w-20 rounded-lg" />
+            </div>
+          </Card>
+        )) : paged.map(d => (
           <Card key={d.id} className="p-4">
             <div className="flex items-start justify-between mb-2">
               <div>
@@ -138,7 +169,7 @@ export default function DevicesPage() {
         <Modal open onClose={() => setDrawer(null)} position="right" className="max-w-md flex flex-col overflow-y-auto">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <h2 className="font-semibold text-foreground text-sm">{drawer.name}</h2>
-            <button onClick={() => setDrawer(null)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><X size={16} /></button>
+            <button onClick={() => setDrawer(null)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground"><X size={16} /></button>
           </div>
           <div className="flex-1 p-5 space-y-5">
             <div className="grid grid-cols-2 gap-3">
@@ -165,7 +196,7 @@ export default function DevicesPage() {
                 <BarChart data={deviceUsageData}>
                   <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                   <YAxis hide />
-                  <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v} GB`]} />
+                  <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number) => [`${v} GB`]} />
                   <Bar dataKey="v" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

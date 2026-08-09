@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Wifi } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Btn } from "@/components/btn";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/field-error";
 import { RequiredMark } from "@/components/required-mark";
@@ -107,9 +107,9 @@ export default function LoginPage() {
           </label>
         </div>
 
-        <Button type="submit" className="w-full">
+        <Btn type="submit" size="md" className="w-full">
           Sign in
-        </Button>
+        </Btn>
       </form>
     </div>
   );

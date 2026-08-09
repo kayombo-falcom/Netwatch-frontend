@@ -9,19 +9,30 @@ import { StatusDot } from "@/components/status-dot";
 import { StatusBadge } from "@/components/status-badge";
 import { MetricCard } from "@/components/metric-card";
 import { SeverityIcon } from "@/components/severity-icon";
+import { Skeleton, SkeletonChart, SkeletonMetricCard, SkeletonTableRows, SkeletonText } from "@/components/skeleton";
 import { alertsData, apsData, devicesData, bwData } from "@/app/_lib/dashboard-data";
 import { TINT } from "@/lib/colors";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 export default function OverviewPage() {
+  const loading = useSimulatedLoading();
   const recentAlerts = alertsData.slice(0, 3);
   return (
     <div className="space-y-6">
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Total Devices" value="42" sub="38 authorized · 4 guest" icon={<Monitor size={18} />} color="navy" trend={{ val: "+3 today", up: true }} />
-        <MetricCard label="Active Users" value="31" sub="of 48 registered" icon={<Users size={18} />} color="teal" />
-        <MetricCard label="Access Points" value="3/4" sub="1 at high load" icon={<Radio size={18} />} color="amber" />
-        <MetricCard label="Bandwidth Used" value="68%" sub="of 200 Mbps link" icon={<Activity size={18} />} color="aqua" trend={{ val: "↑ 12% vs. last hr", up: false }} />
+        {loading ? (
+          <>
+            <SkeletonMetricCard /><SkeletonMetricCard /><SkeletonMetricCard /><SkeletonMetricCard />
+          </>
+        ) : (
+          <>
+            <MetricCard label="Total Devices" value="42" sub="38 authorized · 4 guest" icon={<Monitor size={18} />} color="navy" trend={{ val: "+3 today", up: true }} />
+            <MetricCard label="Active Users" value="31" sub="of 48 registered" icon={<Users size={18} />} color="teal" />
+            <MetricCard label="Access Points" value="3/4" sub="1 at high load" icon={<Radio size={18} />} color="amber" />
+            <MetricCard label="Bandwidth Used" value="68%" sub="of 200 Mbps link" icon={<Activity size={18} />} color="aqua" trend={{ val: "↑ 12% vs. last hr", up: false }} />
+          </>
+        )}
       </div>
 
       {/* Bandwidth Chart */}
@@ -32,23 +43,27 @@ export default function OverviewPage() {
           action={<Btn variant="ghost" size="xs"><Download size={12} /> Export</Btn>}
         />
         <div className="p-5">
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={bwData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="t" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}M`} />
-              <Tooltip
-                contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--popover)", color: "var(--popover-foreground)", fontSize: 12 }}
-                formatter={(v: number, name: string) => [`${v} Mbps`, name === "down" ? "Download" : "Upload"]}
-              />
-              <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={1.5} fill="var(--chart-1)" fillOpacity={0.15} />
-              <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={1.5} fill="var(--chart-2)" fillOpacity={0.15} />
-            </AreaChart>
-          </ResponsiveContainer>
-          <div className="flex gap-5 mt-2">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-1 inline-block rounded" /> Download</span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-2 inline-block rounded" /> Upload</span>
-          </div>
+          {loading ? <SkeletonChart height={220} /> : (
+            <>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={bwData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="t" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}M`} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", background: "var(--popover)", color: "var(--popover-foreground)", fontSize: 12 }}
+                    formatter={(v: number, name: string) => [`${v} Mbps`, name === "down" ? "Download" : "Upload"]}
+                  />
+                  <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={1.5} fill="var(--chart-1)" fillOpacity={0.15} />
+                  <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={1.5} fill="var(--chart-2)" fillOpacity={0.15} />
+                </AreaChart>
+              </ResponsiveContainer>
+              <div className="flex gap-5 mt-2">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-1 inline-block rounded" /> Download</span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-2 inline-block rounded" /> Upload</span>
+              </div>
+            </>
+          )}
         </div>
       </Card>
 
@@ -61,12 +76,14 @@ export default function OverviewPage() {
               <thead>
                 <tr className="border-b border-border">
                   {["Device", "User", "AP", "Data", "Status"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      {loading ? <Skeleton className="h-3 w-12" /> : h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {devicesData.slice(0, 6).map(d => (
+                {loading ? <SkeletonTableRows columns={5} rows={6} /> : devicesData.slice(0, 6).map(d => (
                   <tr key={d.id} className="border-b border-border hover:bg-muted transition-colors">
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground text-xs truncate max-w-[160px]">{d.name}</div>
@@ -88,7 +105,18 @@ export default function OverviewPage() {
           <Card>
             <CardHeader title="AP Health" />
             <div className="divide-y divide-border">
-              {apsData.map(ap => (
+              {loading ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <Skeleton className="rounded-full w-2.5 h-2.5" />
+                    <div className="space-y-1.5">
+                      <SkeletonText width="90px" />
+                      <SkeletonText width="60px" />
+                    </div>
+                  </div>
+                  <SkeletonText width="30px" />
+                </div>
+              )) : apsData.map(ap => (
                 <div key={ap.id} className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-2.5">
                     <StatusDot status={ap.status} />
@@ -109,7 +137,12 @@ export default function OverviewPage() {
           <Card>
             <CardHeader title="Recent Alerts" action={<Btn variant="ghost" size="xs">All</Btn>} />
             <div className="divide-y divide-border">
-              {recentAlerts.map(a => (
+              {loading ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="px-4 py-3 space-y-1.5">
+                  <SkeletonText width="80%" />
+                  <SkeletonText width="40%" />
+                </div>
+              )) : recentAlerts.map(a => (
                 <div key={a.id} className="px-4 py-3">
                   <div className="flex items-start gap-2">
                     <SeverityIcon severity={a.severity} size={13} className="mt-0.5" />

@@ -7,7 +7,9 @@ import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
 import { FieldError } from "@/components/field-error";
 import { RequiredMark } from "@/components/required-mark";
+import { Skeleton, SkeletonText } from "@/components/skeleton";
 import { isValidEmail, isValidIPv4, isInRange } from "@/lib/validation";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 type Field = {
   key: string;
@@ -44,6 +46,7 @@ const SECTIONS: { title: string; fields: Field[] }[] = [
 const ALL_FIELDS = SECTIONS.flatMap(s => s.fields);
 
 export default function SettingsPage() {
+  const loading = useSimulatedLoading();
   const [saved, setSaved] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(
     Object.fromEntries(ALL_FIELDS.map(f => [f.key, f.value]))
@@ -73,7 +76,12 @@ export default function SettingsPage() {
         <Card key={section.title}>
           <CardHeader title={section.title} />
           <div className="p-5 space-y-4">
-            {section.fields.map(f => {
+            {loading ? section.fields.map(f => (
+              <div key={f.key} className="space-y-1.5">
+                <SkeletonText width="90px" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+              </div>
+            )) : section.fields.map(f => {
               const showError = touched[f.key] || attempted;
               const fieldErr = errors[f.key];
               return (
@@ -98,7 +106,15 @@ export default function SettingsPage() {
       <Card>
         <CardHeader title="Toggles" />
         <div className="p-5 space-y-3">
-          {[
+          {loading ? Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+              <div className="space-y-1.5">
+                <SkeletonText width="180px" />
+                <SkeletonText width="240px" />
+              </div>
+              <Skeleton className="w-10 h-5.5 rounded-full" />
+            </div>
+          )) : [
             { label: "Auto-block unknown devices", desc: "Automatically block devices not in the allowlist", on: true },
             { label: "Guest network isolation", desc: "Guests cannot reach internal network segments", on: true },
             { label: "Firmware auto-update", desc: "Install AP firmware updates during off-hours", on: false },

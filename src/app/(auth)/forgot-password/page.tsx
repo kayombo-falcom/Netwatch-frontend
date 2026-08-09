@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Btn, btnClasses } from "@/components/btn";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/field-error";
 import { RequiredMark } from "@/components/required-mark";
@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
             </p>
             <Link
               href="/login"
-              className={buttonVariants({ variant: "outline", className: "w-full mt-6" })}
+              className={btnClasses({ variant: "outline", size: "md", className: "w-full mt-6" })}
             >
               Back to login
             </Link>
@@ -63,9 +63,9 @@ export default function ForgotPasswordPage() {
                 {(touched || attempted) && <FieldError message={emailError ?? undefined} />}
               </div>
 
-              <Button type="submit" className="w-full">
+              <Btn type="submit" size="md" className="w-full">
                 Send reset link
-              </Button>
+              </Btn>
             </form>
           </>
         )}

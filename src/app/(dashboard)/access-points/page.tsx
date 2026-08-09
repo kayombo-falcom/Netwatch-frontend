@@ -9,10 +9,13 @@ import { Btn } from "@/components/btn";
 import { StatusBadge } from "@/components/status-badge";
 import { IconSwatch } from "@/components/icon-swatch";
 import { Tag } from "@/components/tag";
+import { Skeleton, SkeletonText } from "@/components/skeleton";
 import { apsData } from "@/app/_lib/dashboard-data";
 import { TINT } from "@/lib/colors";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 export default function AccessPointsPage() {
+  const loading = useSimulatedLoading();
   const [selected, setSelected] = useState<typeof apsData[0] | null>(null);
 
   const apDetailData = [
@@ -23,7 +26,29 @@ export default function AccessPointsPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div className="lg:col-span-3 space-y-4">
-        {apsData.map(ap => (
+        {loading ? Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="p-5">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-9 h-9 rounded-lg" />
+                <div className="space-y-1.5">
+                  <SkeletonText width="120px" />
+                  <SkeletonText width="160px" />
+                </div>
+              </div>
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              {Array.from({ length: 4 }).map((__, j) => (
+                <div key={j} className="text-center space-y-1.5">
+                  <Skeleton className="h-5 w-10 mx-auto" />
+                  <SkeletonText width="40px" className="mx-auto" />
+                </div>
+              ))}
+            </div>
+            <Skeleton className="h-1.5 w-full rounded-full mt-4" />
+          </Card>
+        )) : apsData.map(ap => (
           <Card
             key={ap.id}
             className={`cursor-pointer transition-all hover:border-primary ${selected?.id === ap.id ? "ring-2 ring-ring ring-offset-2" : ""}`}
@@ -86,7 +111,7 @@ export default function AccessPointsPage() {
             <CardHeader
               title={selected.location}
               subtitle={selected.model}
-              action={<button onClick={() => setSelected(null)} className="p-1 rounded hover:bg-muted text-muted-foreground/60"><X size={14} /></button>}
+              action={<button onClick={() => setSelected(null)} className="p-1 rounded-md hover:bg-muted text-muted-foreground/60"><X size={14} /></button>}
             />
             <div className="p-5 space-y-5">
               <div>
@@ -95,7 +120,7 @@ export default function AccessPointsPage() {
                   <LineChart data={apDetailData}>
                     <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} />
-                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" }} formatter={(v: number) => [`${v}%`]} />
+                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number) => [`${v}%`]} />
                     <Line type="monotone" dataKey="v" stroke="var(--chart-1)" strokeWidth={1.5} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>

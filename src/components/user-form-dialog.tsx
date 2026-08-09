@@ -20,26 +20,31 @@ const labelClass = "text-xs font-medium text-muted-foreground mb-1 block";
 
 export type UserFormValues = { name: string; email: string; role: string; policy: string; status: UserStatus };
 
-const splitName = (fullName: string) => {
-  const [firstName = "", ...rest] = fullName.trim().split(/\s+/);
-  return { firstName, lastName: rest.join(" ") };
+/** Draft shape mirrors the form fields (name split, status optional) so a dialog can be reopened mid-edit — from a minimized bar or a persisted session — without having produced a valid `UserFormValues` yet. */
+export type UserFormDraft = { firstName: string; lastName: string; email: string; role: string; policy: string; status: UserStatus | "" };
+
+export const emptyUserDraft: UserFormDraft = { firstName: "", lastName: "", email: "", role: "", policy: "", status: "" };
+
+export const userToDraft = (user: UserFormValues): UserFormDraft => {
+  const [firstName = "", ...rest] = user.name.trim().split(/\s+/);
+  return { firstName, lastName: rest.join(" "), email: user.email, role: user.role, policy: user.policy, status: user.status };
 };
 
 export const UserFormDialog = ({
-  mode, initialValues, onClose, onSubmit,
+  mode, draft, onDraftChange, onClose, onSubmit, minimized = false, onMinimize, onRestore,
 }: {
   mode: "add" | "edit";
-  initialValues?: UserFormValues;
+  draft: UserFormDraft;
+  onDraftChange: (draft: UserFormDraft) => void;
   onClose: () => void;
   onSubmit: (values: UserFormValues) => void;
+  minimized?: boolean;
+  onMinimize?: () => void;
+  onRestore?: () => void;
 }) => {
-  const initialName = initialValues ? splitName(initialValues.name) : { firstName: "", lastName: "" };
-  const [firstName, setFirstName] = useState(initialName.firstName);
-  const [lastName, setLastName] = useState(initialName.lastName);
-  const [email, setEmail] = useState(initialValues?.email ?? "");
-  const [role, setRole] = useState(initialValues?.role ?? "");
-  const [policy, setPolicy] = useState(initialValues?.policy ?? "");
-  const [status, setStatus] = useState<UserStatus | "">(initialValues?.status ?? "");
+  const { firstName, lastName, email, role, policy, status } = draft;
+  const patch = (changes: Partial<UserFormDraft>) => onDraftChange({ ...draft, ...changes });
+
   const [touched, setTouched] = useState<{ firstName?: boolean; lastName?: boolean; email?: boolean }>({});
   const [attempted, setAttempted] = useState(false);
 
@@ -60,7 +65,7 @@ export const UserFormDialog = ({
   const submitLabel = mode === "add" ? "Add User" : "Save Changes";
 
   return (
-    <Modal open onClose={onClose} className="max-w-md p-6">
+    <Modal open onClose={onClose} title={title} minimizable minimized={minimized} onMinimize={onMinimize} onRestore={onRestore} className="max-w-md p-6">
       <div className="flex items-center gap-3 mb-4">
         <span className={`p-2 rounded-full ${tintClass("teal")}`}><Icon size={18} /></span>
         <h3 className="font-semibold text-foreground">{title}</h3>
@@ -73,7 +78,7 @@ export const UserFormDialog = ({
             <input
               className={`${fieldClass} ${(touched.firstName || attempted) && firstNameError ? "border-destructive focus:ring-destructive" : ""}`}
               value={firstName}
-              onChange={e => setFirstName(e.target.value)}
+              onChange={e => patch({ firstName: e.target.value })}
               onBlur={() => setTouched(t => ({ ...t, firstName: true }))}
               placeholder="e.g. Jordan"
               autoFocus
@@ -85,7 +90,7 @@ export const UserFormDialog = ({
             <input
               className={`${fieldClass} ${(touched.lastName || attempted) && lastNameError ? "border-destructive focus:ring-destructive" : ""}`}
               value={lastName}
-              onChange={e => setLastName(e.target.value)}
+              onChange={e => patch({ lastName: e.target.value })}
               onBlur={() => setTouched(t => ({ ...t, lastName: true }))}
               placeholder="e.g. Reyes"
             />
@@ -98,7 +103,7 @@ export const UserFormDialog = ({
             type="email"
             className={`${fieldClass} ${(touched.email || attempted) && emailError ? "border-destructive focus:ring-destructive" : ""}`}
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={e => patch({ email: e.target.value })}
             onBlur={() => setTouched(t => ({ ...t, email: true }))}
             placeholder="jordan.reyes@netwatch.io"
           />
@@ -107,16 +112,16 @@ export const UserFormDialog = ({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelClass}>Role<RequiredMark /></label>
-            <Dropdown options={ROLES} value={role} onChange={setRole} />
+            <Dropdown options={ROLES} value={role} onChange={v => patch({ role: v })} />
           </div>
           <div>
             <label className={labelClass}>Policy<RequiredMark /></label>
-            <Dropdown options={POLICIES} value={policy} onChange={setPolicy} />
+            <Dropdown options={POLICIES} value={policy} onChange={v => patch({ policy: v })} />
           </div>
         </div>
         <div>
           <label className={labelClass}>Status<RequiredMark /></label>
-          <Dropdown options={STATUSES} value={status} onChange={v => setStatus(v as UserStatus)} />
+          <Dropdown options={STATUSES} value={status} onChange={v => patch({ status: v as UserStatus })} />
         </div>
       </div>
 

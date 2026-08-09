@@ -6,10 +6,14 @@ import { Card } from "@/components/card";
 import { SeverityBadge } from "@/components/severity-badge";
 import { SeverityIcon } from "@/components/severity-icon";
 import { IconButton } from "@/components/icon-button";
+import { FilterPill } from "@/components/filter-pill";
+import { Skeleton, SkeletonCircle, SkeletonText } from "@/components/skeleton";
 import { alertsData, type Severity } from "@/app/_lib/dashboard-data";
 import { STATUS, SEVERITY_STATUS } from "@/lib/colors";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
 
 export default function AlertsPage() {
+  const loading = useSimulatedLoading();
   const [alerts, setAlerts] = useState(alertsData);
   const [filter, setFilter] = useState<"all" | Severity>("all");
 
@@ -25,11 +29,9 @@ export default function AlertsPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex gap-1">
           {(["all", "critical", "warning", "info"] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${filter === s ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
-            >{s === "all" ? `All (${alerts.length})` : s}</button>
+            <FilterPill key={s} active={filter === s} onClick={() => setFilter(s)} className="capitalize">
+              {s === "all" ? `All (${alerts.length})` : s}
+            </FilterPill>
           ))}
         </div>
         {unread > 0 && (
@@ -40,7 +42,21 @@ export default function AlertsPage() {
       </div>
 
       <div className="space-y-2">
-        {filtered.length === 0 ? (
+        {loading ? Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i}>
+            <div className="flex items-start gap-3 p-4">
+              <SkeletonCircle size={16} className="mt-0.5 rounded" />
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <SkeletonText width="45%" />
+                  <Skeleton className="h-4 w-14 rounded-full" />
+                </div>
+                <SkeletonText width="70%" />
+                <SkeletonText width="20%" />
+              </div>
+            </div>
+          </Card>
+        )) : filtered.length === 0 ? (
           <Card className="py-16 text-center">
             <CheckCircle size={32} className="mx-auto text-status-online mb-3" />
             <p className="text-sm font-medium text-foreground/80">No alerts</p>

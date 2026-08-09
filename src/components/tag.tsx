@@ -5,7 +5,7 @@ export const Tag = ({
 }: {
   color: TintColor; children: React.ReactNode; bordered?: boolean; className?: string;
 }) => (
-  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${bordered ? "border border-border" : ""} ${tintClass(color)} ${className}`}>
+  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs ${bordered ? "border border-border" : ""} ${tintClass(color)} ${className}`}>
     {children}
   </span>
 );
