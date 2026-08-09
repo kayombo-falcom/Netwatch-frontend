@@ -13,9 +13,11 @@ import { Skeleton, SkeletonText } from "@/components/skeleton";
 import { apsData } from "@/app/_lib/dashboard-data";
 import { TINT } from "@/lib/colors";
 import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useHighlightParam } from "@/hooks/use-highlight-param";
 
 export default function AccessPointsPage() {
   const loading = useSimulatedLoading();
+  const highlightId = useHighlightParam();
   const [selected, setSelected] = useState<typeof apsData[0] | null>(null);
 
   const apDetailData = [
@@ -51,7 +53,8 @@ export default function AccessPointsPage() {
         )) : apsData.map(ap => (
           <Card
             key={ap.id}
-            className={`cursor-pointer transition-all hover:border-primary ${selected?.id === ap.id ? "ring-2 ring-ring ring-offset-2" : ""}`}
+            ref={el => { if (String(ap.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+            className={`cursor-pointer transition-all hover:border-primary ${selected?.id === ap.id ? "ring-2 ring-ring ring-offset-2" : ""} ${String(ap.id) === highlightId ? "highlight-blink" : ""}`}
             onClick={() => setSelected(ap)}
           >
             <div className="p-5">

@@ -2,12 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import {
-  ChevronRight, Search,
+  ChevronRight,
   Sun, Moon,
 } from "lucide-react";
 import { screenTitles } from "@/app/_lib/dashboard-data";
 import { NotificationBell } from "@/components/notification-bell";
+import { GlobalSearch } from "@/components/global-search";
 import { AppSidebar } from "@/components/sidebar";
+import { IconButton } from "@/components/icon-button";
+import { ProfileMenu } from "@/components/profile-menu";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/use-theme";
 import { DialogHostProvider } from "@/hooks/use-dialog-host";
@@ -32,32 +35,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <header className="h-14 bg-card border-b border-border flex items-center gap-3 px-4 shrink-0 shadow-sm">
               <SidebarTrigger className="md:hidden text-muted-foreground hover:bg-muted" />
 
-              {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  placeholder="Search devices, users, IPs…"
-                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:bg-card transition-colors"
-                />
-              </div>
+              <GlobalSearch />
 
               <div className="ml-auto flex items-center gap-1">
                 {/* Dark mode toggle */}
-                <button
-                  onClick={toggleTheme}
-                  className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                <IconButton
                   title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                >
-                  {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
-                </button>
+                  onClick={toggleTheme}
+                  icon={theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+                  placement="bottom"
+                />
 
                 {/* Alerts */}
                 <NotificationBell />
 
                 {/* Profile */}
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold ml-1 cursor-pointer">
-                  SC
-                </div>
+                <ProfileMenu />
               </div>
             </header>
 

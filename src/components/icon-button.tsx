@@ -1,12 +1,13 @@
 import { hoverTintClass, type TintColor } from "@/lib/colors";
+import { TooltipWrap } from "@/components/tooltip-wrap";
 
 export const IconButton = ({
-  icon, title, onClick, color = "muted", className = "",
+  icon, title, onClick, color = "muted", className = "", placement = "top",
 }: {
   icon: React.ReactNode; title: string; onClick?: () => void;
-  color?: TintColor | "destructive"; className?: string;
+  color?: TintColor | "destructive"; className?: string; placement?: "top" | "bottom";
 }) => (
-  <span className="relative inline-flex group/tooltip">
+  <TooltipWrap label={title} placement={placement}>
     <button
       onClick={onClick}
       aria-label={title}
@@ -14,11 +15,5 @@ export const IconButton = ({
     >
       {icon}
     </button>
-    <span
-      role="tooltip"
-      className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-popover text-popover-foreground border border-border px-2 py-1 text-[11px] font-medium shadow-sm opacity-0 scale-95 transition-all duration-150 group-hover/tooltip:opacity-100 group-hover/tooltip:scale-100 z-20"
-    >
-      {title}
-    </span>
-  </span>
+  </TooltipWrap>
 );

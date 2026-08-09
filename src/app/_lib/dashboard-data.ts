@@ -31,6 +31,7 @@ export const screenTitles: Record<string, string> = {
   traffic: "Traffic Reports",
   alerts: "Alerts",
   settings: "Settings",
+  profile: "My Profile",
 };
 
 export const networks = ["Main Office", "Branch – Downtown", "Warehouse", "Guest Network"];

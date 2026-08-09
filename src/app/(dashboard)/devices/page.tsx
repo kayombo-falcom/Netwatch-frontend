@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, WifiOff, Pause, Ban, X, Shield } from "lucide-react";
+import { Filter, WifiOff, Pause, Ban, X, Shield } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/card";
 import { Btn } from "@/components/btn";
@@ -15,9 +15,11 @@ import { Skeleton, SkeletonTableRows } from "@/components/skeleton";
 import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
 import { TINT } from "@/lib/colors";
 import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useHighlightParam } from "@/hooks/use-highlight-param";
 
 export default function DevicesPage() {
   const loading = useSimulatedLoading();
+  const highlightId = useHighlightParam();
   const [filter, setFilter] = useState<"all" | DeviceStatus>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -33,6 +35,17 @@ export default function DevicesPage() {
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
   const pages = Math.max(1, Math.ceil(filtered.length / perPage));
 
+  const [appliedHighlight, setAppliedHighlight] = useState<string | null>(null);
+  if (highlightId && highlightId !== appliedHighlight) {
+    setAppliedHighlight(highlightId);
+    const idx = devicesData.findIndex(d => String(d.id) === highlightId);
+    if (idx !== -1) {
+      setFilter("all");
+      setSearch("");
+      setPage(Math.floor(idx / perPage) + 1);
+    }
+  }
+
   const deviceUsageData = [
     { t: "Mon", v: 0.4 }, { t: "Tue", v: 0.9 }, { t: "Wed", v: 0.6 },
     { t: "Thu", v: 1.2 }, { t: "Fri", v: 2.1 }, { t: "Sat", v: 0.3 }, { t: "Sun", v: 0.1 },
@@ -43,11 +56,11 @@ export default function DevicesPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+          <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search devices or users…"
+            placeholder="Filter devices or users…"
             className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-60"
           />
         </div>
@@ -80,7 +93,11 @@ export default function DevicesPage() {
               ) : paged.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
               ) : paged.map(d => (
-                <tr key={d.id} className="hover:bg-muted transition-colors">
+                <tr
+                  key={d.id}
+                  ref={el => { if (String(d.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+                  className={`hover:bg-muted transition-colors ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
+                >
                   <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
                   <td className="px-4 py-3">
                     <button onClick={() => setDrawer(d)} className="text-left hover:text-primary transition-colors">
@@ -141,7 +158,11 @@ export default function DevicesPage() {
             </div>
           </Card>
         )) : paged.map(d => (
-          <Card key={d.id} className="p-4">
+          <Card
+            key={d.id}
+            ref={el => { if (String(d.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+            className={`p-4 ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
+          >
             <div className="flex items-start justify-between mb-2">
               <div>
                 <div className="font-medium text-sm text-foreground">{d.name}</div>

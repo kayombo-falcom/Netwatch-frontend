@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bell, XCircle, AlertTriangle, Info, CheckCheck } from "lucide-react";
 import { alertsData, type Severity } from "@/app/_lib/dashboard-data";
+import { IconButton } from "@/components/icon-button";
+import { hoverTintClass } from "@/lib/colors";
 
 const severityIcon = (s: Severity) => ({
   critical: <XCircle size={14} className="text-status-critical shrink-0" />,
@@ -38,18 +40,21 @@ export const NotificationBell = () => {
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <IconButton
+        title="Notifications"
         onClick={() => setOpen(o => !o)}
-        className="relative p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-        aria-label="Notifications"
-      >
-        <Bell size={17} />
-        {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center leading-none">
-            {unread > 9 ? "9+" : unread}
-          </span>
-        )}
-      </button>
+        placement="bottom"
+        icon={
+          <>
+            <Bell size={17} />
+            {unread > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center leading-none">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </>
+        }
+      />
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
@@ -69,7 +74,7 @@ export const NotificationBell = () => {
               <button
                 key={a.id}
                 onClick={() => markRead(a.id)}
-                className={`w-full text-left px-4 py-3 flex items-start gap-2.5 hover:bg-muted transition-colors ${!a.read ? "bg-muted/40" : ""}`}
+                className={`w-full text-left px-4 py-3 flex items-start gap-2.5 transition-colors ${hoverTintClass("aqua")} ${!a.read ? "bg-muted/40" : ""}`}
               >
                 {severityIcon(a.severity)}
                 <div className="min-w-0 flex-1">

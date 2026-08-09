@@ -262,3 +262,12 @@
   background-repeat: no-repeat;
   animation: skeleton-shimmer 1.6s ease-in-out infinite;
 }
+
+@keyframes highlight-blink {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: var(--tint-amber-bg); }
+}
+
+.highlight-blink {
+  animation: highlight-blink 1.4s ease-in-out 2;
+}
