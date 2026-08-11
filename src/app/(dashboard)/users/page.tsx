@@ -103,7 +103,7 @@ export default function UsersPage() {
                 <tr
                   key={u.id}
                   ref={el => { if (String(u.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-                  className={`hover:bg-muted transition-colors ${String(u.id) === highlightId ? "highlight-blink" : ""}`}
+                  className={`hover:bg-tint-aqua-bg/40 transition-colors ${String(u.id) === highlightId ? "highlight-blink" : ""}`}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

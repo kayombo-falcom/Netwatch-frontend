@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Bell, XCircle, AlertTriangle, Info, CheckCheck } from "lucide-react";
 import { alertsData, type Severity } from "@/app/_lib/dashboard-data";
 import { IconButton } from "@/components/icon-button";
-import { hoverTintClass } from "@/lib/colors";
+import { systemHoverClass } from "@/lib/colors";
 
 const severityIcon = (s: Severity) => ({
   critical: <XCircle size={14} className="text-status-critical shrink-0" />,
@@ -74,7 +74,7 @@ export const NotificationBell = () => {
               <button
                 key={a.id}
                 onClick={() => markRead(a.id)}
-                className={`w-full text-left px-4 py-3 flex items-start gap-2.5 transition-colors ${hoverTintClass("aqua")} ${!a.read ? "bg-muted/40" : ""}`}
+                className={`w-full text-left px-4 py-3 flex items-start gap-2.5 transition-colors ${systemHoverClass} ${!a.read ? "bg-muted/40" : ""}`}
               >
                 {severityIcon(a.severity)}
                 <div className="min-w-0 flex-1">

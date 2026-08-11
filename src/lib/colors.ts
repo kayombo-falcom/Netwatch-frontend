@@ -13,10 +13,20 @@ export const TINT: Record<TintColor, { bg: string; fg: string }> = {
 
 export const tintClass = (color: TintColor) => `${TINT[color].bg} ${TINT[color].fg}`;
 
-export const hoverTintClass = (color: TintColor | "destructive") =>
-  color === "destructive"
-    ? "hover:bg-destructive/10 hover:text-destructive"
-    : `hover:${TINT[color].bg} hover:${TINT[color].fg}`;
+/** Full literal class strings per color — Tailwind's scanner only picks up complete unbroken class names from source, not dynamically concatenated ones. */
+const HOVER_TINT: Record<TintColor | "destructive", string> = {
+  navy: "hover:bg-tint-navy-bg hover:text-tint-navy-fg",
+  amber: "hover:bg-tint-amber-bg hover:text-tint-amber-fg",
+  teal: "hover:bg-tint-teal-bg hover:text-tint-teal-fg",
+  aqua: "hover:bg-tint-aqua-bg hover:text-tint-aqua-fg",
+  muted: "hover:bg-muted hover:text-muted-foreground",
+  destructive: "hover:bg-destructive/10 hover:text-destructive",
+};
+
+export const hoverTintClass = (color: TintColor | "destructive") => HOVER_TINT[color];
+
+/** Default hover for unadorned list rows (profile menu, notifications, sidebar) — aqua in both light and dark mode. */
+export const systemHoverClass = "hover:bg-tint-aqua-bg hover:text-tint-aqua-fg";
 
 /** Readable text color for a *solid* tint background (e.g. an avatar swatch), as opposed to the pastel `TINT` backgrounds used by Tag/IconSwatch. */
 export const tintContrastText = (color: TintColor) =>

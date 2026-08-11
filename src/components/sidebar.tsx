@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Wifi } from "lucide-react";
 import { navItems, alertsData } from "@/app/_lib/dashboard-data";
+import { hoverTintClass, systemHoverClass } from "@/lib/colors";
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -37,7 +38,7 @@ export const AppSidebar = () => {
 
   return (
     <SidebarPrimitive collapsible="icon" className="border-sidebar-border cursor-pointer" onClick={handleBackgroundClick}>
-      <SidebarHeader className="gap-3 border-b border-sidebar-border py-4">
+      <SidebarHeader className="h-14 justify-center border-b border-sidebar-border py-0">
         <div className="flex items-center gap-2.5 px-1">
           <div className="w-7 h-7 bg-sidebar-primary rounded-lg flex items-center justify-center shrink-0">
             <Wifi size={14} className="text-sidebar-primary-foreground" />
@@ -61,7 +62,10 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       isActive={isActive}
                       tooltip={item.label}
-                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-active:bg-sidebar-primary/15 data-active:text-sidebar-primary data-active:font-medium"
+                      className={`text-sidebar-foreground ${isActive
+                        ? "data-active:bg-(--brand-navy) data-active:text-white data-active:font-medium data-active:hover:bg-(--brand-navy) data-active:hover:text-white data-active:active:bg-(--brand-navy) data-active:active:text-white dark:data-active:bg-tint-navy-bg dark:data-active:text-tint-navy-fg dark:data-active:hover:bg-tint-navy-bg dark:data-active:hover:text-tint-navy-fg dark:data-active:active:bg-tint-navy-bg dark:data-active:active:text-tint-navy-fg"
+                        : `${systemHoverClass} active:bg-tint-aqua-bg active:text-tint-aqua-fg`
+                      }`}
                       render={
                         <Link href={item.href} onClick={handleNavClick}>
                           <Icon size={16} />
@@ -70,7 +74,7 @@ export const AppSidebar = () => {
                       }
                     />
                     {item.href === "/alerts" && unreadAlerts > 0 && (
-                      <SidebarMenuBadge className="bg-sidebar-primary text-sidebar-primary-foreground rounded-full font-bold">
+                      <SidebarMenuBadge className="bg-(--brand-navy) text-white dark:bg-tint-navy-bg dark:text-tint-navy-fg rounded-full font-bold">
                         {unreadAlerts}
                       </SidebarMenuBadge>
                     )}
@@ -86,7 +90,7 @@ export const AppSidebar = () => {
         <SidebarMenuButton
           tooltip="Sign out"
           onClick={() => router.push("/login")}
-          className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-xs"
+          className={`text-sidebar-foreground/60 text-xs active:bg-destructive/10 active:text-destructive ${hoverTintClass("destructive")}`}
         >
           <LogOut size={13} />
           <span>Sign out</span>

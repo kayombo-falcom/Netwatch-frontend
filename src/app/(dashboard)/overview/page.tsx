@@ -84,7 +84,7 @@ export default function OverviewPage() {
               </thead>
               <tbody>
                 {loading ? <SkeletonTableRows columns={5} rows={6} /> : devicesData.slice(0, 6).map(d => (
-                  <tr key={d.id} className="border-b border-border hover:bg-muted transition-colors">
+                  <tr key={d.id} className="border-b border-border hover:bg-tint-aqua-bg/40 transition-colors">
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground text-xs truncate max-w-[160px]">{d.name}</div>
                       <div className="text-xs text-muted-foreground/60 font-mono">{d.ip}</div>

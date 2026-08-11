@@ -7,7 +7,7 @@ import { User, Settings, LogOut } from "lucide-react";
 import { Tag } from "@/components/tag";
 import { TooltipWrap } from "@/components/tooltip-wrap";
 import { useUsersStore } from "@/hooks/use-users-store";
-import { hoverTintClass, USER_ROLE_TINT } from "@/lib/colors";
+import { hoverTintClass, systemHoverClass, USER_ROLE_TINT } from "@/lib/colors";
 
 /** There's no real auth session yet, so this id stands in for the signed-in user — same account the /profile page edits. */
 const CURRENT_USER_ID = 1;
@@ -63,10 +63,10 @@ export const ProfileMenu = () => {
           </div>
 
           <div className="py-1">
-            <Link href="/profile" onClick={() => setOpen(false)} className={`${menuItemBase} text-foreground ${hoverTintClass("aqua")}`}>
+            <Link href="/profile" onClick={() => setOpen(false)} className={`${menuItemBase} text-foreground ${systemHoverClass}`}>
               <User size={15} className="text-muted-foreground" /> View Profile
             </Link>
-            <Link href="/settings" onClick={() => setOpen(false)} className={`${menuItemBase} text-foreground ${hoverTintClass("aqua")}`}>
+            <Link href="/settings" onClick={() => setOpen(false)} className={`${menuItemBase} text-foreground ${systemHoverClass}`}>
               <Settings size={15} className="text-muted-foreground" /> Settings
             </Link>
           </div>

@@ -96,7 +96,7 @@ export default function DevicesPage() {
                 <tr
                   key={d.id}
                   ref={el => { if (String(d.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-                  className={`hover:bg-muted transition-colors ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
+                  className={`hover:bg-tint-aqua-bg/40 transition-colors ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
                 >
                   <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
                   <td className="px-4 py-3">
