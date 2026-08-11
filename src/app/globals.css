@@ -40,13 +40,13 @@
   --chart-4: var(--brand-aqua);
   --chart-5: #c98a6b;
   --radius: 0.5rem;
-  --sidebar: var(--brand-navy);
-  --sidebar-foreground: #d9e4df;
-  --sidebar-primary: var(--brand-amber);
-  --sidebar-primary-foreground: var(--brand-navy);
-  --sidebar-accent: #163650;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--brand-navy);
+  --sidebar-primary: var(--brand-navy);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fbeeda;
+  --sidebar-accent-foreground: var(--brand-navy);
+  --sidebar-border: rgba(12, 44, 71, 0.12);
   --sidebar-ring: var(--brand-amber);
 }
 
