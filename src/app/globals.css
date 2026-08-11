@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,10 +11,7 @@
   --brand-amber: #e2a54d;
   --brand-teal: #1e4b45;
   --brand-aqua: #a3ded6;
-  --brand-cream: #efeae6;
-
-  --background: var(--brand-cream);
-  --foreground: var(--brand-navy);
+  --brand-cream: #fdfcfa;
   --card: #ffffff;
   --card-foreground: var(--brand-navy);
   --popover: #ffffff;
@@ -21,15 +20,15 @@
   --primary-foreground: #ffffff;
   --secondary: #fbeeda;
   --secondary-foreground: var(--brand-navy);
-  --muted: #f1eee9;
-  --muted-foreground: #6b7686;
+  --muted: #fdfcfa;
+  --muted-foreground: #526171;
   --accent: var(--brand-amber);
   --accent-foreground: var(--brand-navy);
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: rgba(12, 44, 71, 0.12);
-  --input: transparent;
-  --input-background: #f1eee9;
+  --input: rgba(12, 44, 71, 0.18);
+  --input-background: #fdfcfa;
   --switch-background: #dcd6cd;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -38,8 +37,8 @@
   --chart-2: var(--brand-amber);
   --chart-3: var(--brand-teal);
   --chart-4: var(--brand-aqua);
-  --chart-5: #c98a6b;
-  --radius: 0.5rem;
+  --chart-5: color-mix(in srgb, var(--brand-navy) 50%, var(--brand-amber) 50%);
+  --radius: 1rem;
   --sidebar: #ffffff;
   --sidebar-foreground: var(--brand-navy);
   --sidebar-primary: var(--brand-navy);
@@ -48,6 +47,25 @@
   --sidebar-accent-foreground: var(--brand-navy);
   --sidebar-border: rgba(12, 44, 71, 0.12);
   --sidebar-ring: var(--brand-amber);
+
+  /* Semantic tints — light bg + readable fg, derived only from the brand palette */
+  --tint-navy-bg: color-mix(in srgb, var(--brand-navy) 10%, white);
+  --tint-navy-fg: var(--brand-navy);
+  --tint-amber-bg: color-mix(in srgb, var(--brand-amber) 18%, white);
+  --tint-amber-fg: var(--brand-navy);
+  --tint-teal-bg: color-mix(in srgb, var(--brand-teal) 12%, white);
+  --tint-teal-fg: var(--brand-teal);
+  --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 35%, white);
+  --tint-aqua-fg: var(--brand-teal);
+  --status-online: #176b63;
+  --status-warning: #9a5d10;
+  --status-critical: #a32a23;
+  --background: var(--brand-cream);
+  --foreground: var(--brand-navy);
+
+  /* Skeleton loader — base fill + the lighter band that sweeps across it */
+  --skeleton-base: var(--border);
+  --skeleton-highlight: rgba(255, 255, 255, 0.9);
 }
 
 .dark {
@@ -55,20 +73,25 @@
   --brand-amber: #e2a54d;
   --brand-teal: #1e4b45;
   --brand-aqua: #a3ded6;
-  --brand-cream: #efeae6;
+  --brand-cream: #fdfcfa;
+  /* Dark-mode-only: brand-amber pulled down so it reads as a rich accent
+     instead of glowing against the dark background. Only used where amber
+     is a large fill (buttons, active nav, focus rings, chart bars) — the
+     brand-true amber is kept for small text/icon accents (tags, status). */
+  --brand-amber-accent: color-mix(in srgb, var(--brand-amber) 75%, black);
 
-  --background: #0a2439;
+  --background: #102b42;
   --foreground: #e7f0ec;
   --card: #13324c;
   --card-foreground: #e7f0ec;
   --popover: #13324c;
   --popover-foreground: #e7f0ec;
-  --primary: var(--brand-amber);
+  --primary: var(--brand-amber-accent);
   --primary-foreground: var(--brand-navy);
   --secondary: var(--brand-teal);
   --secondary-foreground: #e7f0ec;
   --muted: #16344b;
-  --muted-foreground: #9fb3c4;
+  --muted-foreground: #c6d4df;
   --accent: var(--brand-teal);
   --accent-foreground: #e7f0ec;
   --destructive: #ef4444;
@@ -79,20 +102,36 @@
   --switch-background: #23496a;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: var(--brand-amber);
-  --chart-1: var(--brand-amber);
+  --ring: var(--brand-amber-accent);
+  --chart-1: var(--brand-amber-accent);
   --chart-2: var(--brand-aqua);
-  --chart-3: #5a82a6;
-  --chart-4: #3e8377;
-  --chart-5: #d89a7e;
-  --sidebar: #071a2b;
+  --chart-3: color-mix(in srgb, var(--brand-teal) 55%, white);
+  --chart-4: color-mix(in srgb, var(--brand-navy) 55%, white);
+  --chart-5: color-mix(in srgb, var(--brand-amber) 50%, var(--brand-aqua) 50%);
+  --sidebar: #0a2338;
   --sidebar-foreground: #d9e4df;
-  --sidebar-primary: var(--brand-amber);
+  --sidebar-primary: var(--brand-amber-accent);
   --sidebar-primary-foreground: var(--brand-navy);
-  --sidebar-accent: #102a40;
+  --sidebar-accent: #16344b;
   --sidebar-accent-foreground: #e7f0ec;
   --sidebar-border: rgba(255, 255, 255, 0.05);
-  --sidebar-ring: var(--brand-amber);
+  --sidebar-ring: var(--brand-amber-accent);
+
+  /* Semantic tints — dark bg + readable fg, derived only from the brand palette */
+  --tint-navy-bg: color-mix(in srgb, var(--brand-navy) 45%, var(--card));
+  --tint-navy-fg: color-mix(in srgb, var(--brand-navy) 45%, white);
+  --tint-amber-bg: color-mix(in srgb, var(--brand-amber) 22%, var(--card));
+  --tint-amber-fg: var(--brand-amber);
+  --tint-teal-bg: color-mix(in srgb, var(--brand-teal) 40%, var(--card));
+  --tint-teal-fg: var(--brand-aqua);
+  --tint-aqua-bg: color-mix(in srgb, var(--brand-aqua) 20%, var(--card));
+  --tint-aqua-fg: var(--brand-aqua);
+  --status-online: #7fe0d3;
+  --status-warning: #f4c676;
+  --status-critical: #f4a39e;
+
+  --skeleton-base: var(--muted);
+  --skeleton-highlight: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
@@ -134,8 +173,23 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-tint-navy-bg: var(--tint-navy-bg);
+  --color-tint-navy-fg: var(--tint-navy-fg);
+  --color-tint-amber-bg: var(--tint-amber-bg);
+  --color-tint-amber-fg: var(--tint-amber-fg);
+  --color-tint-teal-bg: var(--tint-teal-bg);
+  --color-tint-teal-fg: var(--tint-teal-fg);
+  --color-tint-aqua-bg: var(--tint-aqua-bg);
+  --color-tint-aqua-fg: var(--tint-aqua-fg);
+  --color-status-online: var(--status-online);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
   --font-sans: var(--font-inter-sans);
   --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-inter-sans);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
@@ -150,6 +204,7 @@
 
   html {
     font-size: var(--font-size);
+    @apply font-sans;
   }
 
   h1 {
@@ -193,4 +248,26 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 150% 0; }
+  100% { background-position: -150% 0; }
+}
+
+.skeleton-shimmer {
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes highlight-blink {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: var(--tint-amber-bg); }
+}
+
+.highlight-blink {
+  animation: highlight-blink 1.4s ease-in-out 2;
 }
