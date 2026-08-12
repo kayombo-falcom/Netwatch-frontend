@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Wifi } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Btn } from "@/components/btn";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/field-error";
@@ -30,15 +30,7 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-sm p-8">
-      <div className="flex items-center gap-2.5 mb-8">
-        <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center shrink-0">
-          <Wifi size={16} className="text-sidebar-primary-foreground" />
-        </div>
-        <div>
-          <div className="font-bold text-sm tracking-tight text-foreground">NetWatch</div>
-          <div className="text-muted-foreground text-xs">Admin Console</div>
-        </div>
-      </div>
+      <img src="/logo-stacked.svg" alt="NetWatch" className="h-28 w-auto mx-auto mb-6" />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">

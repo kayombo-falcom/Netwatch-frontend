@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Wifi } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { navItems, alertsData } from "@/app/_lib/dashboard-data";
 import { hoverTintClass, systemHoverClass } from "@/lib/colors";
 import {
@@ -25,7 +25,7 @@ const unreadAlerts = alertsData.filter(a => !a.read).length;
 export const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
+  const { toggleSidebar, isMobile, setOpenMobile, state } = useSidebar();
 
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("a, button")) return;
@@ -40,13 +40,11 @@ export const AppSidebar = () => {
     <SidebarPrimitive collapsible="icon" className="border-sidebar-border cursor-pointer" onClick={handleBackgroundClick}>
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border py-0">
         <div className="flex items-center gap-2.5 px-1">
-          <div className="w-7 h-7 bg-sidebar-primary rounded-lg flex items-center justify-center shrink-0">
-            <Wifi size={14} className="text-sidebar-primary-foreground" />
-          </div>
-          <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <div className="text-sidebar-foreground font-bold text-sm tracking-tight truncate">NetWatch</div>
-            <div className="text-sidebar-foreground/60 text-xs truncate">Admin Console</div>
-          </div>
+          {state === "collapsed" ? (
+            <img src="/icon-light.svg" alt="NetWatch" className="w-8 h-8 rounded-lg shrink-0" />
+          ) : (
+            <img src="/logo-white-mode.svg" alt="NetWatch" className="h-9 w-auto" />
+          )}
         </div>
       </SidebarHeader>
 

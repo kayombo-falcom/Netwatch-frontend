@@ -80,7 +80,7 @@ export default function DevicesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                {["Status", "Device", "User", "Type", "IP / MAC", "AP", "Session", "Data", "Actions"].map(h => (
+                {["Status", "Device", "OS", "IP / MAC", "Connection Type", "Access Point", "Connected Since", "Last Seen", "Data", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                     {loading ? <Skeleton className="h-3 w-12" /> : h}
                   </th>
@@ -89,9 +89,9 @@ export default function DevicesPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <SkeletonTableRows columns={9} rows={perPage} />
+                <SkeletonTableRows columns={10} rows={perPage} />
               ) : paged.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
+                <tr><td colSpan={10} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
               ) : paged.map(d => (
                 <tr
                   key={d.id}
@@ -104,14 +104,15 @@ export default function DevicesPage() {
                       <div className="font-medium text-foreground text-xs">{d.name}</div>
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.user}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.type}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.os}</td>
                   <td className="px-4 py-3">
                     <div className="font-mono text-xs text-foreground/80">{d.ip}</div>
                     <div className="font-mono text-xs text-muted-foreground/60">{d.mac}</div>
                   </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.connectionType}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{d.ap}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.session}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.connectedSince}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.lastSeen}</td>
                   <td className="px-4 py-3 font-mono text-xs text-foreground/80">{d.data}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
@@ -200,7 +201,9 @@ export default function DevicesPage() {
                 ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
                 ["MAC", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
                 ["Access Point", drawer.ap],
-                ["Session", drawer.session],
+                ["Connection Type", drawer.connectionType],
+                ["Connected Since", drawer.connectedSince],
+                ["Last Seen", drawer.lastSeen],
                 ["Data Used", drawer.data],
                 ["User", drawer.user],
               ].map(([label, val]) => (

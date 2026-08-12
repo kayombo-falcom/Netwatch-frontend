@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "NetWatch Admin Dashboard",
   description:
     "Monitor and control Wi-Fi networks with real-time device, user, and access point insights plus customizable policies and detailed traffic reports.",
+  icons: {
+    icon: "/icon-light.svg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

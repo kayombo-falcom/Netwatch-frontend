@@ -248,6 +248,17 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--input-background) inset !important;
+    box-shadow: 0 0 0 1000px var(--input-background) inset !important;
+    -webkit-text-fill-color: var(--foreground) !important;
+    caret-color: var(--foreground);
+    transition: background-color 9999s ease-in-out 0s !important;
+  }
 }
 
 @keyframes skeleton-shimmer {
