@@ -29,7 +29,7 @@ export default function OverviewPage() {
           <>
             <MetricCard label="Total Devices" value="42" sub="38 authorized · 4 guest" icon={<Monitor size={18} />} color="navy" trend={{ val: "+3 today", up: true }} />
             <MetricCard label="Active Users" value="31" sub="of 48 registered" icon={<Users size={18} />} color="teal" />
-            <MetricCard label="Access Points" value="3/4" sub="1 at high load" icon={<Radio size={18} />} color="amber" />
+            <MetricCard label="Access Points" value="1/1" sub="Reception · online" icon={<Radio size={18} />} color="amber" />
             <MetricCard label="Bandwidth Used" value="68%" sub="of 200 Mbps link" icon={<Activity size={18} />} color="aqua" trend={{ val: "↑ 12% vs. last hr", up: false }} />
           </>
         )}

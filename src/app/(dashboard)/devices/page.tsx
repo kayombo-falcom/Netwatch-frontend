@@ -80,7 +80,7 @@ export default function DevicesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                {["Status", "Device", "OS", "IP / MAC", "Connection Type", "Access Point", "Connected Since", "Last Seen", "Data", "Actions"].map(h => (
+                {["Status", "Device", "OS", "IP / MAC", "Connection Type", "Access Point", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                     {loading ? <Skeleton className="h-3 w-12" /> : h}
                   </th>
@@ -89,20 +89,19 @@ export default function DevicesPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <SkeletonTableRows columns={10} rows={perPage} />
+                <SkeletonTableRows columns={7} rows={perPage} />
               ) : paged.length === 0 ? (
-                <tr><td colSpan={10} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
               ) : paged.map(d => (
                 <tr
                   key={d.id}
                   ref={el => { if (String(d.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-                  className={`hover:bg-tint-aqua-bg/40 transition-colors ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
+                  onClick={() => setDrawer(d)}
+                  className={`cursor-pointer hover:bg-tint-aqua-bg/40 transition-colors ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
                 >
                   <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setDrawer(d)} className="text-left hover:text-primary transition-colors">
-                      <div className="font-medium text-foreground text-xs">{d.name}</div>
-                    </button>
+                    <div className="font-medium text-foreground text-xs">{d.name}</div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{d.os}</td>
                   <td className="px-4 py-3">
@@ -111,11 +110,8 @@ export default function DevicesPage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{d.connectionType}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{d.ap}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.connectedSince}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.lastSeen}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground/80">{d.data}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                       <IconButton color="destructive" title="Disconnect" onClick={() => setConfirm({ type: "disconnect", device: d })} icon={<WifiOff size={13} />} />
                       <IconButton color="amber" title="Pause" onClick={() => setConfirm({ type: "pause", device: d })} icon={<Pause size={13} />} />
                       <IconButton color="destructive" title="Block" onClick={() => setConfirm({ type: "block", device: d })} icon={<Ban size={13} />} />
@@ -162,7 +158,8 @@ export default function DevicesPage() {
           <Card
             key={d.id}
             ref={el => { if (String(d.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-            className={`p-4 ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
+            onClick={() => setDrawer(d)}
+            className={`p-4 cursor-pointer transition-all hover:border-primary ${String(d.id) === highlightId ? "highlight-blink" : ""}`}
           >
             <div className="flex items-start justify-between mb-2">
               <div>
@@ -177,7 +174,7 @@ export default function DevicesPage() {
               <span>{d.mac}</span>
               <span>{d.data}</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2" onClick={e => e.stopPropagation()}>
               <Btn variant="secondary" size="xs" onClick={() => setConfirm({ type: "disconnect", device: d })}><WifiOff size={11} /> Disconnect</Btn>
               <Btn variant="secondary" size="xs" onClick={() => setConfirm({ type: "pause", device: d })}><Pause size={11} /> Pause</Btn>
               <Btn variant="outline" size="xs" onClick={() => setConfirm({ type: "block", device: d })}><Ban size={11} /> Block</Btn>
@@ -188,12 +185,12 @@ export default function DevicesPage() {
 
       {/* Detail Drawer */}
       {drawer && (
-        <Modal open onClose={() => setDrawer(null)} position="right" className="max-w-md flex flex-col overflow-y-auto">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <Modal open onClose={() => setDrawer(null)} position="center" className="max-w-md w-full max-h-[85vh] rounded-xl flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
             <h2 className="font-semibold text-foreground text-sm">{drawer.name}</h2>
             <button onClick={() => setDrawer(null)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground"><X size={16} /></button>
           </div>
-          <div className="flex-1 p-5 space-y-5">
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Status", <StatusBadge key="status" status={drawer.status} />],
@@ -234,7 +231,7 @@ export default function DevicesPage() {
               </div>
             </div>
           </div>
-          <div className="px-5 py-4 border-t border-border flex gap-2">
+          <div className="px-5 py-4 border-t border-border flex gap-2 shrink-0">
             <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "disconnect", device: drawer })}><WifiOff size={13} /> Disconnect</Btn>
             <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "pause", device: drawer })}><Pause size={13} /> Pause</Btn>
             <Btn variant="danger" size="sm" onClick={() => setConfirm({ type: "block", device: drawer })}><Ban size={13} /> Block</Btn>

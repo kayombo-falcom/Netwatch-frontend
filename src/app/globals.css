@@ -66,6 +66,9 @@
   /* Skeleton loader — base fill + the lighter band that sweeps across it */
   --skeleton-base: var(--border);
   --skeleton-highlight: rgba(255, 255, 255, 0.9);
+
+  --scrollbar-thumb: rgba(12, 44, 71, 0.22);
+  --scrollbar-thumb-hover: rgba(12, 44, 71, 0.38);
 }
 
 .dark {
@@ -132,6 +135,9 @@
 
   --skeleton-base: var(--muted);
   --skeleton-highlight: rgba(255, 255, 255, 0.08);
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
 }
 
 @theme inline {
@@ -258,6 +264,29 @@
     -webkit-text-fill-color: var(--foreground) !important;
     caret-color: var(--foreground);
     transition: background-color 9999s ease-in-out 0s !important;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
   }
 }
 
