@@ -41,7 +41,7 @@ export const NotificationBell = () => {
   return (
     <div className="relative" ref={ref}>
       <IconButton
-        title="Notifications"
+        title={unread > 0 ? `${unread} unread notification${unread === 1 ? "" : "s"}` : "Notifications"}
         onClick={() => setOpen(o => !o)}
         placement="bottom"
         icon={

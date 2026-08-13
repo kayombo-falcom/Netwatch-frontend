@@ -72,7 +72,7 @@ export const AppSidebar = () => {
                       }
                     />
                     {item.href === "/alerts" && unreadAlerts > 0 && (
-                      <SidebarMenuBadge className="bg-(--brand-navy) text-white dark:bg-tint-navy-bg dark:text-tint-navy-fg rounded-full font-bold">
+                      <SidebarMenuBadge className="bg-(--brand-navy) text-white peer-hover/menu-button:text-white peer-data-active/menu-button:text-white dark:bg-tint-navy-bg dark:text-tint-navy-fg dark:peer-hover/menu-button:text-tint-navy-fg dark:peer-data-active/menu-button:text-tint-navy-fg rounded-full font-bold">
                         {unreadAlerts}
                       </SidebarMenuBadge>
                     )}

@@ -104,10 +104,10 @@ export const usersData = [
 ];
 
 export const apsData = [
-  { id: 1, name: "AP-Reception-01", location: "Reception", status: "online" as DeviceStatus, clients: 14, signal: -52, channel: 6, load: 42, firmware: "6.4.1", ip: "10.0.0.10", model: "UniFi U6 Pro" },
-  { id: 2, name: "AP-MeetingRm-02", location: "Meeting Room", status: "online" as DeviceStatus, clients: 11, signal: -48, channel: 36, load: 61, firmware: "6.4.1", ip: "10.0.0.11", model: "UniFi U6 Lite" },
-  { id: 3, name: "AP-Warehouse-03", location: "Warehouse", status: "idle" as DeviceStatus, clients: 3, signal: -67, channel: 11, load: 18, firmware: "6.3.9", ip: "10.0.0.12", model: "UniFi U6 Mesh" },
-  { id: 4, name: "AP-Lobby-04", location: "Lobby", status: "online" as DeviceStatus, clients: 14, signal: -55, channel: 1, load: 73, firmware: "6.4.1", ip: "10.0.0.13", model: "UniFi U6 Pro" },
+  { id: 1, name: "AP-Reception-01", location: "Reception", status: "online" as DeviceStatus, clients: 14, signal: -52, channel: 6, load: 42, firmware: "6.4.1", ip: "10.0.0.10", model: "UniFi U6 Pro", mac: "AA:BB:CC:DD:EE:01", gateway: "10.0.0.1", subnet: "10.0.0.0/24", vlan: 10, managementIp: "10.0.0.10" },
+  { id: 2, name: "AP-MeetingRm-02", location: "Meeting Room", status: "online" as DeviceStatus, clients: 11, signal: -48, channel: 36, load: 61, firmware: "6.4.1", ip: "10.0.0.11", model: "UniFi U6 Lite", mac: "AA:BB:CC:DD:EE:02", gateway: "10.0.0.1", subnet: "10.0.0.0/24", vlan: 20, managementIp: "10.0.0.11" },
+  { id: 3, name: "AP-Warehouse-03", location: "Warehouse", status: "idle" as DeviceStatus, clients: 3, signal: -67, channel: 11, load: 18, firmware: "6.3.9", ip: "10.0.0.12", model: "UniFi U6 Mesh", mac: "AA:BB:CC:DD:EE:03", gateway: "10.0.0.1", subnet: "10.0.0.0/24", vlan: 30, managementIp: "10.0.0.12" },
+  { id: 4, name: "AP-Lobby-04", location: "Lobby", status: "online" as DeviceStatus, clients: 14, signal: -55, channel: 1, load: 73, firmware: "6.4.1", ip: "10.0.0.13", model: "UniFi U6 Pro", mac: "AA:BB:CC:DD:EE:04", gateway: "10.0.0.1", subnet: "10.0.0.0/24", vlan: 40, managementIp: "10.0.0.13" },
 ];
 
 export const alertsData = [
