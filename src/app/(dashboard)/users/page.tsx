@@ -63,7 +63,7 @@ export default function UsersPage() {
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="space-y-4">
+    <div className="max-w-5xl mx-auto space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
           <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />

@@ -52,7 +52,7 @@ export default function DevicesPage() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="max-w-5xl mx-auto space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">

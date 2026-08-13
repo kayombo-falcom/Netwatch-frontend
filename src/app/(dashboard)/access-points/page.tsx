@@ -17,7 +17,7 @@ export default function AccessPointsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <Card className="p-5 space-y-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ export default function AccessPointsPage() {
 
   if (!ap) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <Card className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground/60">
           <Radio size={32} className="mb-3 opacity-30" />
           <p className="text-sm">No connected access point</p>
@@ -68,7 +68,7 @@ export default function AccessPointsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <Card>
         <CardHeader
           title={ap.name}
