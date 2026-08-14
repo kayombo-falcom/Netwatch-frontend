@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Monitor, Users, Radio, ShieldCheck, BarChart2, Bell, Settings } from "lucide-react";
+import { LayoutDashboard, Monitor, Users, Radio, ShieldCheck, BarChart2, Bell, Settings, Activity } from "lucide-react";
+import type { TintColor } from "@/lib/colors";
 
 export type NavItem = {
   href: string;
@@ -35,6 +36,25 @@ export const screenTitles: Record<string, string> = {
 };
 
 export const networks = ["Main Office", "Branch – Downtown", "Warehouse", "Guest Network"];
+
+export type PolicyCategory = "User Management" | "Device Management" | "Monitoring" | "Alerts" | "Reports";
+
+export const policyCategories: { name: PolicyCategory; icon: LucideIcon; color: TintColor }[] = [
+  { name: "User Management", icon: Users, color: "navy" },
+  { name: "Device Management", icon: Monitor, color: "aqua" },
+  { name: "Monitoring", icon: Activity, color: "teal" },
+  { name: "Alerts", icon: Bell, color: "amber" },
+  { name: "Reports", icon: BarChart2, color: "muted" },
+];
+
+export const policiesData: { name: string; category: PolicyCategory; group: string }[] = [
+  { name: "Admin Full Access", category: "User Management", group: "Admins" },
+  { name: "Guest Wi-Fi", category: "User Management", group: "Guests" },
+  { name: "IoT Isolated", category: "Device Management", group: "IoT" },
+  { name: "Bandwidth Threshold", category: "Monitoring", group: "Staff" },
+  { name: "Alert Escalation", category: "Alerts", group: "Admins" },
+  { name: "Report Retention", category: "Reports", group: "Staff" },
+];
 
 export const bwData = [
   { t: "08:00", down: 12, up: 4 },
