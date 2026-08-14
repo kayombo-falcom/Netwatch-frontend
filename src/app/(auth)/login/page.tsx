@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Btn } from "@/components/btn";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/field-error";
 import { RequiredMark } from "@/components/required-mark";
 import { isValidEmail } from "@/lib/validation";
+import { toast } from "@/lib/toast-store";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,22 +18,42 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [attempted, setAttempted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const emailError = !email.trim() ? "Email is required." : !isValidEmail(email) ? "Enter a valid email address." : null;
   const passwordError = !password ? "Password is required." : null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAttempted(true);
     if (emailError || passwordError) return;
-    router.push("/overview");
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        toast.error("Sign in failed", error ?? "Something went wrong. Please try again.");
+        return;
+      }
+      toast.success("Signed in", `Welcome back, ${email}.`);
+      router.push("/overview");
+    } catch {
+      toast.error("Sign in failed", "Couldn't reach the server. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-sm p-8">
       <img src="/logo-stacked.svg" alt="NetWatch" className="h-28 w-auto mx-auto mb-6" />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
         <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm">
             Email<RequiredMark />
@@ -41,7 +62,7 @@ export default function LoginPage() {
             id="email"
             type="email"
             placeholder="you@company.com"
-            autoComplete="email"
+            autoComplete="off"
             value={email}
             onChange={e => setEmail(e.target.value)}
             onBlur={() => setTouched(t => ({ ...t, email: true }))}
@@ -68,7 +89,7 @@ export default function LoginPage() {
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              autoComplete="current-password"
+              autoComplete="new-password"
               className="pr-9"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -99,7 +120,8 @@ export default function LoginPage() {
           </label>
         </div>
 
-        <Btn type="submit" size="md" className="w-full">
+        <Btn type="submit" size="md" className="w-full" disabled={submitting}>
+          {submitting && <Loader2 size={14} className="animate-spin" />}
           Sign in
         </Btn>
       </form>

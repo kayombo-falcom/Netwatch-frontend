@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { User, Settings, LogOut } from "lucide-react";
 import { Tag } from "@/components/tag";
 import { TooltipWrap } from "@/components/tooltip-wrap";
+import { SkeletonCircle } from "@/components/skeleton";
 import { useUsersStore } from "@/hooks/use-users-store";
 import { hoverTintClass, systemHoverClass, USER_ROLE_TINT } from "@/lib/colors";
 
@@ -15,7 +16,7 @@ const CURRENT_USER_ID = 1;
 const menuItemBase = "flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors";
 
 export const ProfileMenu = () => {
-  const { users } = useUsersStore();
+  const { users, loading } = useUsersStore();
   const currentUser = users.find(u => u.id === CURRENT_USER_ID) ?? users[0];
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -34,6 +35,8 @@ export const ProfileMenu = () => {
       document.removeEventListener("keydown", onEsc);
     };
   }, [open]);
+
+  if (loading || !currentUser) return <SkeletonCircle size={32} className="ml-1" />;
 
   return (
     <div className="relative ml-1" ref={ref}>

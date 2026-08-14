@@ -10,6 +10,7 @@ import { Dropdown } from "@/components/dropdown";
 import { Skeleton, SkeletonText } from "@/components/skeleton";
 import { policyCategories as CATEGORIES, policiesData } from "@/app/_lib/dashboard-data";
 import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { toast } from "@/lib/toast-store";
 
 type Group = "Admins" | "Staff" | "Students" | "Guests" | "IoT";
 
@@ -287,7 +288,10 @@ export default function PoliciesPage() {
                 <Btn
                   variant="primary"
                   size="sm"
-                  onClick={() => setPolicies(prev => prev.map(p => (p.name === draft.name ? draft : p)))}
+                  onClick={() => {
+                    setPolicies(prev => prev.map(p => (p.name === draft.name ? draft : p)));
+                    toast.success("Policy saved", `${draft.name} has been updated.`);
+                  }}
                 >
                   <Save size={13} /> Save Policy
                 </Btn>

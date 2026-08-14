@@ -11,21 +11,22 @@ import { FieldError } from "@/components/field-error";
 import { RequiredMark } from "@/components/required-mark";
 import { userToDraft, type UserFormDraft } from "@/components/user-form-dialog";
 import { Skeleton, SkeletonCircle, SkeletonText } from "@/components/skeleton";
-import { useUsersStore } from "@/hooks/use-users-store";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useUsersStore, type StoreUser } from "@/hooks/use-users-store";
 import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 import { isValidEmail } from "@/lib/validation";
 
 /** There's no real auth session yet, so this stands in for the signed-in user — same account the header avatar and profile menu represent. */
 const CURRENT_USER_ID = 1;
 
+/** Placeholder so hooks below always have a shape to work with while the real user list is still loading. */
+const EMPTY_USER: StoreUser = { id: 0, name: "", email: "", initials: "", role: "", status: "active", lastSeen: "", color: "var(--chart-1)" };
+
 const fieldClass = "w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary";
 const labelClass = "text-xs font-medium text-muted-foreground mb-1 block";
 
 export default function ProfilePage() {
-  const loading = useSimulatedLoading();
-  const { users, updateUser } = useUsersStore();
-  const currentUser = users.find(u => u.id === CURRENT_USER_ID) ?? users[0];
+  const { users, loading, updateUser } = useUsersStore();
+  const currentUser = users.find(u => u.id === CURRENT_USER_ID) ?? users[0] ?? EMPTY_USER;
   const { firstName, lastName } = userToDraft(currentUser);
 
   const [editing, setEditing] = useState(false);
@@ -54,8 +55,8 @@ export default function ProfilePage() {
       name: `${draft.firstName.trim()} ${draft.lastName.trim()}`,
       email: draft.email.trim(),
       role: currentUser.role,
-      policy: currentUser.policy,
       status: currentUser.status,
+      password: "",
     });
     setEditing(false);
   };
@@ -126,7 +127,6 @@ export default function ProfilePage() {
             {loading ? (
               <>
                 <div><SkeletonText width="30px" className="mb-1.5" /><Skeleton className="h-5 w-20 rounded-md" /></div>
-                <div><SkeletonText width="40px" className="mb-1.5" /><SkeletonText width="100px" /></div>
                 <div><SkeletonText width="35px" className="mb-1.5" /><Skeleton className="h-5 w-16 rounded-md" /></div>
               </>
             ) : (
@@ -134,10 +134,6 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-xs text-muted-foreground/60 mb-0.5">Role</p>
                   <Tag color={USER_ROLE_TINT[currentUser.role] ?? "muted"}>{currentUser.role}</Tag>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground/60 mb-0.5">Policy</p>
-                  <p className="font-medium text-foreground">{currentUser.policy}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground/60 mb-0.5">Status</p>

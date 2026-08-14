@@ -13,24 +13,21 @@ import { UserViewDialog } from "@/components/user-view-dialog";
 import { UserStatusBadge } from "@/components/user-status-badge";
 import { Pagination } from "@/components/pagination";
 import { Skeleton, SkeletonTableRows } from "@/components/skeleton";
-import { usersData } from "@/app/_lib/dashboard-data";
 import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 import { useDialogHost } from "@/hooks/use-dialog-host";
-import { useUsersStore } from "@/hooks/use-users-store";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useUsersStore, type StoreUser } from "@/hooks/use-users-store";
 import { useHighlightParam } from "@/hooks/use-highlight-param";
 
 export default function UsersPage() {
-  const loading = useSimulatedLoading();
   const highlightId = useHighlightParam();
-  const { users, updateUser } = useUsersStore();
+  const { users, loading, updateUser } = useUsersStore();
   const { openDialog } = useDialogHost();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(5);
-  const [dialog, setDialog] = useState<{ mode: "view"; user: typeof usersData[number] } | null>(null);
-  const [statusAction, setStatusAction] = useState<{ type: "disable" | "enable"; user: typeof usersData[number] } | null>(null);
+  const [dialog, setDialog] = useState<{ mode: "view"; user: StoreUser } | null>(null);
+  const [statusAction, setStatusAction] = useState<{ type: "disable" | "enable"; user: StoreUser } | null>(null);
   const roles = ["All", "Admins", "Staff", "Students", "Guests", "IoT"];
 
   const prevUserCount = useRef(users.length);
@@ -50,7 +47,7 @@ export default function UsersPage() {
     }
   }
 
-  const openUserForm = (mode: "add" | "edit", user?: typeof usersData[number]) => {
+  const openUserForm = (mode: "add" | "edit", user?: StoreUser) => {
     openDialog({ mode, userId: user?.id, draft: user ? userToDraft(user) : emptyUserDraft });
   };
 
@@ -87,7 +84,7 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                {["Full Name", "Email", "Role", "Policy", "Last Seen", "Status", "Actions"].map(h => (
+                {["Full Name", "Email", "Role", "Last Seen", "Status", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                     {loading ? <Skeleton className="h-3 w-12" /> : h}
                   </th>
@@ -96,9 +93,9 @@ export default function UsersPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <SkeletonTableRows columns={7} rows={perPage} />
+                <SkeletonTableRows columns={6} rows={perPage} />
               ) : paged.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No users match your filters.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No users match your filters.</td></tr>
               ) : paged.map(u => (
                 <tr
                   key={u.id}
@@ -118,7 +115,6 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <Tag color={USER_ROLE_TINT[u.role] ?? "muted"}>{u.role}</Tag>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{u.policy}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{u.lastSeen}</td>
                   <td className="px-4 py-3">
                     <UserStatusBadge status={u.status} />
@@ -178,8 +174,8 @@ export default function UsersPage() {
               name: user.name,
               email: user.email,
               role: user.role,
-              policy: user.policy,
               status: statusAction.type === "enable" ? "active" : "suspended",
+              password: "",
             });
           }
           setStatusAction(null);

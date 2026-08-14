@@ -12,22 +12,21 @@ import { tintClass } from "@/lib/colors";
 import { isValidEmail } from "@/lib/validation";
 
 const ROLES = ["Admins", "Staff", "Students", "Guests", "IoT"].map(r => ({ label: r, value: r }));
-const POLICIES = ["Full Access", "Staff Default", "Student Tier", "Guest Wi-Fi", "IoT Isolated"].map(p => ({ label: p, value: p }));
 const STATUSES = [{ label: "Active", value: "active" }, { label: "Suspended", value: "suspended" }];
 
 const fieldClass = "w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary";
 const labelClass = "text-xs font-medium text-muted-foreground mb-1 block";
 
-export type UserFormValues = { name: string; email: string; role: string; policy: string; status: UserStatus };
+export type UserFormValues = { name: string; email: string; role: string; status: UserStatus; password: string };
 
 /** Draft shape mirrors the form fields (name split, status optional) so a dialog can be reopened mid-edit — from a minimized bar or a persisted session — without having produced a valid `UserFormValues` yet. */
-export type UserFormDraft = { firstName: string; lastName: string; email: string; role: string; policy: string; status: UserStatus | "" };
+export type UserFormDraft = { firstName: string; lastName: string; email: string; role: string; status: UserStatus | ""; password: string };
 
-export const emptyUserDraft: UserFormDraft = { firstName: "", lastName: "", email: "", role: "", policy: "", status: "" };
+export const emptyUserDraft: UserFormDraft = { firstName: "", lastName: "", email: "", role: "", status: "", password: "" };
 
-export const userToDraft = (user: UserFormValues): UserFormDraft => {
+export const userToDraft = (user: Omit<UserFormValues, "password">): UserFormDraft => {
   const [firstName = "", ...rest] = user.name.trim().split(/\s+/);
-  return { firstName, lastName: rest.join(" "), email: user.email, role: user.role, policy: user.policy, status: user.status };
+  return { firstName, lastName: rest.join(" "), email: user.email, role: user.role, status: user.status, password: "" };
 };
 
 export const UserFormDialog = ({
@@ -42,22 +41,23 @@ export const UserFormDialog = ({
   onMinimize?: () => void;
   onRestore?: () => void;
 }) => {
-  const { firstName, lastName, email, role, policy, status } = draft;
+  const { firstName, lastName, email, role, status, password } = draft;
   const patch = (changes: Partial<UserFormDraft>) => onDraftChange({ ...draft, ...changes });
 
-  const [touched, setTouched] = useState<{ firstName?: boolean; lastName?: boolean; email?: boolean }>({});
+  const [touched, setTouched] = useState<{ firstName?: boolean; lastName?: boolean; email?: boolean; password?: boolean }>({});
   const [attempted, setAttempted] = useState(false);
 
   const firstNameError = !firstName.trim() ? "First name is required." : null;
   const lastNameError = !lastName.trim() ? "Last name is required." : null;
   const emailError = !email.trim() ? "Email is required." : !isValidEmail(email) ? "Enter a valid email address." : null;
+  const passwordError = mode === "add" && password.length < 8 ? "Password must be at least 8 characters." : null;
 
-  const canSubmit = !firstNameError && !lastNameError && !emailError && role && policy && status;
+  const canSubmit = !firstNameError && !lastNameError && !emailError && !passwordError && role && status;
 
   const submit = () => {
     setAttempted(true);
     if (!canSubmit) return;
-    onSubmit({ name: `${firstName.trim()} ${lastName.trim()}`, email: email.trim(), role, policy, status: status as UserStatus });
+    onSubmit({ name: `${firstName.trim()} ${lastName.trim()}`, email: email.trim(), role, status: status as UserStatus, password });
   };
 
   const Icon = mode === "add" ? UserPlus : Pencil;
@@ -115,14 +115,24 @@ export const UserFormDialog = ({
             <Dropdown options={ROLES} value={role} onChange={v => patch({ role: v })} />
           </div>
           <div>
-            <label className={labelClass}>Policy<RequiredMark /></label>
-            <Dropdown options={POLICIES} value={policy} onChange={v => patch({ policy: v })} />
+            <label className={labelClass}>Status<RequiredMark /></label>
+            <Dropdown options={STATUSES} value={status} onChange={v => patch({ status: v as UserStatus })} />
           </div>
         </div>
-        <div>
-          <label className={labelClass}>Status<RequiredMark /></label>
-          <Dropdown options={STATUSES} value={status} onChange={v => patch({ status: v as UserStatus })} />
-        </div>
+        {mode === "add" && (
+          <div>
+            <label className={labelClass}>Password<RequiredMark /></label>
+            <input
+              type="password"
+              className={`${fieldClass} ${(touched.password || attempted) && passwordError ? "border-destructive focus:ring-destructive" : ""}`}
+              value={password}
+              onChange={e => patch({ password: e.target.value })}
+              onBlur={() => setTouched(t => ({ ...t, password: true }))}
+              placeholder="At least 8 characters"
+            />
+            {(touched.password || attempted) && <FieldError message={passwordError ?? undefined} />}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2 justify-end mt-6">

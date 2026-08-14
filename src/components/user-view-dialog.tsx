@@ -3,13 +3,13 @@ import { Btn } from "@/components/btn";
 import { Modal } from "@/components/modal";
 import { Tag } from "@/components/tag";
 import { UserStatusBadge } from "@/components/user-status-badge";
-import type { usersData } from "@/app/_lib/dashboard-data";
+import type { StoreUser } from "@/hooks/use-users-store";
 import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 
 export const UserViewDialog = ({
   user, onClose, onEdit,
 }: {
-  user: typeof usersData[number];
+  user: StoreUser;
   onClose: () => void;
   onEdit: () => void;
 }) => (
@@ -29,7 +29,6 @@ export const UserViewDialog = ({
       {[
         ["Role", <Tag key="role" color={USER_ROLE_TINT[user.role] ?? "muted"}>{user.role}</Tag>],
         ["Status", <UserStatusBadge key="status" status={user.status} />],
-        ["Policy", user.policy],
         ["Last Seen", user.lastSeen],
       ].map(([label, val]) => (
         <div key={label as string}>
