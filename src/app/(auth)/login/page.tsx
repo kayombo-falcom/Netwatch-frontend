@@ -51,7 +51,8 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-sm p-8">
-      <img src="/logo-stacked.svg" alt="NetWatch" className="h-28 w-auto mx-auto mb-6" />
+      <img src="/brand/logo-stacked-navy.png" alt="NetWatch" className="h-28 w-auto mx-auto mb-6 dark:hidden" />
+      <img src="/brand/logo-stacked-mint.png" alt="NetWatch" className="h-28 w-auto mx-auto mb-6 hidden dark:block" />
 
       <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
         <div className="space-y-1.5">

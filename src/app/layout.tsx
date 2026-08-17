@@ -19,7 +19,10 @@ export const metadata: Metadata = {
   description:
     "Monitor and control Wi-Fi networks with real-time device, user, and access point insights plus customizable policies and detailed traffic reports.",
   icons: {
-    icon: "/icon-light.svg",
+    icon: [
+      { url: "/brand/icon-navy.png", media: "(prefers-color-scheme: light)" },
+      { url: "/brand/icon-mint.png", media: "(prefers-color-scheme: dark)" },
+    ],
   },
 };
 

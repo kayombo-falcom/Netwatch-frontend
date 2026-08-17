@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(ls -la \"C:\\\\Users\\\\OS\\\\Downloads\\\\netwatch\" 2>&1)",
+      "Read(//c/Users/OS/Downloads/netwatch/**)",
+      "Bash(magick -version)",
+      "Read(//c/Users/OS/AppData/Local/Temp/claude/**)"
     ]
   }
 }

@@ -41,9 +41,15 @@ export const AppSidebar = () => {
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border py-0">
         <div className="flex items-center gap-2.5 px-1">
           {state === "collapsed" ? (
-            <img src="/icon-light.svg" alt="NetWatch" className="w-8 h-8 rounded-lg shrink-0" />
+            <>
+              <img src="/brand/icon-navy.png" alt="NetWatch" className="w-8 h-8 shrink-0 dark:hidden" />
+              <img src="/brand/icon-mint.png" alt="NetWatch" className="w-8 h-8 shrink-0 hidden dark:block" />
+            </>
           ) : (
-            <img src="/logo-white-mode.svg" alt="NetWatch" className="h-9 w-auto" />
+            <>
+              <img src="/brand/logo-horizontal-navy.png" alt="NetWatch" className="h-9 w-auto dark:hidden" />
+              <img src="/brand/logo-horizontal-mint.png" alt="NetWatch" className="h-9 w-auto hidden dark:block" />
+            </>
           )}
         </div>
       </SidebarHeader>
