@@ -42,13 +42,13 @@ export const AppSidebar = () => {
         <div className="flex items-center gap-2.5 px-1">
           {state === "collapsed" ? (
             <>
-              <img src="/brand/icon-navy.png" alt="NetWatch" className="w-8 h-8 shrink-0 dark:hidden" />
-              <img src="/brand/icon-mint.png" alt="NetWatch" className="w-8 h-8 shrink-0 hidden dark:block" />
+              <img src="/brand/icon-navy.png" alt="NetWatch" className="w-6 h-6 shrink-0 dark:hidden" />
+              <img src="/brand/icon-mint.png" alt="NetWatch" className="w-6 h-6 shrink-0 hidden dark:block" />
             </>
           ) : (
             <>
-              <img src="/brand/logo-horizontal-navy.png" alt="NetWatch" className="h-9 w-auto dark:hidden" />
-              <img src="/brand/logo-horizontal-mint.png" alt="NetWatch" className="h-9 w-auto hidden dark:block" />
+              <img src="/brand/logo-horizontal-navy.png" alt="NetWatch" className="h-7 w-auto dark:hidden" />
+              <img src="/brand/logo-horizontal-mint.png" alt="NetWatch" className="h-7 w-auto hidden dark:block" />
             </>
           )}
         </div>
