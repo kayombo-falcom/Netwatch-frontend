@@ -173,7 +173,7 @@ export default function ProfilePage() {
           <CardHeader
             title="Personal Details"
             subtitle={editing ? "Update your name and email address" : "Your basic account information"}
-            action={!editing && !loading && <Btn variant="ghost" size="xs" onClick={startEditing}><Pencil size={12} /> Edit</Btn>}
+            action={!editing && !loading && <Btn variant="secondary" size="xs" onClick={startEditing}><Pencil size={12} /> Edit</Btn>}
           />
           <div className="p-5">
             {loading ? (
@@ -247,7 +247,7 @@ export default function ProfilePage() {
           <CardHeader
             title="Security"
             subtitle={changingPassword ? "Choose a new password" : "Change your account password"}
-            action={!changingPassword && !loading && <Btn variant="ghost" size="xs" onClick={startChangingPassword}><Lock size={12} /> Change Password</Btn>}
+            action={!changingPassword && !loading && <Btn variant="secondary" size="xs" onClick={startChangingPassword}><Lock size={12} /> Change Password</Btn>}
             divider={changingPassword}
           />
           {changingPassword && (
