@@ -42,12 +42,12 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      const body = await res.json();
       if (!res.ok) {
-        const { error } = await res.json();
-        toast.error("Sign in failed", error ?? "Something went wrong. Please try again.");
+        toast.error("Sign in failed", body.error ?? "Something went wrong. Please try again.");
         return;
       }
-      toast.success("Signed in", `Welcome back, ${email}.`);
+      toast.success("Signed in", `Welcome back, ${body.name ?? email}.`);
       router.push("/overview");
     } catch {
       toast.error("Sign in failed", "Couldn't reach the server. Please try again.");

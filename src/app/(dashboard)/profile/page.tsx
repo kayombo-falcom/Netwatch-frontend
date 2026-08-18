@@ -253,10 +253,13 @@ export default function ProfilePage() {
           {changingPassword && (
             <div className="p-5 space-y-4">
               <div>
-                <label className={labelClass}>Current Password<RequiredMark /></label>
+                <label htmlFor="current-password" className={labelClass}>Current Password<RequiredMark /></label>
                 <div className="relative">
                   <input
                     type={showCurrent ? "text" : "password"}
+                    id="current-password"
+                    name="current-password"
+                    autoComplete="current-password"
                     className={`${fieldClass} pr-9 ${(pwTouched.current || pwAttempted) && currentPasswordError ? "border-destructive focus:ring-destructive" : ""}`}
                     value={currentPassword}
                     onChange={e => setCurrentPassword(e.target.value)}
@@ -270,10 +273,13 @@ export default function ProfilePage() {
                 {(pwTouched.current || pwAttempted) && <FieldError message={currentPasswordError ?? undefined} />}
               </div>
               <div>
-                <label className={labelClass}>New Password<RequiredMark /></label>
+                <label htmlFor="new-password" className={labelClass}>New Password<RequiredMark /></label>
                 <div className="relative">
                   <input
                     type={showNew ? "text" : "password"}
+                    id="new-password"
+                    name="new-password"
+                    autoComplete="new-password"
                     className={`${fieldClass} pr-9 ${(pwTouched.next || pwAttempted) && newPasswordError ? "border-destructive focus:ring-destructive" : ""}`}
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
@@ -286,9 +292,12 @@ export default function ProfilePage() {
                 {(pwTouched.next || pwAttempted) && <FieldError message={newPasswordError ?? undefined} />}
               </div>
               <div>
-                <label className={labelClass}>Confirm New Password<RequiredMark /></label>
+                <label htmlFor="confirm-new-password" className={labelClass}>Confirm New Password<RequiredMark /></label>
                 <input
                   type={showNew ? "text" : "password"}
+                  id="confirm-new-password"
+                  name="confirm-new-password"
+                  autoComplete="new-password"
                   className={`${fieldClass} ${(pwTouched.confirm || pwAttempted) && confirmPasswordError ? "border-destructive focus:ring-destructive" : ""}`}
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}

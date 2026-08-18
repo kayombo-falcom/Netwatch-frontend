@@ -20,7 +20,13 @@ export async function POST(request: Request) {
   }
 
   const { access, refresh } = await backendResponse.json();
-  const response = NextResponse.json({ success: true });
+
+  const meResponse = await fetch(`${process.env.BACKEND_URL}/api/auth/me/`, {
+    headers: { Authorization: `Bearer ${access}` },
+  }).catch(() => null);
+  const name = meResponse?.ok ? (await meResponse.json()).name : undefined;
+
+  const response = NextResponse.json({ success: true, name });
   response.cookies.set("access_token", access, authCookieOptions(ACCESS_TOKEN_MAX_AGE));
   response.cookies.set("refresh_token", refresh, authCookieOptions(REFRESH_TOKEN_MAX_AGE));
   return response;
