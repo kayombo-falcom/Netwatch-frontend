@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { User, Settings, LogOut } from "lucide-react";
 import { Tag } from "@/components/tag";
 import { TooltipWrap } from "@/components/tooltip-wrap";
 import { SkeletonCircle } from "@/components/skeleton";
 import { useUsersStore } from "@/hooks/use-users-store";
 import { hoverTintClass, systemHoverClass, USER_ROLE_TINT } from "@/lib/colors";
+import { logout } from "@/lib/auth-client";
 
 /** There's no real auth session yet, so this id stands in for the signed-in user — same account the /profile page edits. */
 const CURRENT_USER_ID = 1;
@@ -20,7 +20,6 @@ export const ProfileMenu = () => {
   const currentUser = users.find(u => u.id === CURRENT_USER_ID) ?? users[0];
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     if (!open) return;
@@ -75,7 +74,7 @@ export const ProfileMenu = () => {
           </div>
 
           <button
-            onClick={() => { setOpen(false); router.push("/login"); }}
+            onClick={() => { setOpen(false); logout(); }}
             className={`${menuItemBase} w-full text-left border-t border-border text-destructive ${hoverTintClass("destructive")}`}
           >
             <LogOut size={15} /> Log out

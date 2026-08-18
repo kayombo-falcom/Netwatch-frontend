@@ -14,6 +14,8 @@ import { Skeleton, SkeletonCircle, SkeletonText } from "@/components/skeleton";
 import { useUsersStore, type StoreUser } from "@/hooks/use-users-store";
 import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 import { isValidEmail } from "@/lib/validation";
+import { logoutForPasswordChange } from "@/lib/auth-client";
+import { toast } from "@/lib/toast-store";
 
 /** There's no real auth session yet, so this stands in for the signed-in user — same account the header avatar and profile menu represent. */
 const CURRENT_USER_ID = 1;
@@ -71,9 +73,10 @@ export default function ProfilePage() {
   const [showNew, setShowNew] = useState(false);
   const [pwTouched, setPwTouched] = useState<{ current?: boolean; next?: boolean; confirm?: boolean }>({});
   const [pwAttempted, setPwAttempted] = useState(false);
-  const [pwSaved, setPwSaved] = useState(false);
+  const [pwSubmitting, setPwSubmitting] = useState(false);
+  const [pwServerError, setPwServerError] = useState<string | null>(null);
 
-  const currentPasswordError = !currentPassword ? "Current password is required." : null;
+  const currentPasswordError = !currentPassword ? "Current password is required." : pwServerError;
   const newPasswordError = !newPassword ? "New password is required." : newPassword.length < 8 ? "Password must be at least 8 characters." : null;
   const confirmPasswordError = !confirmPassword ? "Please confirm your new password." : confirmPassword !== newPassword ? "Passwords do not match." : null;
   const pwHasErrors = !!(currentPasswordError || newPasswordError || confirmPasswordError);
@@ -84,15 +87,35 @@ export default function ProfilePage() {
     setConfirmPassword("");
     setPwTouched({});
     setPwAttempted(false);
+    setPwServerError(null);
     setChangingPassword(true);
   };
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     setPwAttempted(true);
+    setPwServerError(null);
     if (pwHasErrors) return;
-    setChangingPassword(false);
-    setPwSaved(true);
-    setTimeout(() => setPwSaved(false), 2000);
+
+    setPwSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const message = body.current_password?.[0] ?? body.new_password?.[0] ?? body.detail ?? "Couldn't update your password. Please try again.";
+        setPwServerError(message);
+        return;
+      }
+      // Changing your password invalidates the current session too — force a fresh login.
+      logoutForPasswordChange();
+    } catch {
+      toast.error("Couldn't update your password", "Couldn't reach the server. Please try again.");
+    } finally {
+      setPwSubmitting(false);
+    }
   };
 
   const handleCancelPassword = () => setChangingPassword(false);
@@ -223,7 +246,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader
             title="Security"
-            subtitle={changingPassword ? "Choose a new password" : pwSaved ? "Password updated" : "Change your account password"}
+            subtitle={changingPassword ? "Choose a new password" : "Change your account password"}
             action={!changingPassword && !loading && <Btn variant="ghost" size="xs" onClick={startChangingPassword}><Lock size={12} /> Change Password</Btn>}
             divider={changingPassword}
           />
@@ -275,8 +298,10 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex gap-2 justify-end pt-2">
-                <Btn variant="secondary" onClick={handleCancelPassword}>Cancel</Btn>
-                <Btn variant="primary" onClick={handleUpdatePassword}><Lock size={13} /> Update Password</Btn>
+                <Btn variant="secondary" onClick={handleCancelPassword} disabled={pwSubmitting}>Cancel</Btn>
+                <Btn variant="primary" onClick={handleUpdatePassword} disabled={pwSubmitting}>
+                  <Lock size={13} /> {pwSubmitting ? "Updating…" : "Update Password"}
+                </Btn>
               </div>
             </div>
           )}

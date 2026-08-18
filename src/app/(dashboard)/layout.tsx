@@ -16,6 +16,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { DialogHostProvider } from "@/hooks/use-dialog-host";
 import { UsersStoreProvider } from "@/hooks/use-users-store";
 import { UserDialogRenderer } from "@/components/user-dialog-renderer";
+import { IdleSessionGuard } from "@/hooks/use-idle-timeout";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <UsersStoreProvider>
       <DialogHostProvider renderDialog={(descriptor, ctx) => <UserDialogRenderer descriptor={descriptor} {...ctx} />}>
+        <IdleSessionGuard />
         <SidebarProvider className="h-screen bg-background overflow-hidden" style={{ fontFamily: "var(--font-sans)" }}>
           <AppSidebar />
 
