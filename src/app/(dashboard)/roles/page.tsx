@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Lock, Plus, Save, ShieldAlert, Trash2 } from "lucide-react";
+import { Lock, Pencil, Plus, Save, ShieldAlert, Trash2 } from "lucide-react";
 import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
 import { Btn } from "@/components/btn";
@@ -12,6 +12,7 @@ import { Skeleton, SkeletonText } from "@/components/skeleton";
 import { tintClass } from "@/lib/colors";
 import { toast } from "@/lib/toast-store";
 import { useRolesStore } from "@/hooks/use-roles-store";
+import { useUsersStore } from "@/hooks/use-users-store";
 
 type PermissionRow = { permission: string; label: string; roles: Record<string, boolean> };
 
@@ -30,7 +31,8 @@ const categoryOf = (permission: string) => CATEGORY_LABELS[permission.split(".")
 const ADMIN_ROLE = "Admins";
 
 export default function RolesPermissionsPage() {
-  const { roles: storeRoles, addRole, deleteRole } = useRolesStore();
+  const { roles: storeRoles, addRole, renameRole, deleteRole } = useRolesStore();
+  const { refetchUsers } = useUsersStore();
   const [rows, setRows] = useState<PermissionRow[] | null>(null);
   const [grants, setGrants] = useState<Record<string, Record<string, boolean>>>({});
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,10 @@ export default function RolesPermissionsPage() {
   const [addAttempted, setAddAttempted] = useState(false);
   const [adding, setAdding] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editAttempted, setEditAttempted] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const roleColumns = useMemo(
     () => [...storeRoles].sort((a, b) => Number(b.isBuiltin) - Number(a.isBuiltin) || a.name.localeCompare(b.name)),
@@ -153,6 +159,26 @@ export default function RolesPermissionsPage() {
     if (ok) await loadMatrix();
   };
 
+  const openEditRole = (name: string) => {
+    setEditTarget(name);
+    setEditName(name);
+    setEditAttempted(false);
+  };
+
+  const handleRenameRole = async () => {
+    setEditAttempted(true);
+    const name = editName.trim();
+    if (!name || !editTarget) return;
+    setEditing(true);
+    const ok = await renameRole(editTarget, name);
+    setEditing(false);
+    if (!ok) return;
+    setEditTarget(null);
+    // The rename cascades to every user on that role — refresh the users list
+    // so their role label doesn't keep showing the old name.
+    await Promise.all([loadMatrix(), refetchUsers()]);
+  };
+
   if (forbidden) {
     return (
       <div className="max-w-3xl mx-auto">
@@ -195,14 +221,24 @@ export default function RolesPermissionsPage() {
                         <span className="inline-flex items-center gap-1.5 normal-case">
                           {role.name}
                           {!role.isBuiltin && (
-                            <button
-                              type="button"
-                              title={`Delete ${role.name}`}
-                              onClick={() => setDeleteTarget(role.name)}
-                              className="text-muted-foreground/50 hover:text-destructive transition-colors"
-                            >
-                              <Trash2 size={12} />
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                title={`Rename ${role.name}`}
+                                onClick={() => openEditRole(role.name)}
+                                className="text-muted-foreground/50 hover:text-foreground transition-colors"
+                              >
+                                <Pencil size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                title={`Delete ${role.name}`}
+                                onClick={() => setDeleteTarget(role.name)}
+                                className="text-muted-foreground/50 hover:text-destructive transition-colors"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </>
                           )}
                         </span>
                       </th>
@@ -285,6 +321,27 @@ export default function RolesPermissionsPage() {
         <div className="flex gap-2 justify-end mt-5">
           <Btn variant="secondary" onClick={() => setAddOpen(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={handleAddRole} disabled={adding}>{adding ? "Adding…" : "Add Role"}</Btn>
+        </div>
+      </Modal>
+
+      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} className="max-w-sm p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className={`p-2 rounded-full ${tintClass("teal")}`}><Pencil size={18} /></span>
+          <h3 className="font-semibold text-foreground">Rename Role</h3>
+        </div>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Role name</label>
+        <input
+          className={`w-full px-3 py-2 text-sm border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${editAttempted && !editName.trim() ? "border-destructive focus:ring-destructive" : "border-border"}`}
+          value={editName}
+          onChange={e => setEditName(e.target.value)}
+          autoFocus
+          onKeyDown={e => { if (e.key === "Enter") handleRenameRole(); }}
+        />
+        {editAttempted && !editName.trim() && <FieldError message="Role name is required." />}
+        <p className="text-xs text-muted-foreground/60 mt-3">Users on this role and its saved permissions move to the new name automatically.</p>
+        <div className="flex gap-2 justify-end mt-5">
+          <Btn variant="secondary" onClick={() => setEditTarget(null)}>Cancel</Btn>
+          <Btn variant="primary" onClick={handleRenameRole} disabled={editing}>{editing ? "Saving…" : "Save"}</Btn>
         </div>
       </Modal>
 

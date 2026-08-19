@@ -62,18 +62,25 @@ const UsersStoreContext = createContext<{
   loading: boolean;
   addUser: (values: UserFormValues) => Promise<void>;
   updateUser: (id: number, values: UserFormValues) => Promise<void>;
+  refetchUsers: () => Promise<void>;
 } | null>(null);
 
 export const UsersStoreProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<StoreUser[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const refetchUsers = useCallback(
+    () =>
+      fetch("/api/users")
+        .then(res => res.json())
+        .then((data: ApiUser[]) => setUsers(data.map(toStoreUser)))
+        .catch(() => toast.error("Couldn't load users", "Please refresh the page to try again.")),
+    []
+  );
+
   useEffect(() => {
-    fetch("/api/users")
-      .then(res => res.json())
-      .then((data: ApiUser[]) => setUsers(data.map(toStoreUser)))
-      .catch(() => toast.error("Couldn't load users", "Please refresh the page to try again."))
-      .finally(() => setLoading(false));
+    refetchUsers().finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addUser = useCallback(async (values: UserFormValues) => {
@@ -106,7 +113,10 @@ export const UsersStoreProvider = ({ children }: { children: ReactNode }) => {
     toast.success("User updated", `${values.name}'s details have been saved.`);
   }, []);
 
-  const value = useMemo(() => ({ users, loading, addUser, updateUser }), [users, loading, addUser, updateUser]);
+  const value = useMemo(
+    () => ({ users, loading, addUser, updateUser, refetchUsers }),
+    [users, loading, addUser, updateUser, refetchUsers]
+  );
 
   return <UsersStoreContext.Provider value={value}>{children}</UsersStoreContext.Provider>;
 };

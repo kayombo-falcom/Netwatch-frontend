@@ -21,6 +21,7 @@ const RolesStoreContext = createContext<{
   roles: StoreRole[];
   loading: boolean;
   addRole: (name: string) => Promise<boolean>;
+  renameRole: (oldName: string, newName: string) => Promise<boolean>;
   deleteRole: (name: string) => Promise<boolean>;
 } | null>(null);
 
@@ -52,6 +53,22 @@ export const RolesStoreProvider = ({ children }: { children: ReactNode }) => {
     return true;
   }, []);
 
+  const renameRole = useCallback(async (oldName: string, newName: string) => {
+    const res = await fetch(`/api/roles/${encodeURIComponent(oldName)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName }),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      toast.error("Couldn't rename role", firstApiError(body));
+      return false;
+    }
+    setRoles(prev => prev.map(r => (r.name === oldName ? toStoreRole(body) : r)));
+    toast.success("Role renamed", `"${oldName}" is now "${newName}".`);
+    return true;
+  }, []);
+
   const deleteRole = useCallback(async (name: string) => {
     const res = await fetch(`/api/roles/${encodeURIComponent(name)}`, { method: "DELETE" });
     const body = await res.json().catch(() => ({}));
@@ -64,7 +81,10 @@ export const RolesStoreProvider = ({ children }: { children: ReactNode }) => {
     return true;
   }, []);
 
-  const value = useMemo(() => ({ roles, loading, addRole, deleteRole }), [roles, loading, addRole, deleteRole]);
+  const value = useMemo(
+    () => ({ roles, loading, addRole, renameRole, deleteRole }),
+    [roles, loading, addRole, renameRole, deleteRole]
+  );
 
   return <RolesStoreContext.Provider value={value}>{children}</RolesStoreContext.Provider>;
 };
