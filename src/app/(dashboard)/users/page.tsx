@@ -16,11 +16,13 @@ import { Skeleton, SkeletonTableRows } from "@/components/skeleton";
 import { tintContrastText, USER_ROLE_TINT } from "@/lib/colors";
 import { useDialogHost } from "@/hooks/use-dialog-host";
 import { useUsersStore, type StoreUser } from "@/hooks/use-users-store";
+import { useRolesStore } from "@/hooks/use-roles-store";
 import { useHighlightParam } from "@/hooks/use-highlight-param";
 
 export default function UsersPage() {
   const highlightId = useHighlightParam();
   const { users, loading, updateUser } = useUsersStore();
+  const { roles: storeRoles } = useRolesStore();
   const { openDialog } = useDialogHost();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
@@ -28,7 +30,7 @@ export default function UsersPage() {
   const [perPage, setPerPage] = useState(5);
   const [dialog, setDialog] = useState<{ mode: "view"; user: StoreUser } | null>(null);
   const [statusAction, setStatusAction] = useState<{ type: "disable" | "enable"; user: StoreUser } | null>(null);
-  const roles = ["All", "Admins", "Staff", "Students", "Guests", "IoT"];
+  const roles = ["All", ...storeRoles.map(r => r.name)];
 
   const prevUserCount = useRef(users.length);
   useEffect(() => {

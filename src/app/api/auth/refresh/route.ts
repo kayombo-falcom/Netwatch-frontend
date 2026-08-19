@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE, authCookieOptions } from "@/lib/auth-cookies";
+import { BACKEND_API_BASE } from "@/lib/backend-url";
 
 /** Renews the access token from the refresh token, then touches an authenticated
  * endpoint so the backend's idle-session clock resets immediately. Used to both
@@ -9,7 +10,7 @@ export async function POST() {
   const refreshToken = (await cookies()).get("refresh_token")?.value;
   if (!refreshToken) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
-  const refreshRes = await fetch(`${process.env.BACKEND_URL}/api/auth/refresh/`, {
+  const refreshRes = await fetch(`${BACKEND_API_BASE}/auth/refresh/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh: refreshToken }),
@@ -21,7 +22,7 @@ export async function POST() {
 
   const { access, refresh } = await refreshRes.json();
 
-  await fetch(`${process.env.BACKEND_URL}/api/auth/me/`, {
+  await fetch(`${BACKEND_API_BASE}/auth/me/`, {
     headers: { Authorization: `Bearer ${access}` },
   }).catch(() => null);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ACCESS_TOKEN_MAX_AGE, authCookieOptions } from "@/lib/auth-cookies";
+import { BACKEND_API_BASE } from "@/lib/backend-url";
 
 const LOGIN_URL = "/login";
 
@@ -13,7 +14,7 @@ const redirectToLogin = (request: NextRequest) => {
 
 /** Exchanges the refresh token cookie for a new access token via Django. */
 const refreshAccessToken = async (refreshToken: string): Promise<string | null> => {
-  const res = await fetch(`${process.env.BACKEND_URL}/api/auth/refresh/`, {
+  const res = await fetch(`${BACKEND_API_BASE}/auth/refresh/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh: refreshToken }),
@@ -35,7 +36,7 @@ export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
   if (!accessToken) return redirectToLogin(request);
 
-  const meResponse = await fetch(`${process.env.BACKEND_URL}/api/auth/me/`, {
+  const meResponse = await fetch(`${BACKEND_API_BASE}/auth/me/`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   }).catch(() => null);
 

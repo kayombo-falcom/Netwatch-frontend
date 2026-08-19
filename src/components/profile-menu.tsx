@@ -11,7 +11,7 @@ import { hoverTintClass, systemHoverClass, USER_ROLE_TINT } from "@/lib/colors";
 import { logout } from "@/lib/auth-client";
 
 /** There's no real auth session yet, so this id stands in for the signed-in user — same account the /profile page edits. */
-const CURRENT_USER_ID = 1;
+export const CURRENT_USER_ID = 1;
 
 const menuItemBase = "flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors";
 

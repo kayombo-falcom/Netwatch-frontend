@@ -259,7 +259,7 @@ export default function ProfilePage() {
                     type={showCurrent ? "text" : "password"}
                     id="current-password"
                     name="current-password"
-                    autoComplete="current-password"
+                    autoComplete="off"
                     className={`${fieldClass} pr-9 ${(pwTouched.current || pwAttempted) && currentPasswordError ? "border-destructive focus:ring-destructive" : ""}`}
                     value={currentPassword}
                     onChange={e => setCurrentPassword(e.target.value)}

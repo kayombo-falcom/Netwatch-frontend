@@ -11,7 +11,6 @@ import type { UserStatus } from "@/app/_lib/dashboard-data";
 import { tintClass } from "@/lib/colors";
 import { isValidEmail } from "@/lib/validation";
 
-const ROLES = ["Admins", "Staff", "Students", "Guests", "IoT"].map(r => ({ label: r, value: r }));
 const STATUSES = [{ label: "Active", value: "active" }, { label: "Suspended", value: "suspended" }];
 
 const fieldClass = "w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary";
@@ -30,13 +29,14 @@ export const userToDraft = (user: Omit<UserFormValues, "password">): UserFormDra
 };
 
 export const UserFormDialog = ({
-  mode, draft, onDraftChange, onClose, onSubmit, minimized = false, onMinimize, onRestore,
+  mode, draft, onDraftChange, onClose, onSubmit, roleOptions, minimized = false, onMinimize, onRestore,
 }: {
   mode: "add" | "edit";
   draft: UserFormDraft;
   onDraftChange: (draft: UserFormDraft) => void;
   onClose: () => void;
   onSubmit: (values: UserFormValues) => void;
+  roleOptions: { label: string; value: string }[];
   minimized?: boolean;
   onMinimize?: () => void;
   onRestore?: () => void;
@@ -112,7 +112,7 @@ export const UserFormDialog = ({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelClass}>Role<RequiredMark /></label>
-            <Dropdown options={ROLES} value={role} onChange={v => patch({ role: v })} />
+            <Dropdown options={roleOptions} value={role} onChange={v => patch({ role: v })} />
           </div>
           <div>
             <label className={labelClass}>Status<RequiredMark /></label>

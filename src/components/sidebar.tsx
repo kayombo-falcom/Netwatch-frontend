@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { navItems, alertsData } from "@/app/_lib/dashboard-data";
 import { hoverTintClass, systemHoverClass } from "@/lib/colors";
+import { useUsersStore } from "@/hooks/use-users-store";
+import { CURRENT_USER_ID } from "@/components/profile-menu";
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -26,6 +28,9 @@ export const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { toggleSidebar, isMobile, setOpenMobile, state } = useSidebar();
+  const { users } = useUsersStore();
+  const currentUser = users.find(u => u.id === CURRENT_USER_ID) ?? users[0];
+  const visibleNavItems = navItems.filter(item => item.href !== "/roles" || currentUser?.role === "Admins");
 
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("a, button")) return;
@@ -58,7 +63,7 @@ export const AppSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map(item => {
+              {visibleNavItems.map(item => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
                 return (

@@ -4,7 +4,7 @@ import { proxyToBackend } from "@/lib/backend-proxy";
  * a changed password must force logout even if the client never gets to run its
  * own follow-up logic. */
 export async function POST(request: Request) {
-  const res = await proxyToBackend("/api/auth/change-password/", {
+  const res = await proxyToBackend("/auth/change-password/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(await request.json()),

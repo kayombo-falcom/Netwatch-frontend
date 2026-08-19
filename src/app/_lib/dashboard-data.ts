@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Monitor, Users, Radio, ShieldCheck, BarChart2, Bell, Settings, Activity } from "lucide-react";
+import { LayoutDashboard, Monitor, Users, Radio, ShieldCheck, BarChart2, Bell, Settings, Activity, KeyRound } from "lucide-react";
 import type { TintColor } from "@/lib/colors";
 
 export type NavItem = {
@@ -16,6 +16,7 @@ export const navItems: NavItem[] = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
   { href: "/devices", label: "Devices", icon: Monitor },
   { href: "/users", label: "Users", icon: Users },
+  { href: "/roles", label: "Roles & Permissions", icon: KeyRound },
   { href: "/access-points", label: "Access Points", icon: Radio },
   { href: "/policies", label: "Policies", icon: ShieldCheck },
   { href: "/traffic", label: "Traffic Reports", icon: BarChart2 },
@@ -27,6 +28,7 @@ export const screenTitles: Record<string, string> = {
   overview: "Network Overview",
   devices: "Devices",
   users: "Users",
+  roles: "Roles & Permissions",
   "access-points": "Access Points",
   policies: "Policies",
   traffic: "Traffic Reports",
