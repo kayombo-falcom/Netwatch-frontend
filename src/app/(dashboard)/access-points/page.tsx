@@ -3,17 +3,13 @@
 import { Radio } from "lucide-react";
 import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
-import { StatusBadge } from "@/components/status-badge";
 import { IconSwatch } from "@/components/icon-swatch";
 import { Tag } from "@/components/tag";
 import { Skeleton, SkeletonText } from "@/components/skeleton";
-import { apsData } from "@/app/_lib/dashboard-data";
-import { TINT } from "@/lib/colors";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useCurrentAp } from "@/hooks/use-current-ap";
 
 export default function AccessPointsPage() {
-  const loading = useSimulatedLoading();
-  const ap = apsData.find(a => a.status === "online");
+  const { data: ap, loading, error } = useCurrentAp();
 
   if (loading) {
     return (
@@ -56,12 +52,12 @@ export default function AccessPointsPage() {
     );
   }
 
-  if (!ap) {
+  if (error || !ap?.connected) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground/60">
           <Radio size={32} className="mb-3 opacity-30" />
-          <p className="text-sm">No connected access point</p>
+          <p className="text-sm">{error ?? "Not connected to a Wi-Fi network"}</p>
         </Card>
       </div>
     );
@@ -71,9 +67,9 @@ export default function AccessPointsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader
-          title={ap.name}
-          subtitle={`${ap.location} · ${ap.model}`}
-          action={<StatusBadge status={ap.status} />}
+          title={ap.ssid ?? "Unknown network"}
+          subtitle={ap.interfaceName ?? undefined}
+          action={<Tag color="teal"><Radio size={12} /> Connected</Tag>}
         />
         <div className="p-5 space-y-5">
           <div className="flex items-center gap-3">
@@ -82,13 +78,13 @@ export default function AccessPointsPage() {
             </IconSwatch>
             <div className="grid grid-cols-4 gap-3 flex-1">
               {[
-                { label: "Clients", value: ap.clients },
-                { label: "Signal", value: `${ap.signal} dBm` },
-                { label: "Channel", value: ap.channel },
-                { label: "Load", value: `${ap.load}%` },
+                { label: "Signal", value: ap.signalPercent != null ? `${ap.signalPercent}%` : "—" },
+                { label: "RSSI", value: ap.rssiDbm != null ? `${ap.rssiDbm} dBm` : "—" },
+                { label: "Channel", value: ap.channel ?? "—" },
+                { label: "Band", value: ap.band ?? "—" },
               ].map(m => (
                 <div key={m.label} className="text-center">
-                  <div className={`text-lg font-bold tabular-nums ${m.label === "Load" && ap.load > 70 ? TINT.amber.fg : "text-foreground"}`}>
+                  <div className="text-lg font-bold tabular-nums text-foreground">
                     {m.value}
                   </div>
                   <div className="text-xs text-muted-foreground/60">{m.label}</div>
@@ -97,10 +93,9 @@ export default function AccessPointsPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
-            <Tag color={ap.firmware === "6.4.1" ? "teal" : "amber"} bordered={false}>
-              fw {ap.firmware} {ap.firmware !== "6.4.1" && "· update available"}
-            </Tag>
+          <div className="flex items-center justify-end gap-2">
+            {ap.radioType && <Tag color="muted" bordered={false}>{ap.radioType}</Tag>}
+            {ap.authentication && <Tag color="muted" bordered={false}>{ap.authentication}</Tag>}
           </div>
         </div>
       </Card>
@@ -112,14 +107,13 @@ export default function AccessPointsPage() {
             {[
               ["IP Address", ap.ip],
               ["MAC Address", ap.mac],
+              ["AP BSSID", ap.bssid],
               ["Gateway", ap.gateway],
-              ["Subnet", ap.subnet],
-              ["VLAN", ap.vlan],
-              ["Management IP", ap.managementIp],
+              ["Subnet Mask", ap.subnet],
             ].map(([l, v]) => (
               <div key={l as string}>
                 <p className="text-muted-foreground/60 text-xs mb-0.5">{l as string}</p>
-                <p className="font-mono font-medium text-foreground">{v}</p>
+                <p className="font-mono font-medium text-foreground">{v ?? "—"}</p>
               </div>
             ))}
           </div>
