@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell, Check, KeyRound, Lock, Monitor, Pencil, Plus, Radio, Save, Search,
@@ -137,14 +137,17 @@ export default function RolesPermissionsPage() {
     return keys.map(key => [key, byCategory.get(key)!] as const);
   }, [rows, permSearch]);
 
+  const editableRoles = useMemo(() => roleColumns.filter(role => role.name !== ADMIN_ROLE), [roleColumns]);
+
+  const isPermissionDirty = useCallback(
+    (roleName: string, row: PermissionRow) => !!grants[roleName]?.[row.permission] !== !!row.roles[roleName],
+    [grants]
+  );
+
   const dirtyRoleNames = useMemo(() => {
     if (!rows) return new Set<string>();
-    return new Set(
-      roleColumns
-        .filter(role => role.name !== ADMIN_ROLE && rows.some(r => !!grants[role.name]?.[r.permission] !== !!r.roles[role.name]))
-        .map(role => role.name)
-    );
-  }, [rows, grants, roleColumns]);
+    return new Set(editableRoles.filter(role => rows.some(row => isPermissionDirty(role.name, row))).map(role => role.name));
+  }, [rows, editableRoles, isPermissionDirty]);
 
   const dirty = dirtyRoleNames.size > 0;
 
@@ -162,10 +165,10 @@ export default function RolesPermissionsPage() {
 
   const handleSave = async () => {
     if (!rows) return;
-    const updates = rows.flatMap(r =>
-      roleColumns
-        .filter(role => role.name !== ADMIN_ROLE && !!grants[role.name]?.[r.permission] !== !!r.roles[role.name])
-        .map(role => ({ role: role.name, permission: r.permission, granted: !!grants[role.name]?.[r.permission] }))
+    const updates = rows.flatMap(row =>
+      editableRoles
+        .filter(role => isPermissionDirty(role.name, row))
+        .map(role => ({ role: role.name, permission: row.permission, granted: !!grants[role.name]?.[row.permission] }))
     );
     if (!updates.length) return;
 
