@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { getCurrentWifi } from "@/lib/wifi";
+import { getCurrentConnection } from "@/lib/wifi";
 
 export async function GET() {
   try {
-    const wifi = await getCurrentWifi();
-    return NextResponse.json(wifi);
+    const connection = await getCurrentConnection();
+    return NextResponse.json(connection);
   } catch {
     return NextResponse.json(
-      { error: "Unable to read Wi-Fi status on this host" },
+      { error: "Unable to read network status on this host" },
       { status: 500 }
     );
   }

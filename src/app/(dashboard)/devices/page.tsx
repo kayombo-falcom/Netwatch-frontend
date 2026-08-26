@@ -80,7 +80,7 @@ export default function DevicesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                {["Status", "Device", "OS", "IP / MAC", "Connection Type", "Access Point", "Actions"].map(h => (
+                {["Status", "Device", "OS", "IP / MAC", "Connection Type", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                     {loading ? <Skeleton className="h-3 w-12" /> : h}
                   </th>
@@ -89,9 +89,9 @@ export default function DevicesPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <SkeletonTableRows columns={7} rows={perPage} />
+                <SkeletonTableRows columns={6} rows={perPage} />
               ) : paged.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
               ) : paged.map(d => (
                 <tr
                   key={d.id}
@@ -109,7 +109,6 @@ export default function DevicesPage() {
                     <div className="font-mono text-xs text-muted-foreground/60">{d.mac}</div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{d.connectionType}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.ap}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                       <IconButton color="destructive" title="Disconnect" onClick={() => setConfirm({ type: "disconnect", device: d })} icon={<WifiOff size={13} />} />
@@ -170,7 +169,7 @@ export default function DevicesPage() {
             </div>
             <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground font-mono mb-3">
               <span>{d.ip}</span>
-              <span>{d.ap}</span>
+              <span>{d.connectionType}</span>
               <span>{d.mac}</span>
               <span>{d.data}</span>
             </div>
@@ -197,7 +196,6 @@ export default function DevicesPage() {
                 ["Type", drawer.type],
                 ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
                 ["MAC", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
-                ["Access Point", drawer.ap],
                 ["Connection Type", drawer.connectionType],
                 ["Connected Since", drawer.connectedSince],
                 ["Last Seen", drawer.lastSeen],

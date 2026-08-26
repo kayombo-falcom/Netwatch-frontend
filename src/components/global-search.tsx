@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Monitor, Users as UsersIcon, Radio } from "lucide-react";
-import { devicesData, apsData } from "@/app/_lib/dashboard-data";
+import { Search, Monitor, Users as UsersIcon } from "lucide-react";
+import { devicesData } from "@/app/_lib/dashboard-data";
 import { useUsersStore } from "@/hooks/use-users-store";
 
 type Result = { id: string; label: string; sub: string; href: string; icon: React.ReactNode };
@@ -55,10 +55,6 @@ export const GlobalSearch = () => {
       .filter(d => d.name.toLowerCase().includes(q) || d.ip.includes(q) || d.user.toLowerCase().includes(q))
       .slice(0, 4)
       .map(d => ({ id: `device-${d.id}`, label: d.name, sub: d.ip, href: `/devices?highlight=${d.id}`, icon: <Monitor size={13} /> })),
-    ...apsData
-      .filter(a => a.name.toLowerCase().includes(q) || a.ip.includes(q) || a.location.toLowerCase().includes(q))
-      .slice(0, 4)
-      .map(a => ({ id: `ap-${a.id}`, label: a.name, sub: a.ip, href: `/access-points?highlight=${a.id}`, icon: <Radio size={13} /> })),
   ];
 
   const goTo = (href: string) => {
