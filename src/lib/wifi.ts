@@ -1,7 +1,4 @@
-import { execFile } from "child_process";
-import { promisify } from "util";
-
-const execFileAsync = promisify(execFile);
+import { execFileAsync, normalizeMac, runPowerShell } from "./shell";
 
 export type ConnectionKind = "wifi" | "ethernet";
 
@@ -81,11 +78,6 @@ function parseLinkSpeedMbps(linkSpeed: string | null): number | null {
   return value;
 }
 
-function normalizeMac(mac: string | null): string | null {
-  if (!mac) return null;
-  return mac.replace(/-/g, ":").toLowerCase();
-}
-
 function parseColonFields(output: string): Record<string, string> {
   const fields: Record<string, string> = {};
   for (const line of output.split("\n")) {
@@ -119,15 +111,6 @@ function getIpFields(ip: Record<string, string> | null) {
     gateway: ip?.["Default Gateway"] ?? null,
     dnsServers: ip?.["DNS servers configured through DHCP"] ?? ip?.["Statically Configured DNS Servers"] ?? null,
   };
-}
-
-function runPowerShell<T>(script: string): Promise<T | null> {
-  return execFileAsync("powershell", ["-NoProfile", "-NonInteractive", "-Command", script])
-    .then(({ stdout }) => {
-      const trimmed = stdout.trim();
-      return trimmed ? (JSON.parse(trimmed) as T) : null;
-    })
-    .catch(() => null);
 }
 
 type AdapterExtras = {
