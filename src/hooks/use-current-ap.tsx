@@ -17,7 +17,7 @@ export const useCurrentAp = () => {
 
     const fetchStatus = async () => {
       try {
-        const res = await fetch("/api/wifi/current");
+        const res = await fetch("/api/wifi/current", { cache: "no-store" });
         if (!res.ok) throw new Error("request failed");
         const json: CurrentConnection = await res.json();
         if (!cancelled) {
@@ -36,9 +36,21 @@ export const useCurrentAp = () => {
 
     fetchStatus();
     const interval = setInterval(fetchStatus, POLL_INTERVAL_MS);
+
+    // Background tabs get their timers throttled by the browser, so a
+    // network switch made while this tab wasn't focused could otherwise sit
+    // stale well past POLL_INTERVAL_MS — re-check the moment it's visible again.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchStatus();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
     return () => {
       cancelled = true;
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
     };
   }, [refreshToken]);
 

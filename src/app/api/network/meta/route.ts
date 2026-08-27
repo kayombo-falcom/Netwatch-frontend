@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { brandNameForIsp } from "@/lib/isp-brands";
 
+// This depends on which network the request actually travels over, so it
+// must never be statically cached/optimized — every hit has to re-check.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export type NetworkMeta = {
   isp: string | null;
   city: string | null;
@@ -31,11 +36,11 @@ export async function GET() {
       country: data.country ?? null,
       publicIp: data.clientIp ?? null,
     };
-    return NextResponse.json(meta);
+    return NextResponse.json(meta, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json(
       { error: "Unable to read network location" },
-      { status: 500 }
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

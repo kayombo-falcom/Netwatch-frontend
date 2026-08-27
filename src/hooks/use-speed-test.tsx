@@ -27,8 +27,14 @@ const MEASUREMENTS: MeasurementConfig[] = [
   { type: "download", bytes: 1e8, count: 2 },
 ];
 
-/** Safety net: if the engine somehow never calls onFinish/onError, don't leave the button stuck on "Cancel" forever. */
-const STALL_TIMEOUT_MS = 30_000;
+/**
+ * Safety net: cancel if the engine goes silent — no phase change, no results
+ * update — for this long. Measured from last *activity*, not total run time,
+ * so a connection that's slow but still making progress (e.g. a slow upload
+ * round) is never punished for taking a while; only genuine stalls trip it.
+ */
+const INACTIVITY_TIMEOUT_MS = 15_000;
+const WATCHDOG_INTERVAL_MS = 2_000;
 
 export type SpeedTestStatus = "idle" | "running" | "done" | "error";
 export type SpeedTestPhase = "latency" | "download" | "upload";
@@ -61,12 +67,14 @@ export const useSpeedTest = () => {
   const [summary, setSummary] = useState<SpeedTestSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const engineRef = useRef<InstanceType<typeof SpeedTest> | null>(null);
+  const lastActivityRef = useRef(0);
 
   const run = useCallback(() => {
     setStatus("running");
     setError(null);
     setSummary(null);
     setPhase(null);
+    lastActivityRef.current = Date.now();
 
     // logAimApiUrl disabled: this is a local network monitoring tool, results
     // shouldn't be reported to Cloudflare's aggregate insights endpoint.
@@ -74,11 +82,15 @@ export const useSpeedTest = () => {
     engineRef.current = engine;
 
     engine.onPhaseChange = ({ measurement }) => {
+      lastActivityRef.current = Date.now();
       if (measurement.type === "latency" || measurement.type === "download" || measurement.type === "upload") {
         setPhase(measurement.type);
       }
     };
-    engine.onResultsChange = () => setSummary(toSummary(engine));
+    engine.onResultsChange = () => {
+      lastActivityRef.current = Date.now();
+      setSummary(toSummary(engine));
+    };
     engine.onFinish = () => {
       setSummary(toSummary(engine));
       setStatus("done");
@@ -102,17 +114,20 @@ export const useSpeedTest = () => {
     else run();
   }, [status, run, cancel]);
 
-  // If the engine never calls onFinish/onError for some reason (a stalled
-  // request, a browser quirk), the button would otherwise be stuck on
-  // "Cancel" forever since nothing else flips `status` back.
+  // If the engine goes silent for INACTIVITY_TIMEOUT_MS (a stalled request, a
+  // browser quirk), the button would otherwise be stuck on "Cancel" forever
+  // since nothing else flips `status` back. Polls activity rather than
+  // setting one long timer so a slow-but-progressing test is never punished.
   useEffect(() => {
     if (status !== "running") return;
-    const timeout = setTimeout(() => {
-      engineRef.current?.pause();
-      setError("Speed test timed out");
-      setStatus("error");
-    }, STALL_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
+    const watchdog = setInterval(() => {
+      if (Date.now() - lastActivityRef.current > INACTIVITY_TIMEOUT_MS) {
+        engineRef.current?.pause();
+        setError("Speed test stalled — no response from the server");
+        setStatus("error");
+      }
+    }, WATCHDOG_INTERVAL_MS);
+    return () => clearInterval(watchdog);
   }, [status]);
 
   return { status, phase, summary, error, run, cancel, toggle };

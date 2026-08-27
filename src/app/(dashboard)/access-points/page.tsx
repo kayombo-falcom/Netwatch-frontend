@@ -1,6 +1,6 @@
 "use client";
 
-import { Radio, EthernetPort, RefreshCw, ArrowDown, ArrowUp, Building2, MapPin } from "lucide-react";
+import { Radio, EthernetPort, RefreshCw, ArrowDown, ArrowUp, Building2, MapPin, AlertTriangle, Info } from "lucide-react";
 import { Card } from "@/components/card";
 import { CardHeader } from "@/components/card-header";
 import { IconSwatch } from "@/components/icon-swatch";
@@ -8,15 +8,23 @@ import { IconButton } from "@/components/icon-button";
 import { Tag } from "@/components/tag";
 import { Btn } from "@/components/btn";
 import { Speedometer } from "@/components/speedometer";
+import { QualityDot } from "@/components/quality-dot";
+import { TooltipWrap } from "@/components/tooltip-wrap";
 import { Skeleton, SkeletonText } from "@/components/skeleton";
 import { useCurrentAp } from "@/hooks/use-current-ap";
 import { useSpeedTest } from "@/hooks/use-speed-test";
 import { useNetworkMeta } from "@/hooks/use-network-meta";
+import { signalQuality, rssiQuality, pingQuality, jitterQuality, bandInfo, linkRateQuality } from "@/lib/wifi-quality";
 
 export default function AccessPointsPage() {
   const { data: ap, loading, refreshing, error, refresh } = useCurrentAp();
   const speedTest = useSpeedTest();
-  const { data: meta } = useNetworkMeta();
+  const { data: meta, refresh: refreshMeta } = useNetworkMeta();
+
+  const refreshAll = () => {
+    refresh();
+    refreshMeta();
+  };
 
   if (loading) {
     return (
@@ -85,18 +93,24 @@ export default function AccessPointsPage() {
   const isWifi = ap.type === "wifi";
   const ConnectionIcon = isWifi ? Radio : EthernetPort;
 
+  const signal = ap.signalPercent != null ? signalQuality(ap.signalPercent) : null;
+  const rssi = ap.rssiDbm != null ? rssiQuality(ap.rssiDbm) : null;
+  const band = ap.band ? bandInfo(ap.band) : null;
+  const receiveDot = ap.receiveRateMbps != null ? linkRateQuality(ap.receiveRateMbps) : null;
+  const transmitDot = ap.transmitRateMbps != null ? linkRateQuality(ap.transmitRateMbps) : null;
+
   const metrics = isWifi
     ? [
-        { label: "Signal", value: ap.signalPercent != null ? `${ap.signalPercent}%` : "—" },
-        { label: "RSSI", value: ap.rssiDbm != null ? `${ap.rssiDbm} dBm` : "—" },
+        { label: "Signal", value: ap.signalPercent != null ? `${ap.signalPercent}%` : "—", dot: signal },
+        { label: "RSSI", value: ap.rssiDbm != null ? `${ap.rssiDbm} dBm` : "—", dot: rssi },
         { label: "Channel", value: ap.channel ?? "—" },
-        { label: "Band", value: ap.band ?? "—" },
-        { label: "Receive", value: ap.receiveRateMbps != null ? `${ap.receiveRateMbps} Mbps` : "—" },
-        { label: "Transmit", value: ap.transmitRateMbps != null ? `${ap.transmitRateMbps} Mbps` : "—" },
+        { label: "Band", value: ap.band ?? "—", info: band },
+        { label: "Receive", value: ap.receiveRateMbps != null ? `${ap.receiveRateMbps} Mbps` : "—", dot: receiveDot },
+        { label: "Transmit", value: ap.transmitRateMbps != null ? `${ap.transmitRateMbps} Mbps` : "—", dot: transmitDot },
       ]
     : [
-        { label: "Receive", value: ap.receiveRateMbps != null ? `${ap.receiveRateMbps} Mbps` : "—" },
-        { label: "Transmit", value: ap.transmitRateMbps != null ? `${ap.transmitRateMbps} Mbps` : "—" },
+        { label: "Receive", value: ap.receiveRateMbps != null ? `${ap.receiveRateMbps} Mbps` : "—", dot: receiveDot },
+        { label: "Transmit", value: ap.transmitRateMbps != null ? `${ap.transmitRateMbps} Mbps` : "—", dot: transmitDot },
       ];
 
   const networkInfoFields: [string, string | null][] = [
@@ -111,20 +125,19 @@ export default function AccessPointsPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-end">
+        <IconButton
+          icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />}
+          title="Refresh page"
+          onClick={refreshAll}
+        />
+      </div>
+
       <Card>
         <CardHeader
           title={ap.networkName ?? (isWifi ? "Unknown network" : "Wired connection")}
           subtitle={ap.interfaceName ?? undefined}
-          action={
-            <div className="flex items-center gap-2">
-              <Tag color="teal"><ConnectionIcon size={12} /> Connected</Tag>
-              <IconButton
-                icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />}
-                title="Refresh"
-                onClick={refresh}
-              />
-            </div>
-          }
+          action={<Tag color="teal"><ConnectionIcon size={12} /> Connected</Tag>}
         />
         <div className="p-5 space-y-5">
           {isWifi && (ap.protocol || ap.authentication) && (
@@ -144,7 +157,15 @@ export default function AccessPointsPage() {
                   <div className="text-lg font-bold tabular-nums text-foreground">
                     {m.value}
                   </div>
-                  <div className="text-xs text-muted-foreground/60">{m.label}</div>
+                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
+                    {m.label}
+                    {"dot" in m && m.dot && <QualityDot label={m.dot.label} colorClass={m.dot.colorClass} />}
+                    {"info" in m && m.info && (
+                      <TooltipWrap label={m.info}>
+                        <Info size={11} className="text-muted-foreground/50" />
+                      </TooltipWrap>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -159,7 +180,7 @@ export default function AccessPointsPage() {
             speedTest.status === "error" ? undefined
             : speedTest.status === "running" ? `Measuring ${speedTest.phase ?? "…"}…`
             : speedTest.summary ? "Test complete"
-            : "Real download/upload throughput to Cloudflare's edge network"
+            : "Check your real download and upload speed"
           }
           action={
             <Btn variant="secondary" size="xs" onClick={speedTest.toggle}>
@@ -169,7 +190,13 @@ export default function AccessPointsPage() {
         />
         <div className="p-6">
           {speedTest.status === "error" && (
-            <p className="text-xs text-destructive mb-4 text-center">{speedTest.error}</p>
+            <div className="flex items-start gap-2.5 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-3 mb-5">
+              <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold">Speed test failed</p>
+                <p className="text-xs opacity-80 mt-0.5">{speedTest.error}</p>
+              </div>
+            </div>
           )}
 
           <div className="flex flex-col sm:flex-row items-center sm:items-center justify-center gap-6 sm:gap-10">
@@ -177,32 +204,40 @@ export default function AccessPointsPage() {
               <div className="flex gap-5">
                 <div className="text-center sm:text-left">
                   <div className="text-sm font-semibold tabular-nums text-foreground">{speedTest.summary?.latencyMs ?? "—"}</div>
-                  <div className="text-[11px] text-muted-foreground/50">Ping (ms)</div>
+                  <div className="flex items-center justify-center sm:justify-start gap-1 text-[11px] text-muted-foreground/50">
+                    Ping (ms)
+                    {speedTest.summary?.latencyMs != null && (
+                      <QualityDot {...pingQuality(speedTest.summary.latencyMs)} />
+                    )}
+                  </div>
                 </div>
                 {speedTest.summary?.jitterMs != null && (
                   <div className="text-center sm:text-left">
                     <div className="text-sm font-semibold tabular-nums text-foreground">{speedTest.summary.jitterMs}</div>
-                    <div className="text-[11px] text-muted-foreground/50">Jitter (ms)</div>
+                    <div className="flex items-center justify-center sm:justify-start gap-1 text-[11px] text-muted-foreground/50">
+                      Jitter (ms)
+                      <QualityDot {...jitterQuality(speedTest.summary.jitterMs)} />
+                    </div>
                   </div>
                 )}
               </div>
 
               {(meta?.isp || meta?.city) && (
-                <div className="space-y-1.5">
+                <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 w-full sm:w-auto">
                   {meta.isp && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
-                      <Building2 size={12} className="text-muted-foreground/40 shrink-0" />
-                      <span>{meta.isp}</span>
+                    <div className="flex items-center gap-2 text-xs text-foreground/80">
+                      <Building2 size={13} className="text-muted-foreground shrink-0" />
+                      <span className="font-medium">{meta.isp}</span>
                     </div>
                   )}
                   {meta.city && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
-                      <MapPin size={12} className="text-muted-foreground/40 shrink-0" />
+                    <div className="flex items-center gap-2 text-xs text-foreground/80">
+                      <MapPin size={13} className="text-muted-foreground shrink-0" />
                       <span>{meta.city}{meta.region && !meta.region.toLowerCase().includes(meta.city.toLowerCase()) ? `, ${meta.region}` : ""}</span>
                     </div>
                   )}
                   {meta.publicIp && (
-                    <div className="text-xs font-mono text-muted-foreground/40 pl-[18px]">{meta.publicIp}</div>
+                    <div className="text-[11px] font-mono text-muted-foreground pl-[21px]">{meta.publicIp}</div>
                   )}
                 </div>
               )}
