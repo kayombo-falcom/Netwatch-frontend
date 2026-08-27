@@ -1,5 +1,13 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Prerequisites (first-time setup)
+
+This app reads live network state from the host it runs on, so beyond `npm install` it needs a couple of things already on the machine:
+
+- **Windows.** Device/Wi-Fi status reads shell out to `netsh`, `powershell`, `arp`, and `ping` directly — there's no cross-platform fallback.
+- **[Nmap](https://nmap.org/download.html)** (Windows installer, or `winget install --id Insecure.Nmap -e`) — powers the "Detect OS" feature (`/api/network/os-detect`). Make sure its installer option for **Npcap** is checked; without Npcap, OS detection can't send the raw packets it needs even though the `nmap` command itself will run. Everything else in the app (device discovery, Wi-Fi status, speed test) works fine without it — only OS detection needs it, and it fails with a clear message if it's missing.
+- **Administrator privileges**, only when you want OS detection to actually work: Windows requires an elevated process for Nmap's raw-packet probes. Use `npm run dev:admin` instead of `npm run dev` to launch an elevated dev server automatically (it self-relaunches via a UAC prompt if the current terminal isn't already elevated).
+
 ## Getting Started
 
 First, run the development server:

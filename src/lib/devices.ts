@@ -1,20 +1,33 @@
-import dns from "dns";
 import os from "os";
-import { execFileAsync, normalizeMac } from "./shell";
+import { ipToLong, longToIp } from "./ip";
+import { execFileAsync, normalizeMac, pingOnce } from "./shell";
 import { getCurrentConnection } from "./wifi";
 
-// Ping sweeps and reverse-DNS lookups run one host at a time by default —
-// this caps how many run concurrently so a /24 sweep finishes in a handful
-// of rounds instead of one host at a time.
+// Ping sweeps run one host at a time by default — this caps how many run
+// concurrently so a /24 sweep finishes in a handful of rounds instead of one
+// host at a time.
 const PING_CONCURRENCY = 32;
 const PING_TIMEOUT_MS = 300;
-const HOSTNAME_CONCURRENCY = 16;
-const HOSTNAME_TIMEOUT_MS = 800;
 
 // Ping-sweeping a subnet bigger than this (a /23 or larger) would take an
 // unreasonable amount of time and traffic, so above this size we fall back to
 // reading whatever the OS's ARP cache already has instead of actively probing.
 const MAX_HOSTS_TO_SWEEP = 512;
+
+// The OS's ARP table has no join-time info — Windows returns it sorted by IP,
+// not by recency — so "last joined at the top" has no source of truth to read
+// from. This is the closest honest substitute: the first time this running
+// server ever notices a MAC, in memory only. It resets on restart and can't
+// reflect anyone who joined before this process started.
+const firstSeenAtByMac = new Map<string, number>();
+
+function trackFirstSeen(mac: string): number {
+  const seenAt = firstSeenAtByMac.get(mac);
+  if (seenAt !== undefined) return seenAt;
+  const now = Date.now();
+  firstSeenAtByMac.set(mac, now);
+  return now;
+}
 
 export type DiscoveredDevice = {
   ip: string;
@@ -47,14 +60,6 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T)
   return results;
 }
 
-function ipToLong(ip: string): number {
-  return ip.split(".").reduce((acc, octet) => (acc << 8) + Number(octet), 0) >>> 0;
-}
-
-function longToIp(long: number): string {
-  return [24, 16, 8, 0].map(shift => (long >>> shift) & 255).join(".");
-}
-
 /** Every usable host address between the network and broadcast address, or [] if the subnet is too large to sweep. */
 function computeHostRange(localIp: string, mask: string): string[] {
   const maskLong = ipToLong(mask);
@@ -70,9 +75,7 @@ function computeHostRange(localIp: string, mask: string): string[] {
 
 /** Pings a host so a live device answers and populates the OS's ARP cache, returning the reply's TTL (for an OS guess) if it answered. */
 async function pingHost(ip: string): Promise<number | null> {
-  const { stdout } = await execFileAsync("ping", ["-n", "1", "-w", String(PING_TIMEOUT_MS), ip]).catch(() => ({ stdout: "" }));
-  const match = stdout.match(/TTL=(\d+)/i);
-  return match ? Number(match[1]) : null;
+  return (await pingOnce(ip, PING_TIMEOUT_MS)).ttl;
 }
 
 /**
@@ -101,19 +104,14 @@ async function readArpTable(localIp: string): Promise<{ ip: string; mac: string 
   return entries;
 }
 
-async function resolveHostname(ip: string): Promise<string | null> {
-  try {
-    const names = await Promise.race([
-      dns.promises.reverse(ip),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), HOSTNAME_TIMEOUT_MS)),
-    ]);
-    return names[0] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/** Discovers devices on the currently joined network: a ping sweep to populate the ARP cache and guess OS family from TTL, then reverse-DNS for hostnames where available. */
+/**
+ * Discovers devices on the currently joined network: a ping sweep to
+ * populate the ARP cache and guess OS family from TTL. Hostnames are *not*
+ * resolved here — running the full DNS/NetBIOS/mDNS chain (hostname-resolve.ts)
+ * for every device on every scan was the main reason this was slow to load;
+ * that's now an on-demand per-device lookup instead. Returned
+ * most-recently-first-seen first.
+ */
 export async function scanConnectedDevices(): Promise<NetworkScanResult> {
   const connection = await getCurrentConnection();
   if (!connection.connected || !connection.ip || !connection.subnet) return EMPTY_RESULT;
@@ -134,14 +132,11 @@ export async function scanConnectedDevices(): Promise<NetworkScanResult> {
     byIp.set(entry.ip, { mac: entry.mac, hostname: null, os: ttl != null ? guessOsFromTtl(ttl) : null, isCurrentDevice: false });
   }
 
-  const entries = [...byIp.entries()];
-  const hostnames = await mapWithConcurrency(entries, HOSTNAME_CONCURRENCY, async ([ip, device]) =>
-    device.hostname ?? resolveHostname(ip)
-  );
-
-  const devices: DiscoveredDevice[] = entries
-    .map(([ip, device], index) => ({ ip, mac: device.mac, hostname: hostnames[index], os: device.os, isCurrentDevice: device.isCurrentDevice }))
-    .sort((a, b) => ipToLong(a.ip) - ipToLong(b.ip));
+  const devices: DiscoveredDevice[] = [...byIp.entries()]
+    .map(([ip, device]) => ({ ip, mac: device.mac, hostname: device.hostname, os: device.os, isCurrentDevice: device.isCurrentDevice }))
+    .map(device => ({ device, firstSeenAt: trackFirstSeen(device.mac) }))
+    .sort((a, b) => b.firstSeenAt - a.firstSeenAt)
+    .map(({ device }) => device);
 
   return { localIp: connection.ip, subnetMask: connection.subnet, devices };
 }
