@@ -200,7 +200,7 @@ export default function AccessPointsPage() {
           title="Speed Test"
           subtitle={
             speedTest.status === "error" ? undefined
-            : speedTest.status === "running" ? `Measuring ${speedTest.phase ?? "…"}…`
+            : speedTest.status === "running" ? `Measuring ${speedTest.phase ?? "…"}… (${speedTest.elapsedSeconds}s)`
             : speedTest.summary ? "Test complete"
             : "Check your real download and upload speed"
           }
@@ -231,6 +231,7 @@ export default function AccessPointsPage() {
                   label="Ping"
                   size={miniGaugeSize}
                   color={speedTest.summary?.latencyMs != null ? qualityStrokeColor(pingQuality(speedTest.summary.latencyMs).colorClass) : undefined}
+                  dot={speedTest.summary?.latencyMs != null ? pingQuality(speedTest.summary.latencyMs) : undefined}
                 />
                 <SpeedGauge
                   value={speedTest.summary?.jitterMs ?? null}
@@ -239,6 +240,7 @@ export default function AccessPointsPage() {
                   label="Jitter"
                   size={miniGaugeSize}
                   color={speedTest.summary?.jitterMs != null ? qualityStrokeColor(jitterQuality(speedTest.summary.jitterMs).colorClass) : undefined}
+                  dot={speedTest.summary?.jitterMs != null ? jitterQuality(speedTest.summary.jitterMs) : undefined}
                 />
                 <SpeedGauge
                   value={speedTest.packetLoss.status === "done" ? speedTest.packetLoss.percent : null}
@@ -247,9 +249,9 @@ export default function AccessPointsPage() {
                   label="Packet Loss"
                   size={miniGaugeSize}
                   color={speedTest.packetLoss.status === "done" ? qualityStrokeColor(packetLossQuality(speedTest.packetLoss.percent).colorClass) : undefined}
-                >
-                  {speedTest.packetLoss.status === "loading" ? <Loader2 size={16} className="animate-spin text-muted-foreground/60" /> : undefined}
-                </SpeedGauge>
+                  dot={speedTest.packetLoss.status === "done" ? packetLossQuality(speedTest.packetLoss.percent) : undefined}
+                  valueContent={speedTest.packetLoss.status === "loading" ? <Loader2 size={14} className="animate-spin text-muted-foreground/60" /> : undefined}
+                />
               </div>
 
               {(meta?.isp || meta?.city) && (

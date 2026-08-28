@@ -1,16 +1,19 @@
 // Same 4 bands every quality function below uses, as actual stroke colors —
 // for gauges (SVG `stroke`), which can't take a Tailwind class the way the
-// `QualityDot` background can.
-const STROKE_COLORS: Record<string, string> = {
-  "bg-green-500": "#22c55e",
-  "bg-yellow-500": "#eab308",
-  "bg-orange-500": "#f97316",
-  "bg-red-500": "#ef4444",
+// `QualityDot` background can. Reads Tailwind's own generated theme
+// variables (e.g. `--color-green-500`) rather than a hardcoded hex guess, so
+// the arc always matches whatever `bg-green-500` etc. actually render as
+// elsewhere in the app, light or dark.
+const STROKE_COLOR_VARS: Record<string, string> = {
+  "bg-green-500": "var(--color-green-500)",
+  "bg-yellow-500": "var(--color-yellow-500)",
+  "bg-orange-500": "var(--color-orange-500)",
+  "bg-red-500": "var(--color-red-500)",
 };
 
 /** Converts one of this file's `colorClass` values into a gauge-ready stroke color. */
 export function qualityStrokeColor(colorClass: string): string {
-  return STROKE_COLORS[colorClass] ?? "var(--chart-1)";
+  return STROKE_COLOR_VARS[colorClass] ?? "var(--chart-1)";
 }
 
 /** Signal strength (%) quality bands. */

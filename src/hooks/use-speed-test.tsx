@@ -4,27 +4,31 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import SpeedTest, { type MeasurementConfig } from "@cloudflare/speedtest";
 
 /**
- * Default engine sequence, trimmed down: the `packetLoss` phase is dropped
- * (it needs a TURN server we don't have, so it always fails with "unable to
- * get TURN server credentials"), and the largest download/upload rounds are
- * dropped or shrunk. The full default sequence transfers close to a
- * gigabyte, which on an ordinary connection can take minutes — long enough
- * that "still running, only Cancel is available" looks like a stuck button
- * rather than a test in progress. This finishes in a few seconds instead.
+ * Cloudflare's own default measurement sequence, minus `packetLoss` (needs a
+ * TURN server we don't have — measured separately below instead). The large
+ * download/upload tiers matter for accuracy, not just speed: the engine only
+ * escalates to a bigger tier once the current one finishes fast, so on a
+ * fast connection (fiber, gigabit) the small tiers never reach steady-state
+ * throughput — only the 25MB+ tiers do. Trimming them, as this used to,
+ * makes the test finish quicker but understates real speed on fast links.
+ * The UI shows elapsed time during the run so a longer test doesn't read as
+ * a stuck button.
  */
 const MEASUREMENTS: MeasurementConfig[] = [
   { type: "latency", numPackets: 1 },
   { type: "download", bytes: 1e5, count: 1, bypassMinDuration: true },
-  { type: "latency", numPackets: 10 },
-  { type: "download", bytes: 1e5, count: 5 },
-  { type: "download", bytes: 1e6, count: 5 },
-  { type: "upload", bytes: 1e5, count: 5 },
-  { type: "upload", bytes: 1e6, count: 4 },
-  { type: "download", bytes: 1e7, count: 4 },
-  { type: "upload", bytes: 1e7, count: 3 },
-  { type: "download", bytes: 2.5e7, count: 3 },
-  { type: "upload", bytes: 2.5e7, count: 2 },
-  { type: "download", bytes: 1e8, count: 2 },
+  { type: "latency", numPackets: 20 },
+  { type: "download", bytes: 1e5, count: 9 },
+  { type: "download", bytes: 1e6, count: 8 },
+  { type: "upload", bytes: 1e5, count: 8 },
+  { type: "upload", bytes: 1e6, count: 6 },
+  { type: "download", bytes: 1e7, count: 6 },
+  { type: "upload", bytes: 1e7, count: 4 },
+  { type: "download", bytes: 2.5e7, count: 4 },
+  { type: "upload", bytes: 2.5e7, count: 4 },
+  { type: "download", bytes: 1e8, count: 3 },
+  { type: "upload", bytes: 5e7, count: 3 },
+  { type: "download", bytes: 2.5e8, count: 2 },
 ];
 
 /**
@@ -32,8 +36,10 @@ const MEASUREMENTS: MeasurementConfig[] = [
  * update — for this long. Measured from last *activity*, not total run time,
  * so a connection that's slow but still making progress (e.g. a slow upload
  * round) is never punished for taking a while; only genuine stalls trip it.
+ * Raised from 15s now that the largest tier (250MB) can take a while on its
+ * own on a merely-decent (not fast) connection.
  */
-const INACTIVITY_TIMEOUT_MS = 15_000;
+const INACTIVITY_TIMEOUT_MS = 30_000;
 const WATCHDOG_INTERVAL_MS = 2_000;
 
 export type SpeedTestStatus = "idle" | "running" | "done" | "error";
@@ -79,14 +85,18 @@ export const useSpeedTest = () => {
   const [summary, setSummary] = useState<SpeedTestSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [packetLoss, setPacketLoss] = useState<PacketLossState>({ status: "idle" });
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const engineRef = useRef<InstanceType<typeof SpeedTest> | null>(null);
   const lastActivityRef = useRef(0);
+  const startedAtRef = useRef(0);
 
   const run = useCallback(() => {
     setStatus("running");
     setError(null);
     setSummary(null);
     setPhase(null);
+    setElapsedSeconds(0);
+    startedAtRef.current = Date.now();
     lastActivityRef.current = Date.now();
 
     // Independent of the engine below — its own ~10s ping batch, not one of
@@ -153,5 +163,15 @@ export const useSpeedTest = () => {
     return () => clearInterval(watchdog);
   }, [status]);
 
-  return { status, phase, summary, error, packetLoss, run, cancel, toggle };
+  // Ticks the elapsed-time display while running, so a longer test (now that
+  // the large tiers are back) reads as progress instead of a stuck button.
+  useEffect(() => {
+    if (status !== "running") return;
+    const tick = setInterval(() => {
+      setElapsedSeconds(Math.round((Date.now() - startedAtRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [status]);
+
+  return { status, phase, summary, error, packetLoss, elapsedSeconds, run, cancel, toggle };
 };
