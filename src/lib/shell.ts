@@ -29,3 +29,20 @@ export async function pingOnce(ip: string, timeoutMs: number): Promise<PingResul
   const match = stdout.match(/TTL=(\d+)/i);
   return { alive: match !== null, ttl: match ? Number(match[1]) : null };
 }
+
+export type PacketLossResult = { sent: number; received: number; lossPercent: number };
+
+/**
+ * Sends `count` pings to `target` in one `ping` call and reads Windows'
+ * own summary line, rather than looping `pingOnce` — one process instead
+ * of `count` of them. At 100% loss Windows' `ping` exits non-zero, so the
+ * summary is read off the error too, not just a clean run.
+ */
+export async function measurePacketLoss(target: string, count: number, timeoutMs: number): Promise<PacketLossResult | null> {
+  const stdout = await execFileAsync("ping", ["-n", String(count), "-w", String(timeoutMs), target])
+    .then(r => r.stdout)
+    .catch((err: NodeJS.ErrnoException & { stdout?: string }) => err.stdout ?? "");
+
+  const match = stdout.match(/Sent = (\d+), Received = (\d+), Lost = (\d+) \((\d+)% loss\)/i);
+  return match ? { sent: Number(match[1]), received: Number(match[2]), lossPercent: Number(match[4]) } : null;
+}

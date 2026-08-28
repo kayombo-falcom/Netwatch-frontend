@@ -1,3 +1,18 @@
+// Same 4 bands every quality function below uses, as actual stroke colors —
+// for gauges (SVG `stroke`), which can't take a Tailwind class the way the
+// `QualityDot` background can.
+const STROKE_COLORS: Record<string, string> = {
+  "bg-green-500": "#22c55e",
+  "bg-yellow-500": "#eab308",
+  "bg-orange-500": "#f97316",
+  "bg-red-500": "#ef4444",
+};
+
+/** Converts one of this file's `colorClass` values into a gauge-ready stroke color. */
+export function qualityStrokeColor(colorClass: string): string {
+  return STROKE_COLORS[colorClass] ?? "var(--chart-1)";
+}
+
 /** Signal strength (%) quality bands. */
 export function signalQuality(signalPercent: number): { label: string; colorClass: string } {
   if (signalPercent >= 90) return { label: "Excellent", colorClass: "bg-green-500" };
@@ -31,6 +46,15 @@ export function jitterQuality(jitterMs: number): { label: string; colorClass: st
   if (jitterMs <= 10) return { label: "Good", colorClass: "bg-green-500" };
   if (jitterMs <= 20) return { label: "Acceptable", colorClass: "bg-yellow-500" };
   if (jitterMs <= 30) return { label: "Poor", colorClass: "bg-orange-500" };
+  return { label: "Very poor", colorClass: "bg-red-500" };
+}
+
+/** Packet loss (%) quality bands. */
+export function packetLossQuality(lossPercent: number): { label: string; colorClass: string } {
+  if (lossPercent <= 0) return { label: "Excellent", colorClass: "bg-green-500" };
+  if (lossPercent <= 1) return { label: "Good", colorClass: "bg-green-500" };
+  if (lossPercent <= 2.5) return { label: "Acceptable", colorClass: "bg-yellow-500" };
+  if (lossPercent <= 5) return { label: "Poor", colorClass: "bg-orange-500" };
   return { label: "Very poor", colorClass: "bg-red-500" };
 }
 

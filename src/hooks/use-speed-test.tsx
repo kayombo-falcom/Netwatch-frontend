@@ -46,6 +46,18 @@ export type SpeedTestSummary = {
   jitterMs: number | null;
 };
 
+// Cloudflare's own packetLoss measurement needs a TURN relay this app has no
+// server for (it fails with "unable to get TURN server credentials" even
+// with credentials fetched fresh — the endpoint is gated to Cloudflare's own
+// site, confirmed by a direct 403). Measured separately instead, via a batch
+// of ICMP pings server-side (`/api/network/packet-loss`) run alongside the
+// engine rather than through it.
+export type PacketLossState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "done"; percent: number }
+  | { status: "error" };
+
 function toMbps(bps: number | undefined): number | null {
   return bps != null ? Math.round((bps / 1e6) * 10) / 10 : null;
 }
@@ -66,6 +78,7 @@ export const useSpeedTest = () => {
   const [phase, setPhase] = useState<SpeedTestPhase | null>(null);
   const [summary, setSummary] = useState<SpeedTestSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [packetLoss, setPacketLoss] = useState<PacketLossState>({ status: "idle" });
   const engineRef = useRef<InstanceType<typeof SpeedTest> | null>(null);
   const lastActivityRef = useRef(0);
 
@@ -75,6 +88,16 @@ export const useSpeedTest = () => {
     setSummary(null);
     setPhase(null);
     lastActivityRef.current = Date.now();
+
+    // Independent of the engine below — its own ~10s ping batch, not one of
+    // the engine's measurement phases, so it doesn't block or extend them.
+    setPacketLoss({ status: "loading" });
+    fetch("/api/network/packet-loss", { cache: "no-store" })
+      .then(res => res.json())
+      .then((reading: { lossPercent: number } | null) =>
+        setPacketLoss(reading ? { status: "done", percent: reading.lossPercent } : { status: "error" })
+      )
+      .catch(() => setPacketLoss({ status: "error" }));
 
     // logAimApiUrl disabled: this is a local network monitoring tool, results
     // shouldn't be reported to Cloudflare's aggregate insights endpoint.
@@ -130,5 +153,5 @@ export const useSpeedTest = () => {
     return () => clearInterval(watchdog);
   }, [status]);
 
-  return { status, phase, summary, error, run, cancel, toggle };
+  return { status, phase, summary, error, packetLoss, run, cancel, toggle };
 };

@@ -40,7 +40,7 @@ export const SkeletonMetricCard = () => (
   </Card>
 );
 
-/** Placeholder for chart regions (ResponsiveContainer areas). */
-export const SkeletonChart = ({ height = 220 }: { height?: number }) => (
-  <Skeleton className="w-full rounded-lg" style={{ height }} />
+/** Placeholder for chart regions (ResponsiveContainer areas). Pass `className` with a responsive height (e.g. "h-[220px] xl:h-[300px]") to match a chart that grows on wider screens; falls back to a fixed `height` in px otherwise. */
+export const SkeletonChart = ({ height = 220, className }: { height?: number; className?: string }) => (
+  <Skeleton className={`w-full rounded-lg ${className ?? ""}`} style={className ? undefined : { height }} />
 );

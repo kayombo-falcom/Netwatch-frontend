@@ -1,31 +1,33 @@
 import net from "net";
 import { isIpInLocalSubnet } from "./lan-scope";
-import { execFileAsync, pingOnce } from "./shell";
+import { execFileAsync, pingOnce, runPowerShell } from "./shell";
+import { collectBannerSignals, collectMdnsSignals, collectNetbiosSignal, collectSsdpSignal, portSignals, ttlSignal, type OsFamily, type Signal } from "./os-signals";
 
 const REACHABILITY_TIMEOUT_MS = 500;
 const NMAP_TIMEOUT_MS = 30_000;
 
-// A device with its firewall up (the Windows default, and plenty of phones)
-// silently drops ICMP echo requests while still being fully reachable — so a
-// TCP probe is a second, independent liveness signal that doesn't depend on
-// ICMP being allowed through. Even a refusal (RST) proves the host is alive:
-// only a live device can send one.
+// A firewalled device (Windows default, many phones) drops ICMP but still
+// answers TCP — even a refusal proves it's alive.
 const TCP_PROBE_PORTS = [80, 443, 445, 139, 3389, 22, 8080];
 const TCP_PROBE_TIMEOUT_MS = 400;
 
-// nmap reports an accuracy percentage per candidate OS match; below this, the
-// fingerprint is too ambiguous to call it a match — report Unknown instead of
-// surfacing a low-confidence guess as if it were a real detection.
-const CONFIDENCE_THRESHOLD = 85;
+// A winning family needs at least this much total weight — one weak signal
+// alone (e.g. just a TTL bucket) isn't enough to call it.
+const MIN_TOTAL_WEIGHT = 3;
+// ...and needs to clearly lead the runner-up, not just edge it out, or the
+// result is too ambiguous to report as "detected".
+const MIN_MARGIN_RATIO = 1.5;
 
 const IPV4_PATTERN = /^(\d{1,3}\.){3}\d{1,3}$/;
 
 export type OsDetectionResult =
-  | { status: "detected"; osFamily: string; osName: string; osVersion: string | null; deviceType: string | null; confidence: number }
-  | { status: "unknown"; confidence: number | null }
+  | { status: "detected"; osFamily: string; osName: string; osVersion: string | null; deviceType: string | null; confidence: number; signals: SignalDetail[] }
+  | { status: "unknown"; confidence: number | null; signals: SignalDetail[]; notes?: string[] }
   | { status: "unreachable" }
   | { status: "out_of_scope" }
   | { status: "engine_unavailable"; reason: string };
+
+type SignalDetail = { source: string; detail: string };
 
 function parseAttributes(tag: string): Record<string, string> {
   const attrs: Record<string, string> = {};
@@ -91,74 +93,161 @@ function tcpProbe(ip: string, port: number): Promise<boolean> {
   });
 }
 
-/** ICMP first (cheapest), then a handful of common TCP ports in parallel if that got no reply — a device can be fully reachable with ICMP simply blocked. */
-async function isReachable(ip: string): Promise<boolean> {
-  if ((await pingOnce(ip, REACHABILITY_TIMEOUT_MS)).alive) return true;
+/**
+ * Runs ICMP and the TCP probes together rather than ICMP-then-fallback,
+ * since which ports are open is itself a signal (see `portSignals`). Two
+ * pings, not one — a single dropped Wi-Fi packet shouldn't mark a live
+ * device unreachable. Scoped to this on-demand check only; the shared
+ * `pingOnce` stays single-shot for the bulk subnet sweep, which needs to stay fast.
+ */
+async function checkReachability(ip: string): Promise<{ alive: boolean; ttl: number | null; openPorts: number[] }> {
+  const [ping1, ping2, tcpResults] = await Promise.all([
+    pingOnce(ip, REACHABILITY_TIMEOUT_MS),
+    pingOnce(ip, REACHABILITY_TIMEOUT_MS),
+    Promise.all(TCP_PROBE_PORTS.map(port => tcpProbe(ip, port))),
+  ]);
 
-  const tcpResults = await Promise.all(TCP_PROBE_PORTS.map(port => tcpProbe(ip, port)));
-  return tcpResults.some(Boolean);
+  const ping = ping1.alive ? ping1 : ping2;
+  const openPorts = TCP_PROBE_PORTS.filter((_, i) => tcpResults[i]);
+  return { alive: ping.alive || openPorts.length > 0, ttl: ping.ttl, openPorts };
+}
+
+type NmapRun = { status: "ok"; xml: string } | { status: "error"; reason: string } | { status: "unavailable" };
+
+/**
+ * -Pn skips nmap's own ping (we already checked). --max-os-tries 2 /
+ * --osscan-guess let nmap try a bit harder on an ambiguous fingerprint —
+ * safe now that nmap is just one vote, not the final answer. --top-ports
+ * 100 / -T4 keep it fast for a LAN scan instead of nmap's internet-scale
+ * defaults. --host-timeout lets nmap give up cleanly instead of us killing it.
+ */
+async function runNmap(ip: string): Promise<NmapRun> {
+  if (!(await isNmapAvailable())) return { status: "unavailable" };
+
+  try {
+    const { stdout } = await execFileAsync(
+      "nmap",
+      ["-O", "-Pn", "-T4", "--top-ports", "100", "--host-timeout", "20s", "--max-os-tries", "2", "--osscan-guess", "-oX", "-", ip],
+      { timeout: NMAP_TIMEOUT_MS }
+    );
+    return { status: "ok", xml: stdout };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("root privileges")) return { status: "error", reason: "OS detection requires administrator privileges" };
+    if ((err as { killed?: boolean })?.killed) return { status: "error", reason: "Scan timed out" };
+    return { status: "error", reason: "Scan failed" };
+  }
+}
+
+/** Without Npcap, nmap runs fine but can't send the raw packets `-O` needs — checked only when nmap ran but found no match, since that's the tell. */
+async function isNpcapRunning(): Promise<boolean> {
+  const result = await runPowerShell<{ Status?: number | string }>(
+    "Get-Service -Name npcap -ErrorAction SilentlyContinue | Select-Object Status | ConvertTo-Json -Compress"
+  );
+  return String(result?.Status ?? "") === "Running" || String(result?.Status ?? "") === "4";
+}
+
+const NPCAP_MISSING_NOTE =
+  "Npcap driver not detected — nmap needs it for raw-packet OS fingerprinting even when running as administrator. Reinstall nmap with the Npcap option checked, or install it separately from npcap.org.";
+
+/** Maps nmap's free-text OS name to our canonical buckets. Device types like router/printer don't map to a family, so they get no vote. */
+function normalizeFamily(raw: string): OsFamily | null {
+  const lower = raw.toLowerCase();
+  if (lower.includes("windows")) return "Windows";
+  if (lower.includes("mac os") || lower === "macos") return "macOS";
+  if (lower.includes("ios")) return "iOS";
+  if (lower.includes("android")) return "Android";
+  if (lower.includes("linux")) return "Linux";
+  return null;
+}
+
+/** Sums each family's weight. The winner needs both a minimum total and a clear lead over the runner-up, so agreement between sources decides — not one engine's own confidence. */
+function fuseSignals(signals: Signal[]): { family: OsFamily; confidence: number } | null {
+  const totals = new Map<OsFamily, number>();
+  for (const signal of signals) totals.set(signal.family, (totals.get(signal.family) ?? 0) + signal.weight);
+
+  const ranked = [...totals.entries()].sort((a, b) => b[1] - a[1]);
+  if (ranked.length === 0) return null;
+
+  const [topFamily, topWeight] = ranked[0];
+  const runnerUpWeight = ranked[1]?.[1] ?? 0;
+  if (topWeight < MIN_TOTAL_WEIGHT) return null;
+  if (runnerUpWeight > 0 && topWeight < runnerUpWeight * MIN_MARGIN_RATIO) return null;
+
+  const totalWeight = signals.reduce((sum, signal) => sum + signal.weight, 0);
+  return { family: topFamily, confidence: Math.round((topWeight / totalWeight) * 100) };
+}
+
+/** Sorted strongest-first so the tooltip/API surfaces the most authoritative evidence up top — makes it obvious at a glance which signal is the outlier when sources disagree. */
+function toSignalDetails(signals: Signal[], onlyFamily?: OsFamily): SignalDetail[] {
+  return signals
+    .filter(s => !onlyFamily || s.family === onlyFamily)
+    .sort((a, b) => b.weight - a.weight)
+    .map(({ source, detail }) => ({ source, detail }));
 }
 
 /**
- * Active OS fingerprinting for a single device — standalone by design, with
- * no dependency on the device-discovery scan, storage, UI, or auth; it takes
- * an IP and returns one normalized result.
- *
- * Flow: reject anything outside the caller's own LAN (this route isn't
- * behind login, so it must not become an open scanning proxy for arbitrary
- * hosts), confirm the target is reachable, then run nmap's TCP/IP stack
- * fingerprinting (TTL, TCP window size/options, ICMP behavior, and
- * open/closed port responses evaluated together against its fingerprint
- * database — TTL is only ever one of those signals, never decisive alone),
- * and return its best match. A low-confidence match is reported as
- * `unknown` rather than guessed.
+ * Checks one device's OS on demand. Confirms it's on our own LAN and
+ * reachable, then gathers several independent signals in parallel — nmap,
+ * NetBIOS, banners, mDNS, SSDP, open ports, TTL — and fuses them into one
+ * verdict. No single signal decides alone.
  */
 export async function detectOs(ip: string): Promise<OsDetectionResult> {
   if (!IPV4_PATTERN.test(ip)) return { status: "engine_unavailable", reason: "Invalid IPv4 address" };
 
   if (!(await isIpInLocalSubnet(ip))) return { status: "out_of_scope" };
 
-  if (!(await isReachable(ip))) return { status: "unreachable" };
+  const reachability = await checkReachability(ip);
+  if (!reachability.alive) return { status: "unreachable" };
 
-  if (!(await isNmapAvailable())) {
-    return { status: "engine_unavailable", reason: "OS detection engine is not available on this host" };
+  const [nmapRun, netbiosSignal, bannerSignals, mdnsSignals, ssdpSignals] = await Promise.all([
+    runNmap(ip),
+    collectNetbiosSignal(ip),
+    collectBannerSignals(ip),
+    collectMdnsSignals(ip),
+    collectSsdpSignal(ip),
+  ]);
+
+  const signals: Signal[] = [...bannerSignals, ...mdnsSignals, ...ssdpSignals, ...portSignals(reachability.openPorts)];
+  if (netbiosSignal) signals.push(netbiosSignal);
+  const ttl = ttlSignal(reachability.ttl);
+  if (ttl) signals.push(ttl);
+
+  let nmapMatch: OsMatch | null = null;
+  if (nmapRun.status === "ok" && hostIsUp(nmapRun.xml)) {
+    nmapMatch = parseBestOsMatch(nmapRun.xml);
+    if (nmapMatch) {
+      const family = normalizeFamily(nmapMatch.osFamily ?? nmapMatch.name);
+      if (family) signals.push({ source: "nmap", family, detail: nmapMatch.name, weight: nmapMatch.accuracy / 20 });
+    }
   }
 
-  let stdout: string;
-  try {
-    // -Pn: we already confirmed reachability above, skip nmap's own host-discovery ping.
-    // --max-os-tries 1: don't retry ambiguous probes; ambiguous should resolve to "unknown", not a slower retry loop.
-    // --top-ports 100 / -T4: OS detection only needs one open + one closed port as reference
-    // points, not nmap's default 1000-port survey — and a LAN target doesn't need nmap's
-    // internet-scanning caution. Both are the main reason a scan was taking 30s+ and timing out.
-    // --host-timeout: let nmap give up on an unresponsive host itself rather than us killing
-    // the whole process externally with no partial info.
-    ({ stdout } = await execFileAsync(
-      "nmap", ["-O", "-Pn", "-T4", "--top-ports", "100", "--host-timeout", "20s", "--max-os-tries", "1", "-oX", "-", ip],
-      { timeout: NMAP_TIMEOUT_MS }
-    ));
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    if (message.includes("root privileges")) {
-      return { status: "engine_unavailable", reason: "OS detection requires administrator privileges" };
-    }
-    if ((err as { killed?: boolean })?.killed) {
-      return { status: "engine_unavailable", reason: "Scan timed out" };
-    }
-    return { status: "engine_unavailable", reason: "Scan failed" };
+  const fused = fuseSignals(signals);
+  if (fused) {
+    const nmapAgrees = !!nmapMatch && normalizeFamily(nmapMatch.osFamily ?? nmapMatch.name) === fused.family;
+    return {
+      status: "detected",
+      osFamily: fused.family,
+      osName: nmapAgrees ? nmapMatch!.name : fused.family,
+      osVersion: nmapAgrees ? nmapMatch!.osVersion : null,
+      deviceType: nmapAgrees ? nmapMatch!.deviceType : null,
+      confidence: fused.confidence,
+      signals: toSignalDetails(signals, fused.family),
+    };
   }
 
-  if (!hostIsUp(stdout)) return { status: "unreachable" };
+  // Only fail outright if nothing came back at all — a device with no nmap
+  // but a NetBIOS/mDNS reply should still show "unknown" with those signals,
+  // not a hard error.
+  if (signals.length === 0 && nmapRun.status !== "ok") {
+    const reason = nmapRun.status === "error" ? nmapRun.reason : "OS detection engine is not available on this host";
+    return { status: "engine_unavailable", reason };
+  }
 
-  const best = parseBestOsMatch(stdout);
-  if (!best || best.accuracy < CONFIDENCE_THRESHOLD) return { status: "unknown", confidence: best?.accuracy ?? null };
+  // nmap ran and found the host up but named no OS — the classic sign
+  // Npcap is missing, so check for it here.
+  const notes: string[] = [];
+  if (nmapRun.status === "ok" && !nmapMatch && !(await isNpcapRunning())) notes.push(NPCAP_MISSING_NOTE);
 
-  return {
-    status: "detected",
-    osFamily: best.osFamily ?? best.name,
-    osName: best.name,
-    osVersion: best.osVersion,
-    deviceType: best.deviceType,
-    confidence: best.accuracy,
-  };
+  return { status: "unknown", confidence: nmapMatch?.accuracy ?? null, signals: toSignalDetails(signals), ...(notes.length ? { notes } : {}) };
 }

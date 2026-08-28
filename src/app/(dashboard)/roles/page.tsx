@@ -257,7 +257,7 @@ export default function RolesPermissionsPage() {
   const isAdminSelected = selectedRole === ADMIN_ROLE;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="px-4 py-3 flex items-center gap-3">
           <span className={`flex items-center justify-center w-9 h-9 rounded-lg ${tintClass("navy")}`}><Users size={17} /></span>
@@ -359,7 +359,7 @@ export default function RolesPermissionsPage() {
         </Card>
 
         {/* Permission detail */}
-        <Card className="min-h-[420px] flex flex-col">
+        <Card className="min-h-[420px] lg:min-h-[520px] xl:min-h-[600px] flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-border">
             {loading ? (
               <div className="flex items-center gap-3">

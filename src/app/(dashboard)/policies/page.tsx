@@ -66,7 +66,7 @@ export default function PoliciesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Policies</h2>
@@ -156,7 +156,7 @@ export default function PoliciesPage() {
               </div>
               <div>
                 <SkeletonText width="45px" className="mb-2" />
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <Skeleton className="h-11 rounded-lg" />
                   <Skeleton className="h-11 rounded-lg" />
                   <Skeleton className="h-11 rounded-lg" />
@@ -244,7 +244,7 @@ export default function PoliciesPage() {
               {/* Limits */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Limits</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <p className="text-xs text-muted-foreground/60 mb-1">Down (Mbps)</p>
                     <input

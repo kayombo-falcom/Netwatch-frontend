@@ -177,14 +177,14 @@ export default function ProfilePage() {
           />
           <div className="p-5">
             {loading ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><SkeletonText width="70px" className="mb-1.5" /><SkeletonText width="100px" /></div>
                 <div><SkeletonText width="70px" className="mb-1.5" /><SkeletonText width="100px" /></div>
-                <div className="col-span-2"><SkeletonText width="40px" className="mb-1.5" /><SkeletonText width="180px" /></div>
+                <div className="sm:col-span-2"><SkeletonText width="40px" className="mb-1.5" /><SkeletonText width="180px" /></div>
               </div>
             ) : editing ? (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>First Name<RequiredMark /></label>
                     <input
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground/60 mb-0.5">First Name</p>
                   <p className="font-medium text-foreground">{firstName}</p>
@@ -234,7 +234,7 @@ export default function ProfilePage() {
                   <p className="text-xs text-muted-foreground/60 mb-0.5">Last Name</p>
                   <p className="font-medium text-foreground">{lastName || "—"}</p>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <p className="text-xs text-muted-foreground/60 mb-0.5">Email</p>
                   <p className="font-medium text-foreground">{currentUser.email}</p>
                 </div>

@@ -74,7 +74,7 @@ export const UsersStoreProvider = ({ children }: { children: ReactNode }) => {
       fetch("/api/users")
         .then(res => res.json())
         .then((data: ApiUser[]) => setUsers(data.map(toStoreUser)))
-        .catch(() => toast.error("Couldn't load users", "Please refresh the page to try again.")),
+        .catch(() => { toast.error("Couldn't load users", "Please refresh the page to try again."); }),
     []
   );
 

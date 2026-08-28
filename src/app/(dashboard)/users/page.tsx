@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Filter, Plus, Eye, Pencil, Ban, UserCheck } from "lucide-react";
 import { Card } from "@/components/card";
 import { Btn } from "@/components/btn";
@@ -20,6 +20,15 @@ import { useRolesStore } from "@/hooks/use-roles-store";
 import { useHighlightParam } from "@/hooks/use-highlight-param";
 
 export default function UsersPage() {
+  return (
+    <Suspense fallback={null}>
+      <UsersPageContent />
+    </Suspense>
+  );
+}
+
+/** Split out from `UsersPage` because `useHighlightParam` (via `useSearchParams`) needs its own Suspense boundary for prerendering. */
+function UsersPageContent() {
   const highlightId = useHighlightParam();
   const { users, loading, updateUser } = useUsersStore();
   const { roles: storeRoles } = useRolesStore();
@@ -62,7 +71,7 @@ export default function UsersPage() {
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
           <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
@@ -81,7 +90,7 @@ export default function UsersPage() {
         <Btn variant="primary" size="sm" className="ml-auto" onClick={() => openUserForm("add")}><Plus size={13} /> Add User</Btn>
       </div>
 
-      <Card>
+      <Card className="hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -149,6 +158,53 @@ export default function UsersPage() {
           />
         )}
       </Card>
+
+      {/* Cards — mobile */}
+      <div className="md:hidden space-y-3">
+        {loading ? Array.from({ length: perPage }).map((_, i) => (
+          <Card key={i} className="p-4 space-y-1.5">
+            <Skeleton className="h-3.5 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </Card>
+        )) : paged.length === 0 ? (
+          <Card className="p-10 text-center text-muted-foreground/60 text-sm">No users match your filters.</Card>
+        ) : paged.map(u => (
+          <Card
+            key={u.id}
+            ref={el => { if (String(u.id) === highlightId) el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+            className={`p-4 space-y-2.5 ${String(u.id) === highlightId ? "highlight-blink" : ""}`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${tintContrastText(USER_ROLE_TINT[u.role] ?? "muted")}`}
+                  style={{ backgroundColor: u.color }}
+                >{u.initials}</div>
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground text-xs truncate">{u.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                </div>
+              </div>
+              <UserStatusBadge status={u.status} />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+                <Tag color={USER_ROLE_TINT[u.role] ?? "muted"}>{u.role}</Tag>
+                <span className="truncate">{u.lastSeen}</span>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <IconButton color="aqua" title="View" onClick={() => setDialog({ mode: "view", user: u })} icon={<Eye size={13} />} />
+                <IconButton color="teal" title="Edit" onClick={() => openUserForm("edit", u)} icon={<Pencil size={13} />} />
+                {u.status === "suspended" ? (
+                  <IconButton color="teal" title="Enable" onClick={() => setStatusAction({ type: "enable", user: u })} icon={<UserCheck size={13} />} />
+                ) : (
+                  <IconButton color="destructive" title="Disable" onClick={() => setStatusAction({ type: "disable", user: u })} icon={<Ban size={13} />} />
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       {dialog?.mode === "view" && (
         <UserViewDialog

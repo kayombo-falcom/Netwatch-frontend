@@ -4,7 +4,14 @@
 $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 if (-not $isElevated) {
-    Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSCommandPath`""
+    try {
+        Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSCommandPath`"" -ErrorAction Stop
+    } catch {
+        Write-Host "Couldn't open an elevated window: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "This usually means UAC can't prompt from this session (e.g. no interactive desktop)." -ForegroundColor Yellow
+        Write-Host "Workaround: right-click your terminal and choose 'Run as administrator', then run 'npm run dev' from there." -ForegroundColor Yellow
+        exit 1
+    }
     exit
 }
 

@@ -25,6 +25,12 @@ export const SpeedGauge = ({
   const cx = size / 2;
   const cy = size / 2;
 
+  // Scaled from `size` (tuned to match the default 140px look: ~20px value,
+  // ~10px unit) instead of a fixed Tailwind size — a fixed size fits the big
+  // 180-240px dials fine but overflows a smaller gauge's ring.
+  const valueFontSize = Math.round(size * 0.143);
+  const unitFontSize = Math.round(size * 0.071);
+
   const fraction = value != null && max > 0 ? Math.min(Math.max(value / max, 0), 1) : 0;
   const valueAngle = startAngle + fraction * sweepDegrees;
 
@@ -50,8 +56,8 @@ export const SpeedGauge = ({
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {children ?? (
             <>
-              <div className="text-xl font-bold tabular-nums text-foreground">{value ?? "—"}</div>
-              <div className="text-[10px] text-muted-foreground/60">{unit}</div>
+              <div className="font-bold tabular-nums text-foreground" style={{ fontSize: valueFontSize }}>{value ?? "—"}</div>
+              <div className="text-muted-foreground/60" style={{ fontSize: unitFontSize }}>{unit}</div>
             </>
           )}
         </div>

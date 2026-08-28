@@ -1,18 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Search, RefreshCw, X, Laptop, WifiOff, Fingerprint, IdCard, Loader2 } from "lucide-react";
+import { Search, RefreshCw, X, Laptop, WifiOff, Fingerprint, IdCard, Loader2, Network } from "lucide-react";
 import { Card } from "@/components/card";
 import { Tag } from "@/components/tag";
 import { IconButton } from "@/components/icon-button";
+import { IconSwatch } from "@/components/icon-swatch";
 import { Pagination } from "@/components/pagination";
 import { Modal } from "@/components/modal";
-import { Skeleton, SkeletonTableRows } from "@/components/skeleton";
+import { Skeleton, SkeletonText, SkeletonTableRows } from "@/components/skeleton";
 import { TooltipWrap } from "@/components/tooltip-wrap";
 import { useHostnameLookup, type HostnameLookupState } from "@/hooks/use-hostname-lookup";
 import { useNetworkDevices } from "@/hooks/use-network-devices";
+import { useCurrentAp } from "@/hooks/use-current-ap";
 import { useOsDetection, type OsDetectionState } from "@/hooks/use-os-detection";
 import type { DiscoveredDevice } from "@/lib/devices";
+import { maskToCidr } from "@/lib/ip";
 
 /** Device name — falls back to an on-demand lookup result until one's been run (the bulk scan no longer resolves hostnames automatically). */
 function hostnameLabel(device: DiscoveredDevice, lookup: HostnameLookupState | undefined): string {
@@ -67,6 +70,14 @@ function osDetectionLabel(device: DiscoveredDevice, detection: OsDetectionState 
   }
 }
 
+/** Every signal that agreed on the reported OS, plus any diagnostic note — shown so a detection isn't a black box. */
+function signalsSummary(detection: OsDetectionState | undefined): string | null {
+  if (!detection || (detection.status !== "detected" && detection.status !== "unknown")) return null;
+  const notes = detection.status === "unknown" ? (detection.notes ?? []) : [];
+  const parts = [...detection.signals.map(s => s.detail), ...notes];
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
 /** OS value + a button to run the real nmap-backed detection in place of the passive TTL guess. Reused across the desktop table, mobile cards, and the detail drawer. */
 function OsDetectionCell({
   device, detection, onDetect,
@@ -74,9 +85,11 @@ function OsDetectionCell({
   device: DiscoveredDevice; detection: OsDetectionState | undefined; onDetect: () => void;
 }) {
   const detecting = detection?.status === "loading";
+  const signals = signalsSummary(detection);
+  const label = <span>{osDetectionLabel(device, detection)}</span>;
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span>{osDetectionLabel(device, detection)}</span>
+      {signals ? <TooltipWrap label={signals}>{label}</TooltipWrap> : label}
       <TooltipWrap label="Run active OS detection">
         <button
           onClick={e => { e.stopPropagation(); onDetect(); }}
@@ -90,8 +103,17 @@ function OsDetectionCell({
   );
 }
 
+/** Counts of the passive TTL-based OS guess (`device.os`) across a set of devices — a rough family split, not a fingerprint. */
+function osBreakdown(devices: DiscoveredDevice[]) {
+  const windows = devices.filter(d => d.os === "Windows").length;
+  const unixLike = devices.filter(d => d.os === "Linux / macOS / Android").length;
+  const gear = devices.filter(d => d.os === "Network device").length;
+  return { windows, unixLike, gear };
+}
+
 export default function DevicesPage() {
   const { data, loading, refreshing, error, refresh } = useNetworkDevices();
+  const { data: ap } = useCurrentAp();
   const { results: osResults, detect: detectOs } = useOsDetection();
   const { results: hostnameResults, lookup: lookupHostname } = useHostnameLookup();
   const [search, setSearch] = useState("");
@@ -100,15 +122,81 @@ export default function DevicesPage() {
   const [drawer, setDrawer] = useState<DiscoveredDevice | null>(null);
 
   const devices = data?.devices ?? [];
+  const unnamed = devices.filter(d => !d.hostname && hostnameResults[d.ip]?.status !== "resolved");
+  const resolvingAll = unnamed.some(d => hostnameResults[d.ip]?.status === "loading");
+  const resolveAllNames = () => unnamed.forEach(d => { if (hostnameResults[d.ip]?.status !== "loading") lookupHostname(d.ip); });
+
+  // Excludes only confidently-detected devices — unknown/unreachable/
+  // engine_unavailable stay eligible for a re-run, since those can be
+  // transient (a dropped ping, nmap's own run-to-run variance) rather than
+  // a real dead end, same as "not found" names stay retryable above.
+  const unfingerprinted = devices.filter(d => osResults[d.ip]?.status !== "detected");
+  const detectingAll = devices.some(d => osResults[d.ip]?.status === "loading");
+  const detectAllOs = () => unfingerprinted.forEach(d => { if (osResults[d.ip]?.status !== "loading") detectOs(d.ip); });
   const q = search.trim().toLowerCase();
-  const filtered = !q ? devices : devices.filter(d =>
-    (d.hostname?.toLowerCase().includes(q) ?? false) || d.ip.includes(q) || d.mac.includes(q)
-  );
+  const filtered = !q ? devices : devices.filter(d => {
+    const lookup = hostnameResults[d.ip];
+    const name = d.hostname ?? (lookup?.status === "resolved" ? lookup.hostname : null);
+    return (name?.toLowerCase().includes(q) ?? false) || d.ip.includes(q) || d.mac.includes(q);
+  });
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
   const pages = Math.max(1, Math.ceil(filtered.length / perPage));
 
+  const { windows, unixLike, gear } = osBreakdown(devices);
+  const overviewStats = [
+    { label: "Devices", value: devices.length },
+    { label: "Windows", value: windows },
+    { label: "Apple / Linux", value: unixLike },
+    { label: "Network gear", value: gear },
+  ];
+
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
+    <div className="space-y-4">
+      {/* Network overview */}
+      <Card className="p-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <IconSwatch color="teal">
+            <Network size={18} />
+          </IconSwatch>
+
+          <div className="min-w-0">
+            {loading && !data ? (
+              <>
+                <SkeletonText width="140px" className="mb-1" />
+                <SkeletonText width="180px" />
+              </>
+            ) : data?.localIp && data?.subnetMask ? (
+              <>
+                <div className="text-sm font-semibold text-foreground font-mono">
+                  {data.localIp}/{maskToCidr(data.subnetMask)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Mask {data.subnetMask}
+                  {ap?.gateway && ` · Gateway ${ap.gateway}`}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">Not connected to a network</div>
+            )}
+          </div>
+
+          <div className="ml-auto flex items-center gap-5">
+            {overviewStats.map(s => (
+              <TooltipWrap key={s.label} label={s.label === "Devices" ? "Devices seen on this scan" : `${s.label} — estimated from ping response`}>
+                <div className="text-center min-w-10">
+                  <div className="text-lg font-bold tabular-nums text-foreground">
+                    {loading && !data ? <Skeleton className="h-5 w-6 mx-auto" /> : s.value}
+                  </div>
+                  <div className="text-xs text-muted-foreground/60 whitespace-nowrap">{s.label}</div>
+                </div>
+              </TooltipWrap>
+            ))}
+          </div>
+
+          <IconButton icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />} title="Rescan network" onClick={refresh} />
+        </div>
+      </Card>
+
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
@@ -120,13 +208,38 @@ export default function DevicesPage() {
             className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-64"
           />
         </div>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">
-            {loading ? "Scanning…" : `${filtered.length} device${filtered.length !== 1 ? "s" : ""}`}
-            {data?.subnetMask && ` on ${data.localIp}/${data.subnetMask}`}
+        {q && !loading && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            {filtered.length} of {devices.length} device{devices.length !== 1 ? "s" : ""} match
           </span>
-          <IconButton icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />} title="Rescan network" onClick={refresh} />
-        </div>
+        )}
+        {!loading && unnamed.length > 0 && (
+          <TooltipWrap label={`Look up all ${unnamed.length} unresolved device name${unnamed.length !== 1 ? "s" : ""} at once`} className={q ? "" : "ml-auto"}>
+            <button
+              onClick={resolveAllNames}
+              disabled={resolvingAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              {resolvingAll ? <Loader2 size={13} className="animate-spin" /> : <IdCard size={13} />}
+              Resolve all names
+            </button>
+          </TooltipWrap>
+        )}
+        {!loading && unfingerprinted.length > 0 && (
+          <TooltipWrap
+            label={`Run active OS detection on all ${unfingerprinted.length} device${unfingerprinted.length !== 1 ? "s" : ""} without a result yet — an nmap scan per device, can take a while`}
+            className={q || unnamed.length > 0 ? "" : "ml-auto"}
+          >
+            <button
+              onClick={detectAllOs}
+              disabled={detectingAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              {detectingAll ? <Loader2 size={13} className="animate-spin" /> : <Fingerprint size={13} />}
+              Detect all OS
+            </button>
+          </TooltipWrap>
+        )}
       </div>
 
       {error ? (

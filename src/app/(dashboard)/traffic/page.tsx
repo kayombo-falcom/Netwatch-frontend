@@ -55,17 +55,19 @@ export default function TrafficPage() {
         <Card className="lg:col-span-2">
           <CardHeader title="Bandwidth — 7 Days" subtitle="Daily totals in GB" />
           <div className="p-5">
-            {loading ? <SkeletonChart height={220} /> : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={trafficBwData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="d" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}G`} />
-                  <Tooltip contentStyle={{ fontSize: 12, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number, name: string) => [`${v} GB`, name === "down" ? "Download" : "Upload"]} />
-                  <Bar dataKey="down" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="up" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            {loading ? <SkeletonChart className="h-[220px] lg:h-[260px] xl:h-[300px]" /> : (
+              <div className="h-[220px] lg:h-[260px] xl:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={trafficBwData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="d" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}G`} />
+                    <Tooltip contentStyle={{ fontSize: 12, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number, name: string) => [`${v} GB`, name === "down" ? "Download" : "Upload"]} />
+                    <Bar dataKey="down" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="up" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </div>
         </Card>
@@ -74,17 +76,19 @@ export default function TrafficPage() {
         <Card>
           <CardHeader title="Traffic by Category" />
           <div className="p-5">
-            {loading ? <SkeletonChart height={180} /> : (
-              <ResponsiveContainer width="100%" height={180}>
-                <PieChart>
-                  <Pie data={trafficCategoryData} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
-                    {trafficCategoryData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number) => [`${v}%`]} />
-                </PieChart>
-              </ResponsiveContainer>
+            {loading ? <SkeletonChart className="h-[180px] xl:h-[210px]" /> : (
+              <div className="h-[180px] xl:h-[210px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={trafficCategoryData} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
+                      {trafficCategoryData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number) => [`${v}%`]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             )}
             <div className="space-y-2 mt-2">
               {loading ? Array.from({ length: 4 }).map((_, i) => (
@@ -144,16 +148,18 @@ export default function TrafficPage() {
         <Card>
           <CardHeader title="Peak Periods" subtitle="Average load by hour today" />
           <div className="p-5">
-            {loading ? <SkeletonChart height={200} /> : (
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={peakData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="h" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
-                  <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number) => [`${v}%`, "Load"]} />
-                  <Area type="monotone" dataKey="v" stroke="var(--chart-4)" strokeWidth={1.5} fill="var(--chart-4)" fillOpacity={0.18} />
-                </AreaChart>
-              </ResponsiveContainer>
+            {loading ? <SkeletonChart className="h-[200px] lg:h-[220px] xl:h-[260px]" /> : (
+              <div className="h-[200px] lg:h-[220px] xl:h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={peakData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="h" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
+                    <Tooltip contentStyle={{ fontSize: 11, background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" }} formatter={(v: number) => [`${v}%`, "Load"]} />
+                    <Area type="monotone" dataKey="v" stroke="var(--chart-4)" strokeWidth={1.5} fill="var(--chart-4)" fillOpacity={0.18} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </div>
         </Card>

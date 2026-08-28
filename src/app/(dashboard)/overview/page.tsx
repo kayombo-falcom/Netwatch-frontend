@@ -45,21 +45,23 @@ export default function OverviewPage() {
           action={<Btn variant="ghost" size="xs"><Download size={12} /> Export</Btn>}
         />
         <div className="p-5">
-          {loading ? <SkeletonChart height={220} /> : (
+          {loading ? <SkeletonChart className="h-[220px] md:h-[260px] xl:h-[320px]" /> : (
             <>
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={bwData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="t" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}M`} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", background: "var(--popover)", color: "var(--popover-foreground)", fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`${v} Mbps`, name === "down" ? "Download" : "Upload"]}
-                  />
-                  <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={1.5} fill="var(--chart-1)" fillOpacity={0.15} />
-                  <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={1.5} fill="var(--chart-2)" fillOpacity={0.15} />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="h-[220px] md:h-[260px] xl:h-[320px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={bwData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="t" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}M`} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", background: "var(--popover)", color: "var(--popover-foreground)", fontSize: 12 }}
+                      formatter={(v: number, name: string) => [`${v} Mbps`, name === "down" ? "Download" : "Upload"]}
+                    />
+                    <Area type="monotone" dataKey="down" stroke="var(--chart-1)" strokeWidth={1.5} fill="var(--chart-1)" fillOpacity={0.15} />
+                    <Area type="monotone" dataKey="up" stroke="var(--chart-2)" strokeWidth={1.5} fill="var(--chart-2)" fillOpacity={0.15} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
               <div className="flex gap-5 mt-2">
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-1 inline-block rounded" /> Download</span>
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-3 h-0.5 bg-chart-2 inline-block rounded" /> Upload</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -11,21 +11,34 @@ import { RequiredMark } from "@/components/required-mark";
 import { isValidEmail } from "@/lib/validation";
 import { toast } from "@/lib/toast-store";
 
-export default function LoginPage() {
+/** Reads the `?reason=password-changed` redirect flag — split out because `useSearchParams()` needs its own Suspense boundary for prerendering. */
+function PasswordChangedNotice() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
-  const [attempted, setAttempted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("reason") !== "password-changed") return;
     toast.info("Password changed", "Please sign in again with your new password.");
     router.replace("/login");
   }, [searchParams, router]);
+
+  return null;
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  // Chrome ignores autocomplete="off" and fills a recognized login form on
+  // load itself when a matching saved credential exists. Keeping the fields
+  // readOnly until the user actually focuses them stops that — Chrome won't
+  // autofill a field it can't write to at parse time.
+  const [emailLocked, setEmailLocked] = useState(true);
+  const [passwordLocked, setPasswordLocked] = useState(true);
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
+  const [attempted, setAttempted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const emailError = !email.trim() ? "Email is required." : !isValidEmail(email) ? "Enter a valid email address." : null;
   const passwordError = !password ? "Password is required." : null;
@@ -57,7 +70,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-sm p-8">
+    <div className="w-full max-w-sm bg-card/95 dark:bg-card/75 backdrop-blur-3xl border border-border/60 rounded-2xl shadow-xl shadow-black/10 p-8">
+      <Suspense fallback={null}>
+        <PasswordChangedNotice />
+      </Suspense>
       <img src="/brand/logo-stacked-navy.png" alt="NetWatch" className="h-28 w-auto mx-auto mb-6 dark:hidden" />
       <img src="/brand/logo-stacked-mint.png" alt="NetWatch" className="h-28 w-auto mx-auto mb-6 hidden dark:block" />
 
@@ -71,6 +87,8 @@ export default function LoginPage() {
             type="email"
             placeholder="you@company.com"
             autoComplete="off"
+            readOnly={emailLocked}
+            onFocus={() => { setEmailLocked(false); setPasswordLocked(false); }}
             value={email}
             onChange={e => setEmail(e.target.value)}
             onBlur={() => setTouched(t => ({ ...t, email: true }))}
@@ -97,7 +115,9 @@ export default function LoginPage() {
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              autoComplete="new-password"
+              autoComplete="off"
+              readOnly={passwordLocked}
+              onFocus={() => { setPasswordLocked(false); setEmailLocked(false); }}
               className="pr-9"
               value={password}
               onChange={e => setPassword(e.target.value)}
