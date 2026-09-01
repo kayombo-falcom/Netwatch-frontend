@@ -2,7 +2,7 @@ import net from "net";
 import { isIpInLocalSubnet } from "./lan-scope";
 import { getNetworkProvider } from "./platform";
 import { execFileAsync } from "./shell";
-import { collectBannerSignals, collectMdnsSignals, collectNetbiosSignal, collectSsdpSignal, portSignals, ttlSignal, type OsFamily, type Signal } from "./os-signals";
+import { collectBannerSignals, collectMdnsSignals, collectNetbiosSignal, collectOuiSignal, collectSsdpSignal, portSignals, ttlSignal, type OsFamily, type Signal } from "./os-signals";
 
 const REACHABILITY_TIMEOUT_MS = 500;
 const NMAP_TIMEOUT_MS = 30_000;
@@ -21,9 +21,14 @@ const MIN_MARGIN_RATIO = 1.5;
 
 const IPV4_PATTERN = /^(\d{1,3}\.){3}\d{1,3}$/;
 
+// Every real result here comes from remote network fingerprinting, never
+// from asking the device itself — "estimated" always, until a self-reporting
+// agent exists to produce a "verified" one instead.
+export type DetectionMethod = "estimated" | "verified";
+
 export type OsDetectionResult =
-  | { status: "detected"; osFamily: string; osName: string; osVersion: string | null; deviceType: string | null; confidence: number; signals: SignalDetail[] }
-  | { status: "unknown"; confidence: number | null; signals: SignalDetail[]; notes?: string[] }
+  | { status: "detected"; method: DetectionMethod; osFamily: string; osName: string; osVersion: string | null; deviceType: string | null; confidence: number; signals: SignalDetail[] }
+  | { status: "unknown"; method: DetectionMethod; confidence: number | null; signals: SignalDetail[]; notes?: string[] }
   | { status: "unreachable" }
   | { status: "out_of_scope" }
   | { status: "engine_unavailable"; reason: string };
@@ -77,19 +82,21 @@ async function isNmapAvailable(): Promise<boolean> {
   return execFileAsync("nmap", ["--version"]).then(() => true).catch(() => false);
 }
 
-/** Whether a TCP connection attempt to `port` proves the host is alive — connected or actively refused, either way something answered. */
-function tcpProbe(ip: string, port: number): Promise<boolean> {
+type TcpProbeResult = { alive: boolean; open: boolean };
+
+/** A refusal proves the host is alive, but not that the port is open — only a real connect does. */
+function tcpProbe(ip: string, port: number): Promise<TcpProbeResult> {
   return new Promise(resolve => {
     const socket = new net.Socket();
-    const finish = (result: boolean) => {
+    const finish = (result: TcpProbeResult) => {
       socket.destroy();
       resolve(result);
     };
 
     socket.setTimeout(TCP_PROBE_TIMEOUT_MS);
-    socket.once("connect", () => finish(true));
-    socket.once("timeout", () => finish(false));
-    socket.once("error", (err: NodeJS.ErrnoException) => finish(err.code === "ECONNREFUSED"));
+    socket.once("connect", () => finish({ alive: true, open: true }));
+    socket.once("timeout", () => finish({ alive: false, open: false }));
+    socket.once("error", (err: NodeJS.ErrnoException) => finish({ alive: err.code === "ECONNREFUSED", open: false }));
     socket.connect(port, ip);
   });
 }
@@ -110,8 +117,9 @@ async function checkReachability(ip: string): Promise<{ alive: boolean; ttl: num
   ]);
 
   const ping = ping1.alive ? ping1 : ping2;
-  const openPorts = TCP_PROBE_PORTS.filter((_, i) => tcpResults[i]);
-  return { alive: ping.alive || openPorts.length > 0, ttl: ping.ttl, openPorts };
+  const openPorts = TCP_PROBE_PORTS.filter((_, i) => tcpResults[i].open);
+  const tcpAlive = tcpResults.some(r => r.alive);
+  return { alive: ping.alive || tcpAlive, ttl: ping.ttl, openPorts };
 }
 
 type NmapRun = { status: "ok"; xml: string } | { status: "error"; reason: string } | { status: "unavailable" };
@@ -183,10 +191,11 @@ function toSignalDetails(signals: Signal[], onlyFamily?: OsFamily): SignalDetail
 /**
  * Checks one device's OS on demand. Confirms it's on our own LAN and
  * reachable, then gathers several independent signals in parallel — nmap,
- * NetBIOS, banners, mDNS, SSDP, open ports, TTL — and fuses them into one
- * verdict. No single signal decides alone.
+ * NetBIOS, banners, mDNS, SSDP, open ports, TTL, MAC vendor — and fuses them
+ * into one verdict. No single signal decides alone. `mac`, when known, only
+ * feeds the OUI vendor signal — everything else here is IP-addressed.
  */
-export async function detectOs(ip: string): Promise<OsDetectionResult> {
+export async function detectOs(ip: string, mac?: string): Promise<OsDetectionResult> {
   if (!IPV4_PATTERN.test(ip)) return { status: "engine_unavailable", reason: "Invalid IPv4 address" };
 
   if (!(await isIpInLocalSubnet(ip))) return { status: "out_of_scope" };
@@ -206,6 +215,8 @@ export async function detectOs(ip: string): Promise<OsDetectionResult> {
   if (netbiosSignal) signals.push(netbiosSignal);
   const ttl = ttlSignal(reachability.ttl);
   if (ttl) signals.push(ttl);
+  const oui = collectOuiSignal(mac ?? null);
+  if (oui) signals.push(oui);
 
   let nmapMatch: OsMatch | null = null;
   if (nmapRun.status === "ok" && hostIsUp(nmapRun.xml)) {
@@ -221,6 +232,7 @@ export async function detectOs(ip: string): Promise<OsDetectionResult> {
     const nmapAgrees = !!nmapMatch && normalizeFamily(nmapMatch.osFamily ?? nmapMatch.name) === fused.family;
     return {
       status: "detected",
+      method: "estimated",
       osFamily: fused.family,
       osName: nmapAgrees ? nmapMatch!.name : fused.family,
       osVersion: nmapAgrees ? nmapMatch!.osVersion : null,
@@ -243,5 +255,11 @@ export async function detectOs(ip: string): Promise<OsDetectionResult> {
   const notes: string[] = [];
   if (nmapRun.status === "ok" && !nmapMatch && !(await getNetworkProvider().isRawCaptureReady())) notes.push(NPCAP_MISSING_NOTE);
 
-  return { status: "unknown", confidence: nmapMatch?.accuracy ?? null, signals: toSignalDetails(signals), ...(notes.length ? { notes } : {}) };
+  return {
+    status: "unknown",
+    method: "estimated",
+    confidence: nmapMatch?.accuracy ?? null,
+    signals: toSignalDetails(signals),
+    ...(notes.length ? { notes } : {}),
+  };
 }

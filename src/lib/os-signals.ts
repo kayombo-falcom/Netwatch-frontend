@@ -22,6 +22,26 @@ export async function collectNetbiosSignal(ip: string): Promise<Signal | null> {
   return name ? { source: "netbios", family: "Windows", detail: `Responded to NetBIOS name service as "${name}"`, weight: 3 } : null;
 }
 
+// A device's MAC vendor (OUI, its first 3 bytes) only counts as an OS signal
+// when that vendor makes single-purpose hardware for one OS — most vendors
+// (Dell, Intel, TP-Link, etc.) sell chips/boards that run anything, so
+// they're deliberately left out rather than guessed. Kept small and correct
+// on purpose: a short list of vendors we're actually sure about beats a long
+// one that's half wrong.
+const OUI_FAMILY_HINTS: Record<string, { vendor: string; family: OsFamily }> = {
+  "b8:27:eb": { vendor: "Raspberry Pi Foundation", family: "Linux" },
+  "dc:a6:32": { vendor: "Raspberry Pi Foundation", family: "Linux" },
+  "e4:5f:01": { vendor: "Raspberry Pi Foundation", family: "Linux" },
+};
+
+/** MAC vendor as a weak OS hint — only for vendors whose hardware only ever runs one OS. */
+export function collectOuiSignal(mac: string | null): Signal | null {
+  if (!mac) return null;
+  const oui = mac.toLowerCase().slice(0, 8);
+  const hint = OUI_FAMILY_HINTS[oui];
+  return hint ? { source: "oui", family: hint.family, detail: `MAC vendor: ${hint.vendor}`, weight: 2 } : null;
+}
+
 /** Connects to `port`, optionally sends `probe` once connected, and returns whatever text comes back before the timeout (nothing received = null). */
 function grabBanner(ip: string, port: number, probe?: string): Promise<string | null> {
   return new Promise(resolve => {

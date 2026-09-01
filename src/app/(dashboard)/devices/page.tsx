@@ -122,20 +122,20 @@ export default function DevicesPage() {
   const [drawer, setDrawer] = useState<DiscoveredDevice | null>(null);
 
   const devices = data?.devices ?? [];
-  const unnamed = devices.filter(d => !d.hostname && hostnameResults[d.ip]?.status !== "resolved");
-  const resolvingAll = unnamed.some(d => hostnameResults[d.ip]?.status === "loading");
-  const resolveAllNames = () => unnamed.forEach(d => { if (hostnameResults[d.ip]?.status !== "loading") lookupHostname(d.ip); });
+  const unnamed = devices.filter(d => !d.hostname && hostnameResults[d.mac]?.status !== "resolved");
+  const resolvingAll = unnamed.some(d => hostnameResults[d.mac]?.status === "loading");
+  const resolveAllNames = () => unnamed.forEach(d => { if (hostnameResults[d.mac]?.status !== "loading") lookupHostname(d.ip, d.mac); });
 
   // Excludes only confidently-detected devices — unknown/unreachable/
   // engine_unavailable stay eligible for a re-run, since those can be
   // transient (a dropped ping, nmap's own run-to-run variance) rather than
   // a real dead end, same as "not found" names stay retryable above.
-  const unfingerprinted = devices.filter(d => osResults[d.ip]?.status !== "detected");
-  const detectingAll = devices.some(d => osResults[d.ip]?.status === "loading");
-  const detectAllOs = () => unfingerprinted.forEach(d => { if (osResults[d.ip]?.status !== "loading") detectOs(d.ip); });
+  const unfingerprinted = devices.filter(d => osResults[d.mac]?.status !== "detected");
+  const detectingAll = devices.some(d => osResults[d.mac]?.status === "loading");
+  const detectAllOs = () => unfingerprinted.forEach(d => { if (osResults[d.mac]?.status !== "loading") detectOs(d.ip, d.mac); });
   const q = search.trim().toLowerCase();
   const filtered = !q ? devices : devices.filter(d => {
-    const lookup = hostnameResults[d.ip];
+    const lookup = hostnameResults[d.mac];
     const name = d.hostname ?? (lookup?.status === "resolved" ? lookup.hostname : null);
     return (name?.toLowerCase().includes(q) ?? false) || d.ip.includes(q) || d.mac.includes(q);
   });
@@ -275,10 +275,10 @@ export default function DevicesPage() {
                   ) : paged.map(d => (
                     <tr key={d.mac} onClick={() => setDrawer(d)} className="cursor-pointer hover:bg-tint-aqua-bg/40 transition-colors">
                       <td className="px-4 py-3">
-                        <DeviceNameCell device={d} lookup={hostnameResults[d.ip]} onLookup={() => lookupHostname(d.ip)} />
+                        <DeviceNameCell device={d} lookup={hostnameResults[d.mac]} onLookup={() => lookupHostname(d.ip, d.mac)} />
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">
-                        <OsDetectionCell device={d} detection={osResults[d.ip]} onDetect={() => detectOs(d.ip)} />
+                        <OsDetectionCell device={d} detection={osResults[d.mac]} onDetect={() => detectOs(d.ip, d.mac)} />
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-foreground/80">{d.ip}</td>
                       <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">{d.mac}</td>
@@ -310,12 +310,12 @@ export default function DevicesPage() {
             )) : paged.map(d => (
               <Card key={d.mac} onClick={() => setDrawer(d)} className="p-4 cursor-pointer transition-all hover:border-primary">
                 <div className="mb-1.5">
-                  <DeviceNameCell device={d} lookup={hostnameResults[d.ip]} onLookup={() => lookupHostname(d.ip)} />
+                  <DeviceNameCell device={d} lookup={hostnameResults[d.mac]} onLookup={() => lookupHostname(d.ip, d.mac)} />
                 </div>
                 <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
                   <span className="font-mono">{d.ip}</span>
                   <span className="font-mono">{d.mac}</span>
-                  <OsDetectionCell device={d} detection={osResults[d.ip]} onDetect={() => detectOs(d.ip)} />
+                  <OsDetectionCell device={d} detection={osResults[d.mac]} onDetect={() => detectOs(d.ip, d.mac)} />
                 </div>
               </Card>
             ))}
@@ -327,14 +327,14 @@ export default function DevicesPage() {
       {drawer && (
         <Modal open onClose={() => setDrawer(null)} position="center" className="max-w-sm w-full rounded-xl flex flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border shrink-0">
-            <h2 className="font-semibold text-foreground text-sm truncate min-w-0">{hostnameLabel(drawer, hostnameResults[drawer.ip])}</h2>
+            <h2 className="font-semibold text-foreground text-sm truncate min-w-0">{hostnameLabel(drawer, hostnameResults[drawer.mac])}</h2>
             <button onClick={() => setDrawer(null)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground shrink-0"><X size={16} /></button>
           </div>
           <div className="p-5 grid grid-cols-2 gap-3">
             {[
-              ["Device", <DeviceNameCell key="device" device={drawer} lookup={hostnameResults[drawer.ip]} onLookup={() => lookupHostname(drawer.ip)} />],
+              ["Device", <DeviceNameCell key="device" device={drawer} lookup={hostnameResults[drawer.mac]} onLookup={() => lookupHostname(drawer.ip, drawer.mac)} />],
               ["Status", drawer.isCurrentDevice ? <Tag key="status" color="aqua">This device</Tag> : "On network"],
-              ["OS", <OsDetectionCell key="os" device={drawer} detection={osResults[drawer.ip]} onDetect={() => detectOs(drawer.ip)} />],
+              ["OS", <OsDetectionCell key="os" device={drawer} detection={osResults[drawer.mac]} onDetect={() => detectOs(drawer.ip, drawer.mac)} />],
               ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
               ["MAC Address", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
             ].map(([label, val]) => (

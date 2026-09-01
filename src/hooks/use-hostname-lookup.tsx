@@ -6,20 +6,19 @@ import type { HostnameLookupResult } from "@/lib/hostname-resolve";
 export type HostnameLookupState = { status: "loading" } | HostnameLookupResult;
 
 /**
- * Runs the on-demand hostname lookup (`/api/network/hostname`) per IP — a
- * multi-second DNS/NetBIOS/mDNS chain, so callers trigger it per device
- * rather than for the whole discovered list at once. Keeps its own per-IP
- * result cache, independent of the (fast, name-free) discovery scan.
+ * Runs the on-demand hostname lookup (`/api/network/hostname`) per device.
+ * Keyed by MAC, not IP — DHCP can reassign an IP to a different device
+ * later, and an IP-keyed cache would show that device the old one's name.
  */
 export const useHostnameLookup = () => {
   const [results, setResults] = useState<Record<string, HostnameLookupState>>({});
 
-  const lookup = useCallback((ip: string) => {
-    setResults(prev => ({ ...prev, [ip]: { status: "loading" } }));
+  const lookup = useCallback((ip: string, mac: string) => {
+    setResults(prev => ({ ...prev, [mac]: { status: "loading" } }));
     fetch(`/api/network/hostname?ip=${encodeURIComponent(ip)}`, { cache: "no-store" })
       .then(res => res.json())
-      .then((json: HostnameLookupResult) => setResults(prev => ({ ...prev, [ip]: json })))
-      .catch(() => setResults(prev => ({ ...prev, [ip]: { status: "not_found" } })));
+      .then((json: HostnameLookupResult) => setResults(prev => ({ ...prev, [mac]: json })))
+      .catch(() => setResults(prev => ({ ...prev, [mac]: { status: "not_found" } })));
   }, []);
 
   return { results, lookup };
