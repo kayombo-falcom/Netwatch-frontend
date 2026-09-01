@@ -26,3 +26,9 @@ export function maskToCidr(mask: string): number {
   }
   return count;
 }
+
+/** CIDR prefix length (e.g. 24, from `ip addr`'s prefixlen) to its dotted mask (e.g. 255.255.255.0). */
+export function cidrToMask(prefixLen: number): string {
+  const bits = prefixLen === 0 ? 0 : (0xffffffff << (32 - prefixLen)) >>> 0;
+  return longToIp(bits);
+}

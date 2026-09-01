@@ -1,7 +1,6 @@
 import os from "os";
 import { ipToLong, longToIp } from "./ip";
-import { execFileAsync, normalizeMac, pingOnce } from "./shell";
-import { getCurrentConnection } from "./wifi";
+import { getNetworkProvider } from "./platform";
 
 // Ping sweeps run one host at a time by default — this caps how many run
 // concurrently so a /24 sweep finishes in a handful of rounds instead of one
@@ -75,7 +74,7 @@ function computeHostRange(localIp: string, mask: string): string[] {
 
 /** Pings a host so a live device answers and populates the OS's ARP cache, returning the reply's TTL (for an OS guess) if it answered. */
 async function pingHost(ip: string): Promise<number | null> {
-  return (await pingOnce(ip, PING_TIMEOUT_MS)).ttl;
+  return (await getNetworkProvider().pingOnce(ip, PING_TIMEOUT_MS)).ttl;
 }
 
 /**
@@ -91,19 +90,6 @@ function guessOsFromTtl(ttl: number): string {
   return "Linux / macOS / Android";
 }
 
-/** Reads the OS ARP cache, keeping only "dynamic" entries — "static" rows are broadcast/multicast reservations, not real devices. */
-async function readArpTable(localIp: string): Promise<{ ip: string; mac: string }[]> {
-  const { stdout } = await execFileAsync("arp", ["-a", "-N", localIp]).catch(() => ({ stdout: "" }));
-  const entries: { ip: string; mac: string }[] = [];
-
-  for (const line of stdout.split("\n")) {
-    const match = line.match(/^\s*(\d{1,3}(?:\.\d{1,3}){3})\s+([0-9a-fA-F]{2}(?:-[0-9a-fA-F]{2}){5})\s+dynamic\s*$/i);
-    if (match) entries.push({ ip: match[1], mac: normalizeMac(match[2])! });
-  }
-
-  return entries;
-}
-
 /**
  * Discovers devices on the currently joined network: a ping sweep to
  * populate the ARP cache and guess OS family from TTL. Hostnames are *not*
@@ -113,18 +99,19 @@ async function readArpTable(localIp: string): Promise<{ ip: string; mac: string 
  * most-recently-first-seen first.
  */
 export async function scanConnectedDevices(): Promise<NetworkScanResult> {
-  const connection = await getCurrentConnection();
+  const provider = getNetworkProvider();
+  const connection = await provider.getCurrentConnection();
   if (!connection.connected || !connection.ip || !connection.subnet) return EMPTY_RESULT;
 
   const hosts = computeHostRange(connection.ip, connection.subnet);
   const ttls = hosts.length > 0 ? await mapWithConcurrency(hosts, PING_CONCURRENCY, pingHost) : [];
   const ttlByIp = new Map(hosts.map((ip, index) => [ip, ttls[index]]));
 
-  const arpEntries = await readArpTable(connection.ip);
+  const arpEntries = await provider.readNeighborTable(connection.ip);
 
   const byIp = new Map<string, { mac: string; hostname: string | null; os: string | null; isCurrentDevice: boolean }>();
   if (connection.mac) {
-    byIp.set(connection.ip, { mac: connection.mac, hostname: os.hostname(), os: os.platform() === "win32" ? "Windows" : null, isCurrentDevice: true });
+    byIp.set(connection.ip, { mac: connection.mac, hostname: os.hostname(), os: provider.currentDeviceOsLabel(), isCurrentDevice: true });
   }
   for (const entry of arpEntries) {
     if (byIp.has(entry.ip)) continue;

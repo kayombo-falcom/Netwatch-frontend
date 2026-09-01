@@ -1,4 +1,4 @@
-import { measurePacketLoss, type PacketLossResult } from "./shell";
+import { getNetworkProvider, type PacketLossResult } from "./platform";
 
 // Cloudflare's public resolver — same provider as the rest of the speed
 // test, and reliable enough that any loss reported is our own path's fault,
@@ -12,5 +12,5 @@ const PING_COUNT = 10;
 const PING_TIMEOUT_MS = 1000;
 
 export async function measureConnectionPacketLoss(): Promise<PacketLossResult | null> {
-  return measurePacketLoss(TARGET, PING_COUNT, PING_TIMEOUT_MS);
+  return getNetworkProvider().measurePacketLoss(TARGET, PING_COUNT, PING_TIMEOUT_MS);
 }

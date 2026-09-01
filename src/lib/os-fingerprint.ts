@@ -1,6 +1,7 @@
 import net from "net";
 import { isIpInLocalSubnet } from "./lan-scope";
-import { execFileAsync, pingOnce, runPowerShell } from "./shell";
+import { getNetworkProvider } from "./platform";
+import { execFileAsync } from "./shell";
 import { collectBannerSignals, collectMdnsSignals, collectNetbiosSignal, collectSsdpSignal, portSignals, ttlSignal, type OsFamily, type Signal } from "./os-signals";
 
 const REACHABILITY_TIMEOUT_MS = 500;
@@ -101,9 +102,10 @@ function tcpProbe(ip: string, port: number): Promise<boolean> {
  * `pingOnce` stays single-shot for the bulk subnet sweep, which needs to stay fast.
  */
 async function checkReachability(ip: string): Promise<{ alive: boolean; ttl: number | null; openPorts: number[] }> {
+  const provider = getNetworkProvider();
   const [ping1, ping2, tcpResults] = await Promise.all([
-    pingOnce(ip, REACHABILITY_TIMEOUT_MS),
-    pingOnce(ip, REACHABILITY_TIMEOUT_MS),
+    provider.pingOnce(ip, REACHABILITY_TIMEOUT_MS),
+    provider.pingOnce(ip, REACHABILITY_TIMEOUT_MS),
     Promise.all(TCP_PROBE_PORTS.map(port => tcpProbe(ip, port))),
   ]);
 
@@ -137,14 +139,6 @@ async function runNmap(ip: string): Promise<NmapRun> {
     if ((err as { killed?: boolean })?.killed) return { status: "error", reason: "Scan timed out" };
     return { status: "error", reason: "Scan failed" };
   }
-}
-
-/** Without Npcap, nmap runs fine but can't send the raw packets `-O` needs — checked only when nmap ran but found no match, since that's the tell. */
-async function isNpcapRunning(): Promise<boolean> {
-  const result = await runPowerShell<{ Status?: number | string }>(
-    "Get-Service -Name npcap -ErrorAction SilentlyContinue | Select-Object Status | ConvertTo-Json -Compress"
-  );
-  return String(result?.Status ?? "") === "Running" || String(result?.Status ?? "") === "4";
 }
 
 const NPCAP_MISSING_NOTE =
@@ -247,7 +241,7 @@ export async function detectOs(ip: string): Promise<OsDetectionResult> {
   // nmap ran and found the host up but named no OS — the classic sign
   // Npcap is missing, so check for it here.
   const notes: string[] = [];
-  if (nmapRun.status === "ok" && !nmapMatch && !(await isNpcapRunning())) notes.push(NPCAP_MISSING_NOTE);
+  if (nmapRun.status === "ok" && !nmapMatch && !(await getNetworkProvider().isRawCaptureReady())) notes.push(NPCAP_MISSING_NOTE);
 
   return { status: "unknown", confidence: nmapMatch?.accuracy ?? null, signals: toSignalDetails(signals), ...(notes.length ? { notes } : {}) };
 }
