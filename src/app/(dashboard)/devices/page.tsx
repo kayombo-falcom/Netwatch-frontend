@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, RefreshCw, X, Laptop, WifiOff, Fingerprint, IdCard, Loader2, Network } from "lucide-react";
+import { Search, RefreshCw, X, Laptop, WifiOff, Fingerprint, IdCard, Loader2, Network, AlertTriangle, Radio } from "lucide-react";
 import { Card } from "@/components/card";
 import { Tag } from "@/components/tag";
 import { IconButton } from "@/components/icon-button";
@@ -14,8 +14,52 @@ import { useHostnameLookup, type HostnameLookupState } from "@/hooks/use-hostnam
 import { useNetworkDevices } from "@/hooks/use-network-devices";
 import { useCurrentAp } from "@/hooks/use-current-ap";
 import { useOsDetection, type OsDetectionState } from "@/hooks/use-os-detection";
+import { useDeviceActivity } from "@/hooks/use-device-activity";
 import type { DiscoveredDevice } from "@/lib/network-types";
 import { maskToCidr } from "@/lib/ip";
+
+const activityTimeFormat: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+
+/** The device drawer's "Recent activity" list — domains this device contacted, most recent first. Empty until DNS/traffic-capture logging feeds DeviceActivity; the drawer still shows a clear empty state rather than hiding the section. */
+function DeviceActivitySection({ mac }: { mac: string }) {
+  const activity = useDeviceActivity(mac);
+
+  return (
+    <div className="px-5 pb-5 pt-4 border-t border-border">
+      <p className="text-xs text-muted-foreground/60 mb-2 flex items-center gap-1.5">
+        <Radio size={12} /> Recent activity
+      </p>
+      {activity.status === "loading" ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}
+        </div>
+      ) : activity.status === "error" ? (
+        <p className="text-xs text-muted-foreground">{activity.message}</p>
+      ) : activity.entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground/60">No recent activity recorded for this device.</p>
+      ) : (
+        <ul className="space-y-2 max-h-48 overflow-y-auto">
+          {activity.entries.map(entry => (
+            <li key={entry.id} className="flex items-center justify-between gap-2 text-xs">
+              <div className="min-w-0 flex items-center gap-1.5">
+                {entry.flagged && (
+                  <TooltipWrap label="Flagged">
+                    <AlertTriangle size={12} className="text-destructive shrink-0" />
+                  </TooltipWrap>
+                )}
+                <span className="font-mono text-foreground truncate">{entry.domain}</span>
+                <Tag color="muted" bordered={false}>{entry.source}</Tag>
+              </div>
+              <span className="text-muted-foreground/60 shrink-0 whitespace-nowrap">
+                {new Date(entry.timestamp).toLocaleString(undefined, activityTimeFormat)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 /** Device name — falls back to an on-demand lookup result until one's been run (the bulk scan no longer resolves hostnames automatically). */
 function hostnameLabel(device: DiscoveredDevice, lookup: HostnameLookupState | undefined): string {
@@ -344,6 +388,7 @@ export default function DevicesPage() {
               </div>
             ))}
           </div>
+          <DeviceActivitySection mac={drawer.mac} />
         </Modal>
       )}
     </div>
