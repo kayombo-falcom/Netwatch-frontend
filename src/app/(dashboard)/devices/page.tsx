@@ -14,7 +14,7 @@ import { useHostnameLookup, type HostnameLookupState } from "@/hooks/use-hostnam
 import { useNetworkDevices } from "@/hooks/use-network-devices";
 import { useCurrentAp } from "@/hooks/use-current-ap";
 import { useOsDetection, type OsDetectionState } from "@/hooks/use-os-detection";
-import type { DiscoveredDevice } from "@/lib/devices";
+import type { DiscoveredDevice } from "@/lib/network-types";
 import { maskToCidr } from "@/lib/ip";
 
 /** Device name — falls back to an on-demand lookup result until one's been run (the bulk scan no longer resolves hostnames automatically). */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { HostnameLookupResult } from "@/lib/hostname-resolve";
+import type { HostnameLookupResult } from "@/lib/network-types";
 
 export type HostnameLookupState = { status: "loading" } | HostnameLookupResult;
 

@@ -10,11 +10,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Where logic belongs
 
-Any logic that reads or writes data which needs to be **stored/persisted** belongs in the Django backend (`Netwach-backend/`), not in the Next.js frontend. Next.js API routes under `src/app/api/` that deal with persisted data (users, roles, auth, etc.) must stay thin proxies to the backend — see `src/lib/backend-proxy.ts` — not implement storage logic themselves.
+All logic — including live network probing (ARP/ping sweep, OS fingerprinting, mDNS/SSDP/NetBIOS discovery, adapter/Wi-Fi info, packet loss) and anything that reads or writes persisted data — belongs in the Django backend (`Netwach-backend/`), not in the Next.js frontend. Every Next.js API route under `src/app/api/` must be a thin proxy to the backend — see `src/lib/backend-proxy.ts` — never implementing storage logic or shelling out to system commands itself.
 
-The one exception is logic that only touches live, non-persisted local state — e.g. the LAN device scan in `src/app/api/network/devices/route.ts` (`src/lib/devices.ts`), which reads the host's ARP table/ping sweep on demand and stores nothing. That stays in the frontend because it depends on the frontend server's network position, not because it's frontend-appropriate logic.
+This deliberately gives up the frontend's own network position: the backend runs colocated with the frontend on the same LAN-connected host (`docker-compose.yml`'s `web` service uses `network_mode: host` specifically so it can too), so it can do everything the frontend process used to. It also means the containerized backend only targets Linux hosts — the previous Windows provider (`netsh`/PowerShell) has no equivalent inside a Linux container and isn't supported.
 
-When adding a new feature that needs persistence, add its models/repositories/services/views to the appropriate Django app (or a new one, following the existing `users`/`authorization`/`authentication` pattern) and expose it through `/api/v1/`, then proxy to it from Next.js.
+When adding a new feature, add its models/repositories/services/views to the appropriate Django app (`network` for live probing, or a new one following the existing `users`/`authorization`/`authentication`/`devices` pattern for persisted data) and expose it through `/api/v1/`, then proxy to it from Next.js.
 
 ## Code comments
 

@@ -1,6 +1,6 @@
 "use client";
 
-import type { CurrentConnection } from "@/lib/wifi";
+import type { CurrentConnection } from "@/lib/network-types";
 import { usePolledFetch } from "./use-polled-fetch";
 
 const POLL_INTERVAL_MS = 10_000;

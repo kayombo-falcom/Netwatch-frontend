@@ -22,3 +22,7 @@ export const proxyToBackend = async (path: string, init?: RequestInit) => {
   const body = await res.json();
   return NextResponse.json(body, { status: res.status });
 };
+
+/** Like proxyToBackend, but forwards the incoming request's query string too — for GET routes that just pass query params through. */
+export const proxyToBackendWithQuery = (request: Request, path: string) =>
+  proxyToBackend(`${path}${new URL(request.url).search}`);

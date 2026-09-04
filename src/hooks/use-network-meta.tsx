@@ -1,6 +1,6 @@
 "use client";
 
-import type { NetworkMeta } from "@/app/api/network/meta/route";
+import type { NetworkMeta } from "@/lib/network-types";
 import { usePolledFetch } from "./use-polled-fetch";
 
 // ISP/location change far less often than link stats, but still need to be

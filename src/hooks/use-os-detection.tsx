@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { OsDetectionResult } from "@/lib/os-fingerprint";
+import type { OsDetectionResult } from "@/lib/network-types";
 
 export type OsDetectionState = { status: "loading" } | OsDetectionResult;
 

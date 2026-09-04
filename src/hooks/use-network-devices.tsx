@@ -1,6 +1,6 @@
 "use client";
 
-import type { NetworkScanResult } from "@/lib/devices";
+import type { NetworkScanResult } from "@/lib/network-types";
 import { usePolledFetch } from "./use-polled-fetch";
 
 // A scan actively pings every host on the subnet, so it's heavier than the
