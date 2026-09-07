@@ -6,6 +6,7 @@ import type { DeviceActivity } from "@/lib/devices-types";
 export type DeviceActivityState =
   | { status: "loading" }
   | { status: "loaded"; entries: DeviceActivity[] }
+  | { status: "not-detected" }
   | { status: "error"; message: string };
 
 /**
@@ -22,11 +23,16 @@ export function useDeviceActivity(mac: string): DeviceActivityState {
 
     fetch(`/api/devices/${encodeURIComponent(mac)}/activity`, { cache: "no-store" })
       .then(res => {
+        // The backend 404s for a MAC it's never persisted (no detection run yet) —
+        // that's an expected state, not a failure.
+        if (res.status === 404) return null;
         if (!res.ok) throw new Error("request failed");
         return res.json();
       })
-      .then((entries: DeviceActivity[]) => {
-        if (!cancelled) setState({ status: "loaded", entries });
+      .then((entries: DeviceActivity[] | null) => {
+        if (cancelled) return;
+        if (entries === null) setState({ status: "not-detected" });
+        else setState({ status: "loaded", entries });
       })
       .catch(() => {
         if (!cancelled) setState({ status: "error", message: "Unable to load activity" });

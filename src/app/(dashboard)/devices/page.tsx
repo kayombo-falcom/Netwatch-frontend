@@ -35,6 +35,8 @@ function DeviceActivitySection({ mac }: { mac: string }) {
         </div>
       ) : activity.status === "error" ? (
         <p className="text-xs text-muted-foreground">{activity.message}</p>
+      ) : activity.status === "not-detected" ? (
+        <p className="text-xs text-muted-foreground/60">Run detection on this device to enable activity tracking.</p>
       ) : activity.entries.length === 0 ? (
         <p className="text-xs text-muted-foreground/60">No recent activity recorded for this device.</p>
       ) : (

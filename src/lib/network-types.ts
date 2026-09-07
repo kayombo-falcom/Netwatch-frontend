@@ -48,9 +48,18 @@ export type DetectionMethod = "estimated" | "verified";
 
 export type SignalDetail = { source: string; detail: string };
 
+export type OpenService = {
+  port: number;
+  protocol: string | null;
+  service: string | null;
+  product: string | null;
+  version: string | null;
+  extraInfo: string | null;
+};
+
 export type OsDetectionResult =
-  | { status: "detected"; method: DetectionMethod; osFamily: string; osName: string; osVersion: string | null; deviceType: string | null; confidence: number; signals: SignalDetail[] }
-  | { status: "unknown"; method: DetectionMethod; confidence: number | null; signals: SignalDetail[]; notes?: string[] }
+  | { status: "detected"; method: DetectionMethod; osFamily: string; osName: string; osVersion: string | null; deviceType: string | null; confidence: number; signals: SignalDetail[]; services: OpenService[] }
+  | { status: "unknown"; method: DetectionMethod; confidence: number | null; signals: SignalDetail[]; services: OpenService[]; notes?: string[] }
   | { status: "unreachable" }
   | { status: "out_of_scope" }
   | { status: "engine_unavailable"; reason: string };
