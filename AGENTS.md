@@ -18,4 +18,4 @@ When adding a new feature, add its models/repositories/services/views to the app
 
 ## Code comments
 
-Keep comments short, clear, and in simple language. One line is enough for most cases — explain the *why*, not the *what*, and avoid jargon or long sentences.
+Most code needs no comment at all — well-named functions and variables already say what it does. Only add one when the *why* isn't obvious from the code itself: a non-obvious constraint, a workaround, a gotcha. When a comment is warranted, keep it short, clear, plain language — one line covers most cases; avoid jargon and long sentences.

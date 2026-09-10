@@ -132,15 +132,17 @@ function OsDetectionCell({
 }) {
   const detecting = detection?.status === "loading";
   const signals = signalsSummary(detection);
-  const label = <span>{osDetectionLabel(device, detection)}</span>;
+  // engine_unavailable's `reason` is a free-text backend message with no length cap —
+  // truncate it so one long reason can't stretch the table wider than the page.
+  const label = <span className="truncate">{osDetectionLabel(device, detection)}</span>;
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
       {signals ? <TooltipWrap label={signals}>{label}</TooltipWrap> : label}
       <TooltipWrap label="Run active OS detection">
         <button
           onClick={e => { e.stopPropagation(); onDetect(); }}
           disabled={detecting}
-          className="p-0.5 rounded text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+          className="p-0.5 rounded text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 shrink-0"
         >
           {detecting ? <Loader2 size={12} className="animate-spin" /> : <Fingerprint size={12} />}
         </button>

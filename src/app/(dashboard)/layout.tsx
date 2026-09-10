@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </header>
 
               {/* Content */}
-              <main className="flex-1 overflow-y-auto">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden">
                 <div className="px-4 sm:px-6 py-6">
                   {/* Breadcrumbs + Title */}
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
