@@ -3,9 +3,7 @@ import { cookies } from "next/headers";
 import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE, authCookieOptions } from "@/lib/auth-cookies";
 import { BACKEND_API_BASE } from "@/lib/backend-url";
 
-/** Renews the access token from the refresh token, then touches an authenticated
- * endpoint so the backend's idle-session clock resets immediately. Used to both
- * silently refresh a session and to fulfil "stay signed in" from the idle-timeout prompt. */
+// Also touches an authenticated endpoint so the backend's idle-session clock resets immediately.
 export async function POST() {
   const refreshToken = (await cookies()).get("refresh_token")?.value;
   if (!refreshToken) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });

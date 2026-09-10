@@ -15,7 +15,7 @@ const variantClasses: Record<BtnVariant, string> = {
   outline: "border border-border text-muted-foreground hover:border-primary hover:text-primary bg-transparent",
 };
 
-/** The single source of truth for button styling — use this to style a non-<button> element (e.g. a Next.js Link) the same as `Btn` instead of duplicating its classes. */
+// Use this to style a non-button element (e.g. a Link) the same as Btn, instead of duplicating its classes.
 export const btnClasses = ({
   variant = "primary", size = "sm", className = "",
 }: { variant?: BtnVariant; size?: BtnSize; className?: string } = {}) =>

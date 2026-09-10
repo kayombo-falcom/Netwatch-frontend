@@ -4,13 +4,7 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/toaster";
 
-// Vendored locally (not next/font/google) so the build never depends on
-// reaching Google's servers — this app is meant to run on isolated LAN
-// deployments that may have no internet access at all. Same Latin-subset
-// variable-weight files next/font/google itself would have fetched; if the
-// browser can't use the custom font for any reason, next/font's automatic
-// metrics-matched system-font fallback (declared via `Inter`/`JetBrains
-// Mono` below, generated into globals via the CSS variable) still applies.
+// Fonts are vendored locally, not fetched from Google, since this app can run on offline LAN deployments.
 const inter = localFont({
   src: "./fonts/inter-latin-variable.woff2",
   variable: "--font-inter-sans",

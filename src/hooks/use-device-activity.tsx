@@ -9,12 +9,7 @@ export type DeviceActivityState =
   | { status: "not-detected" }
   | { status: "error"; message: string };
 
-/**
- * Fetches a device's recent activity feed for `mac`. Unlike the
- * hostname/OS-detection lookups this isn't gated behind a manual trigger —
- * it's a cheap DB read, not a multi-second live probe, so it loads as soon
- * as the device drawer mounts.
- */
+// Loads automatically on mount, unlike hostname/OS lookups, since it's a cheap DB read not a live probe.
 export function useDeviceActivity(mac: string): DeviceActivityState {
   const [state, setState] = useState<DeviceActivityState>({ status: "loading" });
 
@@ -23,8 +18,7 @@ export function useDeviceActivity(mac: string): DeviceActivityState {
 
     fetch(`/api/devices/${encodeURIComponent(mac)}/activity`, { cache: "no-store" })
       .then(res => {
-        // The backend 404s for a MAC it's never persisted (no detection run yet) —
-        // that's an expected state, not a failure.
+        // A 404 means no detection has run yet for this MAC — expected, not a failure.
         if (res.status === 404) return null;
         if (!res.ok) throw new Error("request failed");
         return res.json();

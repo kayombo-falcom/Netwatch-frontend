@@ -1,5 +1,4 @@
-// Response shape for GET /api/devices/[mac]/activity — no logic here, just
-// the JSON contract the proxy route passes through untouched.
+// Response shape for GET /api/devices/[mac]/activity — just the JSON contract, no logic.
 
 export type DeviceActivity = {
   id: number;

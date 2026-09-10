@@ -3,17 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import SpeedTest, { type MeasurementConfig } from "@cloudflare/speedtest";
 
-/**
- * Cloudflare's own default measurement sequence, minus `packetLoss` (needs a
- * TURN server we don't have — measured separately below instead). The large
- * download/upload tiers matter for accuracy, not just speed: the engine only
- * escalates to a bigger tier once the current one finishes fast, so on a
- * fast connection (fiber, gigabit) the small tiers never reach steady-state
- * throughput — only the 25MB+ tiers do. Trimming them, as this used to,
- * makes the test finish quicker but understates real speed on fast links.
- * The UI shows elapsed time during the run so a longer test doesn't read as
- * a stuck button.
- */
+// Keeps the large tiers, since only 25MB+ transfers reach steady-state throughput on fast connections.
 const MEASUREMENTS: MeasurementConfig[] = [
   { type: "latency", numPackets: 1 },
   { type: "download", bytes: 1e5, count: 1, bypassMinDuration: true },
@@ -31,14 +21,7 @@ const MEASUREMENTS: MeasurementConfig[] = [
   { type: "download", bytes: 2.5e8, count: 2 },
 ];
 
-/**
- * Safety net: cancel if the engine goes silent — no phase change, no results
- * update — for this long. Measured from last *activity*, not total run time,
- * so a connection that's slow but still making progress (e.g. a slow upload
- * round) is never punished for taking a while; only genuine stalls trip it.
- * Raised from 15s now that the largest tier (250MB) can take a while on its
- * own on a merely-decent (not fast) connection.
- */
+// Cancels if the engine goes silent this long, measured from last activity so a slow-but-progressing test isn't punished.
 const INACTIVITY_TIMEOUT_MS = 30_000;
 const WATCHDOG_INTERVAL_MS = 2_000;
 
@@ -52,12 +35,7 @@ export type SpeedTestSummary = {
   jitterMs: number | null;
 };
 
-// Cloudflare's own packetLoss measurement needs a TURN relay this app has no
-// server for (it fails with "unable to get TURN server credentials" even
-// with credentials fetched fresh — the endpoint is gated to Cloudflare's own
-// site, confirmed by a direct 403). Measured separately instead, via a batch
-// of ICMP pings server-side (`/api/network/packet-loss`) run alongside the
-// engine rather than through it.
+// Cloudflare's built-in packetLoss measurement needs a TURN relay we don't have, so it's measured separately via server-side ICMP pings.
 export type PacketLossState =
   | { status: "idle" }
   | { status: "loading" }
@@ -99,8 +77,7 @@ export const useSpeedTest = () => {
     startedAtRef.current = Date.now();
     lastActivityRef.current = Date.now();
 
-    // Independent of the engine below — its own ~10s ping batch, not one of
-    // the engine's measurement phases, so it doesn't block or extend them.
+    // Runs independently of the engine below, so it doesn't block or extend its measurement phases.
     setPacketLoss({ status: "loading" });
     fetch("/api/network/packet-loss", { cache: "no-store" })
       .then(res => res.json())
@@ -109,8 +86,7 @@ export const useSpeedTest = () => {
       )
       .catch(() => setPacketLoss({ status: "error" }));
 
-    // logAimApiUrl disabled: this is a local network monitoring tool, results
-    // shouldn't be reported to Cloudflare's aggregate insights endpoint.
+    // logAimApiUrl disabled: results shouldn't be reported to Cloudflare's aggregate insights endpoint.
     const engine = new SpeedTest({ autoStart: false, logAimApiUrl: null, measurements: MEASUREMENTS });
     engineRef.current = engine;
 
@@ -147,10 +123,7 @@ export const useSpeedTest = () => {
     else run();
   }, [status, run, cancel]);
 
-  // If the engine goes silent for INACTIVITY_TIMEOUT_MS (a stalled request, a
-  // browser quirk), the button would otherwise be stuck on "Cancel" forever
-  // since nothing else flips `status` back. Polls activity rather than
-  // setting one long timer so a slow-but-progressing test is never punished.
+  // Without this, a stalled engine would leave the button stuck on "Cancel" forever.
   useEffect(() => {
     if (status !== "running") return;
     const watchdog = setInterval(() => {
@@ -163,8 +136,7 @@ export const useSpeedTest = () => {
     return () => clearInterval(watchdog);
   }, [status]);
 
-  // Ticks the elapsed-time display while running, so a longer test (now that
-  // the large tiers are back) reads as progress instead of a stuck button.
+  // Ticks the elapsed-time display so a longer test reads as progress instead of a stuck button.
   useEffect(() => {
     if (status !== "running") return;
     const tick = setInterval(() => {

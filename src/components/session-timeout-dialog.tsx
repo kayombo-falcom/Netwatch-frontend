@@ -3,8 +3,7 @@ import { Btn } from "@/components/btn";
 import { Modal } from "@/components/modal";
 import { tintClass } from "@/lib/colors";
 
-/** Warns of an approaching idle-session timeout with a live countdown, offering to
- * stay signed in or log out immediately. Rendered by `IdleSessionGuard`. */
+// Rendered by IdleSessionGuard when the idle-session timeout is approaching.
 export const SessionTimeoutDialog = ({
   open, secondsRemaining, onStayLoggedIn, onLogout, staying,
 }: {

@@ -1,9 +1,4 @@
-// Same 4 bands every quality function below uses, as actual stroke colors —
-// for gauges (SVG `stroke`), which can't take a Tailwind class the way the
-// `QualityDot` background can. Reads Tailwind's own generated theme
-// variables (e.g. `--color-green-500`) rather than a hardcoded hex guess, so
-// the arc always matches whatever `bg-green-500` etc. actually render as
-// elsewhere in the app, light or dark.
+// Gauges need real stroke colors, so this reads Tailwind's theme variables instead of a class name.
 const STROKE_COLOR_VARS: Record<string, string> = {
   "bg-green-500": "var(--color-green-500)",
   "bg-yellow-500": "var(--color-yellow-500)",
@@ -61,12 +56,7 @@ export function packetLossQuality(lossPercent: number): { label: string; colorCl
   return { label: "Very poor", colorClass: "bg-red-500" };
 }
 
-/**
- * Negotiated link-rate (Mbps) quality bands for everyday use — not tied to
- * any specific Wi-Fi generation, just "is this ceiling fast enough for
- * typical activity." This is the radio's negotiated ceiling, not achieved
- * throughput (that's the Speed Test's Download/Upload dials).
- */
+// This is the radio's negotiated ceiling, not achieved throughput (that's the Speed Test dials).
 export function linkRateQuality(mbps: number): { label: string; colorClass: string } {
   if (mbps >= 300) return { label: "Excellent", colorClass: "bg-green-500" };
   if (mbps >= 150) return { label: "Good", colorClass: "bg-green-500" };
@@ -75,11 +65,7 @@ export function linkRateQuality(mbps: number): { label: string; colorClass: stri
   return { label: "Very Poor", colorClass: "bg-red-500" };
 }
 
-/**
- * Wi-Fi band characteristics. Not a quality scale — no band is objectively
- * "better," each trades range for speed/interference differently — so this
- * is informational only, not paired with a colored dot like the others.
- */
+// Not a quality scale, since no band is objectively "better" — informational only, no colored dot.
 export function bandInfo(band: string): string | null {
   if (band.startsWith("2.4")) return "Longer range — better coverage, more interference";
   if (band.startsWith("5")) return "Medium range — faster, less interference";

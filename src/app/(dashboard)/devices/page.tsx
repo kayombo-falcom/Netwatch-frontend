@@ -20,7 +20,7 @@ import { maskToCidr } from "@/lib/ip";
 
 const activityTimeFormat: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
 
-/** The device drawer's "Recent activity" list — domains this device contacted, most recent first. Empty until DNS/traffic-capture logging feeds DeviceActivity; the drawer still shows a clear empty state rather than hiding the section. */
+// Recent activity list stays empty until DNS/traffic-capture logging feeds DeviceActivity.
 function DeviceActivitySection({ mac }: { mac: string }) {
   const activity = useDeviceActivity(mac);
 
@@ -63,7 +63,7 @@ function DeviceActivitySection({ mac }: { mac: string }) {
   );
 }
 
-/** Device name — falls back to an on-demand lookup result until one's been run (the bulk scan no longer resolves hostnames automatically). */
+// Falls back to an on-demand lookup, since the bulk scan no longer resolves hostnames automatically.
 function hostnameLabel(device: DiscoveredDevice, lookup: HostnameLookupState | undefined): string {
   if (device.hostname) return device.hostname;
   if (!lookup) return "Unknown device";
@@ -75,7 +75,7 @@ function hostnameLabel(device: DiscoveredDevice, lookup: HostnameLookupState | u
   }
 }
 
-/** Device name + a button to run the on-demand hostname lookup. Reused across the desktop table, mobile cards, and the detail drawer. */
+// Reused across the desktop table, mobile cards, and the detail drawer.
 function DeviceNameCell({
   device, lookup, onLookup,
 }: {
@@ -103,7 +103,7 @@ function DeviceNameCell({
   );
 }
 
-/** Label for an active nmap detection result — falls back to the passive TTL guess (`device.os`) until one's been run. */
+// Falls back to the passive TTL guess (device.os) until an active nmap detection has run.
 function osDetectionLabel(device: DiscoveredDevice, detection: OsDetectionState | undefined): string {
   if (!detection) return device.os ? `${device.os} (estimated)` : "Unknown";
   switch (detection.status) {
@@ -116,7 +116,7 @@ function osDetectionLabel(device: DiscoveredDevice, detection: OsDetectionState 
   }
 }
 
-/** Every signal that agreed on the reported OS, plus any diagnostic note — shown so a detection isn't a black box. */
+// Shown so a detection isn't a black box: lists every signal that agreed, plus any diagnostic note.
 function signalsSummary(detection: OsDetectionState | undefined): string | null {
   if (!detection || (detection.status !== "detected" && detection.status !== "unknown")) return null;
   const notes = detection.status === "unknown" ? (detection.notes ?? []) : [];
@@ -124,7 +124,7 @@ function signalsSummary(detection: OsDetectionState | undefined): string | null 
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-/** OS value + a button to run the real nmap-backed detection in place of the passive TTL guess. Reused across the desktop table, mobile cards, and the detail drawer. */
+// Reused across the desktop table, mobile cards, and the detail drawer.
 function OsDetectionCell({
   device, detection, onDetect,
 }: {
@@ -149,7 +149,7 @@ function OsDetectionCell({
   );
 }
 
-/** Counts of the passive TTL-based OS guess (`device.os`) across a set of devices — a rough family split, not a fingerprint. */
+// Rough family split from the passive TTL guess, not a real fingerprint.
 function osBreakdown(devices: DiscoveredDevice[]) {
   const windows = devices.filter(d => d.os === "Windows").length;
   const unixLike = devices.filter(d => d.os === "Linux / macOS / Android").length;
@@ -172,10 +172,7 @@ export default function DevicesPage() {
   const resolvingAll = unnamed.some(d => hostnameResults[d.mac]?.status === "loading");
   const resolveAllNames = () => unnamed.forEach(d => { if (hostnameResults[d.mac]?.status !== "loading") lookupHostname(d.ip, d.mac); });
 
-  // Excludes only confidently-detected devices — unknown/unreachable/
-  // engine_unavailable stay eligible for a re-run, since those can be
-  // transient (a dropped ping, nmap's own run-to-run variance) rather than
-  // a real dead end, same as "not found" names stay retryable above.
+  // Only confidently-detected devices are excluded — other statuses can be transient, so stay retryable.
   const unfingerprinted = devices.filter(d => osResults[d.mac]?.status !== "detected");
   const detectingAll = devices.some(d => osResults[d.mac]?.status === "loading");
   const detectAllOs = () => unfingerprinted.forEach(d => { if (osResults[d.mac]?.status !== "loading") detectOs(d.ip, d.mac); });
@@ -198,7 +195,6 @@ export default function DevicesPage() {
 
   return (
     <div className="space-y-4">
-      {/* Network overview */}
       <Card className="p-4">
         <div className="flex items-center gap-4 flex-wrap">
           <IconSwatch color="teal">
@@ -243,7 +239,6 @@ export default function DevicesPage() {
         </div>
       </Card>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
@@ -300,7 +295,6 @@ export default function DevicesPage() {
         </Card>
       ) : (
         <>
-          {/* Table — desktop */}
           <Card className="hidden md:block">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -346,7 +340,6 @@ export default function DevicesPage() {
             )}
           </Card>
 
-          {/* Cards — mobile */}
           <div className="md:hidden space-y-3">
             {loading ? Array.from({ length: perPage }).map((_, i) => (
               <Card key={i} className="p-4 space-y-1.5">
@@ -369,7 +362,6 @@ export default function DevicesPage() {
         </>
       )}
 
-      {/* Detail Drawer */}
       {drawer && (
         <Modal open onClose={() => setDrawer(null)} position="center" className="max-w-sm w-full rounded-xl flex flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border shrink-0">

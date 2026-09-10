@@ -31,7 +31,7 @@ const GROUP_OPTIONS = ["Admins", "Staff", "Students", "Guests", "IoT"].map(g => 
 const ALLOW_OPTIONS = ["Web Browsing", "Email", "Video Calls (HD)"];
 const BLOCK_OPTIONS = ["P2P / Torrents", "Gaming Servers", "Adult Content"];
 
-/** Builder-only defaults for the fields not tracked in the shared `policiesData` summary. */
+// Defaults for fields not tracked in the shared policiesData summary.
 const POLICY_DEFAULTS: Record<string, Pick<Policy, "hoursStart" | "hoursEnd" | "allow" | "block" | "down" | "up" | "session">> = {
   "Admin Full Access": { hoursStart: "00:00", hoursEnd: "23:59", allow: ALLOW_OPTIONS, block: [], down: 100, up: 100, session: 24 },
   "Guest Wi-Fi": { hoursStart: "08:00", hoursEnd: "20:00", allow: ["Web Browsing", "Email"], block: BLOCK_OPTIONS, down: 10, up: 5, session: 8 },
@@ -76,7 +76,6 @@ export default function PoliciesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5 items-start">
-        {/* Category Nav */}
         <Card className="p-3 space-y-4">
           {loading ? Array.from({ length: 3 }).map((_, g) => (
             <div key={g} className="space-y-1.5">
@@ -120,7 +119,6 @@ export default function PoliciesPage() {
           })}
         </Card>
 
-        {/* Policy Builder */}
         <Card>
           <CardHeader
             title={selected.name}
@@ -170,7 +168,6 @@ export default function PoliciesPage() {
             </div>
           ) : (
             <div className="p-5 space-y-4">
-              {/* Who */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Who</label>
                 <Dropdown
@@ -180,7 +177,6 @@ export default function PoliciesPage() {
                 />
               </div>
 
-              {/* Schedule */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">When</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -205,7 +201,6 @@ export default function PoliciesPage() {
                 </div>
               </div>
 
-              {/* Allow / Block */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Allow</label>
@@ -241,7 +236,6 @@ export default function PoliciesPage() {
                 </div>
               </div>
 
-              {/* Limits */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Limits</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -278,7 +272,6 @@ export default function PoliciesPage() {
                 </div>
               </div>
 
-              {/* Expiry */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
                 <Clock size={13} className="text-muted-foreground/60" />
                 Sessions expire after {draft.session} hours · Re-authentication required

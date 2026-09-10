@@ -25,8 +25,7 @@ const SWIPE_DISMISS_PX = 80;
 /** How far it can be dragged before fading to fully transparent. */
 const SWIPE_FADE_PX = 200;
 
-/** A single toast — hovering it pauses its auto-dismiss countdown, and it can be
- * dragged horizontally with the cursor (or a finger) to dismiss it early. */
+// Hovering a toast pauses its auto-dismiss countdown; dragging it horizontally dismisses it early.
 const ToastCard = ({ toast }: { toast: ToastItem }) => {
   const Icon = VARIANT_ICON[toast.variant];
   const [dragX, setDragX] = useState(0);

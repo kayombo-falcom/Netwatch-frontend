@@ -27,14 +27,7 @@ const persist = (entry: DialogEntry | null) => {
   else window.sessionStorage.removeItem(STORAGE_KEY);
 };
 
-/**
- * Renders whatever dialog is handed to it at the dashboard-layout level (see
- * `(dashboard)/layout.tsx`), which stays mounted across page navigation —
- * that's what lets a minimized create/edit dialog survive the user switching
- * pages and coming back. The dialog is scoped to the page it was opened from
- * (hidden via CSS, not unmounted, on any other page) and mirrored to
- * `sessionStorage` on every change, so a full page refresh restores it too.
- */
+// Stays mounted across navigation (hidden via CSS, not unmounted) and mirrored to sessionStorage, so a minimized dialog survives page switches and refreshes.
 const DialogHostContext = createContext<{
   openDialog: (descriptor: DialogDescriptor) => void;
   closeDialog: () => void;

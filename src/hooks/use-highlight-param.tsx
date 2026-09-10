@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-/**
- * Reads a `?highlight=<id>` query param dropped by GlobalSearch, strips it
- * from the URL, and exposes the id for a few seconds so the destination page
- * can blink the matching row. The window is sized to outlast the slow-motion
- * `.highlight-blink` animation (2 x 1.4s cycles, see globals.css) plus the
- * simulated page-load delay it has to render through first.
- */
+// Strips the ?highlight=<id> param from the URL and exposes the id briefly so the matching row can blink.
 export const useHighlightParam = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -20,9 +14,7 @@ export const useHighlightParam = () => {
   const [activeId, setActiveId] = useState(raw);
   if (raw !== prevRaw) {
     setPrevRaw(raw);
-    // Only a genuinely new id (re)activates the blink — `raw` also goes back
-    // to null once the effect below strips it from the URL, and that null
-    // transition must NOT clear `activeId` early; only the timer should.
+    // Only a new id (re)activates the blink; the timer, not the URL-stripping null, clears it.
     if (raw) setActiveId(raw);
   }
 

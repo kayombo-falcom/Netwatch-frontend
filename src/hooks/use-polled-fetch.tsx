@@ -2,14 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-/**
- * Shared polling primitive for hooks that read live host/network state from
- * an API route: fetch on mount, re-fetch on an interval, re-fetch the moment
- * a backgrounded tab regains focus (its timers get throttled, so a change
- * made while unfocused could otherwise sit stale), and expose a manual
- * refresh. Used by useCurrentAp, useNetworkMeta, and useNetworkDevices so
- * that polling/visibility/refresh logic lives in exactly one place.
- */
+// Also re-fetches on tab focus, since a backgrounded tab's timers get throttled and could go stale.
 export function usePolledFetch<T>(url: string, pollIntervalMs: number, errorMessage: string) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);

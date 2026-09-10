@@ -3,9 +3,7 @@
 import type { NetworkMeta } from "@/lib/network-types";
 import { usePolledFetch } from "./use-polled-fetch";
 
-// ISP/location change far less often than link stats, but still need to be
-// re-checked periodically — switching to a different network mid-session
-// (different Wi-Fi, a VPN, a hotspot) changes both.
+// Polled less often than link stats, but still periodically since switching networks mid-session changes it.
 const POLL_INTERVAL_MS = 60_000;
 
 export const useNetworkMeta = () =>

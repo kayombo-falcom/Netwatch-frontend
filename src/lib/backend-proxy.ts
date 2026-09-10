@@ -7,8 +7,7 @@ const backendAuthHeaders = async (): Promise<Record<string, string> | null> => {
   return token ? { Authorization: `Bearer ${token}` } : null;
 };
 
-/** Proxies a request to the Django API with the caller's bearer token, relaying its JSON body and status back.
- * `path` is relative to the versioned API base, e.g. "/users/" not "/api/users/". */
+// path is relative to the versioned API base, e.g. "/users/" not "/api/users/".
 export const proxyToBackend = async (path: string, init?: RequestInit) => {
   const authHeaders = await backendAuthHeaders();
   if (!authHeaders) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });

@@ -17,10 +17,10 @@ import { isValidEmail } from "@/lib/validation";
 import { logoutForPasswordChange } from "@/lib/auth-client";
 import { toast } from "@/lib/toast-store";
 
-/** There's no real auth session yet, so this stands in for the signed-in user — same account the header avatar and profile menu represent. */
+// No real auth session yet, so this stands in for the signed-in user.
 const CURRENT_USER_ID = 1;
 
-/** Placeholder so hooks below always have a shape to work with while the real user list is still loading. */
+// Placeholder shape to use while the real user list is still loading.
 const EMPTY_USER: StoreUser = { id: 0, name: "", email: "", initials: "", role: "", status: "active", lastSeen: "", color: "var(--chart-1)" };
 
 const fieldClass = "w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary";

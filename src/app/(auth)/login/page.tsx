@@ -11,7 +11,7 @@ import { RequiredMark } from "@/components/required-mark";
 import { isValidEmail } from "@/lib/validation";
 import { toast } from "@/lib/toast-store";
 
-/** Reads the `?reason=password-changed` redirect flag — split out because `useSearchParams()` needs its own Suspense boundary for prerendering. */
+// Split out because useSearchParams() needs its own Suspense boundary for prerendering.
 function PasswordChangedNotice() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,10 +30,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Chrome ignores autocomplete="off" and fills a recognized login form on
-  // load itself when a matching saved credential exists. Keeping the fields
-  // readOnly until the user actually focuses them stops that — Chrome won't
-  // autofill a field it can't write to at parse time.
+  // Fields stay readOnly until focused, since Chrome ignores autocomplete="off" and autofills anyway.
   const [emailLocked, setEmailLocked] = useState(true);
   const [passwordLocked, setPasswordLocked] = useState(true);
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});

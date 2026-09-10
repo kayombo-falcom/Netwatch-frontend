@@ -5,16 +5,8 @@ import type { OsDetectionResult } from "@/lib/network-types";
 
 export type OsDetectionState = { status: "loading" } | OsDetectionResult;
 
-/**
- * Runs the standalone active OS-fingerprint mechanism (`/api/network/os-detect`)
- * on demand — it's a multi-second nmap scan, so callers trigger it per device
- * rather than for the whole discovered list at once. Keeps its own result
- * cache, independent of the (cheap, TTL-guess) discovery scan.
- *
- * Keyed by MAC, not IP: DHCP can hand a device's old IP to a different
- * device later in the same session, and an IP-keyed cache would silently
- * hand that new device the previous one's stale result.
- */
+// A multi-second nmap scan, so callers trigger it per device rather than for the whole list at once.
+// Keyed by MAC, not IP, since DHCP can reassign an IP and an IP-keyed cache would show a stale result.
 export const useOsDetection = () => {
   const [results, setResults] = useState<Record<string, OsDetectionState>>({});
 

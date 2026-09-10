@@ -1,6 +1,4 @@
-// Response shapes for the Django network endpoints (Netwach-backend/network/) —
-// no logic here, just the JSON contract the proxies in src/app/api/network/
-// pass through untouched.
+// Response shapes for the Django network endpoints — just the JSON contract, no logic.
 
 export type ConnectionKind = "wifi" | "ethernet";
 

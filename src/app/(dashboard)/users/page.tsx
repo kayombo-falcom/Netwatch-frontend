@@ -27,7 +27,7 @@ export default function UsersPage() {
   );
 }
 
-/** Split out from `UsersPage` because `useHighlightParam` (via `useSearchParams`) needs its own Suspense boundary for prerendering. */
+// Split out because useHighlightParam (via useSearchParams) needs its own Suspense boundary for prerendering.
 function UsersPageContent() {
   const highlightId = useHighlightParam();
   const { users, loading, updateUser } = useUsersStore();
@@ -159,7 +159,6 @@ function UsersPageContent() {
         )}
       </Card>
 
-      {/* Cards — mobile */}
       <div className="md:hidden space-y-3">
         {loading ? Array.from({ length: perPage }).map((_, i) => (
           <Card key={i} className="p-4 space-y-1.5">

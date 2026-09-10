@@ -6,12 +6,7 @@ import { TINT } from "@/lib/colors";
 
 export type DropdownOption = { label: string; value: string };
 
-/**
- * Reusable, accessible dropdown/select built on Base UI's Select primitive.
- * Styled to match the app's form-field look (see `fieldClass` in dialogs) so it
- * drops in anywhere a native `<select>` was used, with a smooth open/close
- * transition instead of the browser's default popup.
- */
+// Styled to match the app's form fields, so it drops in anywhere a native <select> was used.
 export const Dropdown = ({
   value, onChange, options, placeholder = "Select…", className = "", disabled = false,
 }: {

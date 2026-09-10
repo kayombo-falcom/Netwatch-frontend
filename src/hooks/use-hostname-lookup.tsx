@@ -5,11 +5,7 @@ import type { HostnameLookupResult } from "@/lib/network-types";
 
 export type HostnameLookupState = { status: "loading" } | HostnameLookupResult;
 
-/**
- * Runs the on-demand hostname lookup (`/api/network/hostname`) per device.
- * Keyed by MAC, not IP — DHCP can reassign an IP to a different device
- * later, and an IP-keyed cache would show that device the old one's name.
- */
+// Keyed by MAC, not IP, since DHCP can reassign an IP and an IP-keyed cache would show the wrong name.
 export const useHostnameLookup = () => {
   const [results, setResults] = useState<Record<string, HostnameLookupState>>({});
 

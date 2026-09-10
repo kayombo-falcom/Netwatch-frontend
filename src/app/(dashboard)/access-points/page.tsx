@@ -18,10 +18,7 @@ import { useSpeedTest } from "@/hooks/use-speed-test";
 import { useNetworkMeta } from "@/hooks/use-network-meta";
 import { signalQuality, rssiQuality, pingQuality, jitterQuality, packetLossQuality, qualityStrokeColor, bandInfo, linkRateQuality } from "@/lib/wifi-quality";
 
-// The speedometer's `size` is a plain SVG pixel dimension, not something CSS
-// breakpoints can scale on their own — read the viewport width (via
-// useSyncExternalStore so the server/first-paint value can't mismatch) and
-// pick a bigger dial on wider screens instead of leaving it fixed.
+// SVG pixel size can't scale via CSS breakpoints, so pick it from viewport width instead.
 function subscribeWindowWidth(callback: () => void) {
   window.addEventListener("resize", callback);
   return () => window.removeEventListener("resize", callback);

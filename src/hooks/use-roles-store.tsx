@@ -14,9 +14,7 @@ const firstApiError = (body: Record<string, unknown>) => {
   return firstField?.[0] ?? (body.error as string) ?? (body.detail as string) ?? "Please try again.";
 };
 
-/** Lives above the routed page (see `(dashboard)/layout.tsx`) — the Users page's
- * role filter, the Add/Edit User dialog's role dropdown, and the Roles &
- * Permissions page all need the same live role list. */
+// Lives above the routed page since several pages need the same live role list.
 const RolesStoreContext = createContext<{
   roles: StoreRole[];
   loading: boolean;

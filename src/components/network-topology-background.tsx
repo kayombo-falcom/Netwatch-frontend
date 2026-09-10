@@ -4,9 +4,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 
 type Point = [number, number];
 
-// Deterministic PRNG (mulberry32) so the "random" scatter below is identical
-// on the server and the client — a real Math.random() here would make the
-// server-rendered graph and the client's first paint disagree.
+// Deterministic PRNG so the "random" scatter matches on server and client — real Math.random() would cause a hydration mismatch.
 function mulberry32(seed: number) {
   let t = seed;
   return () => {
@@ -22,7 +20,7 @@ function scatterPoints(count: number, width: number, height: number, seed: numbe
   return Array.from({ length: count }, () => [Math.round(rand() * width), Math.round(rand() * height)]);
 }
 
-/** Connects each point to its `k` nearest neighbors — a cheap stand-in for Delaunay triangulation that still reads as an organic "plexus" mesh. */
+// A cheap stand-in for Delaunay triangulation that still reads as an organic mesh.
 function nearestNeighborEdges(points: Point[], k: number): [number, number][] {
   const seen = new Set<string>();
   const edges: [number, number][] = [];
@@ -55,13 +53,11 @@ function makeDust(count: number, width: number, height: number, seed: number) {
 const VIEW_W = 1200;
 const VIEW_H = 800;
 
-// Dim, dense backdrop web — the center is left to the radial mask below to
-// fade out, since the login card sits there.
+// Dim, dense backdrop web — the center fades via a radial mask since the login card sits there.
 const BACK_NODES = scatterPoints(200, VIEW_W, VIEW_H, 7);
 const BACK_EDGES = nearestNeighborEdges(BACK_NODES, 5);
 
-// Fewer, brighter "hub" points scattered across the frame, each glowing —
-// the plexus effect's focal points.
+// Fewer, brighter "hub" points — the plexus effect's focal points.
 const FRONT_NODES = scatterPoints(36, VIEW_W, VIEW_H, 99);
 const FRONT_EDGES = nearestNeighborEdges(FRONT_NODES, 4);
 
@@ -72,9 +68,7 @@ function edgePath(nodes: Point[], edge: [number, number]) {
   return `M ${nodes[a][0]} ${nodes[a][1]} L ${nodes[b][0]} ${nodes[b][1]}`;
 }
 
-// Reads prefers-reduced-motion through useSyncExternalStore rather than an
-// effect + setState, so the server snapshot (motion off) and the client's
-// first paint can never disagree — React reconciles the real value itself.
+// Uses useSyncExternalStore rather than effect + setState so server and first-paint values can't disagree.
 function subscribeReducedMotion(callback: () => void) {
   const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
   mql.addEventListener("change", callback);
@@ -88,14 +82,7 @@ function useMotionAllowed() {
   return !reduced;
 }
 
-/**
- * Glowing "plexus" network graph behind the login card — a dim, dense web of
- * nearest-neighbor-connected points with a sparser layer of bright, glowing
- * hub points on top, plus drifting dust specks. Two depths drift toward the
- * cursor at different rates for a subtle parallax feel; hubs pulse and a few
- * packets travel along the wires. All motion is skipped under
- * prefers-reduced-motion.
- */
+// Glowing "plexus" network graph behind the login card; all motion is skipped under prefers-reduced-motion.
 export function NetworkTopologyBackground() {
   const backRef = useRef<SVGSVGElement>(null);
   const frontRef = useRef<SVGSVGElement>(null);
@@ -130,7 +117,6 @@ export function NetworkTopologyBackground() {
         @keyframes ntb-twinkle { 0%, 100% { opacity: 0.1; } 50% { opacity: 1; } }
       `}</style>
 
-      {/* Faint scanline texture, echoing a data readout */}
       <div
         className="absolute inset-0 text-foreground"
         style={{ opacity: 0.03, backgroundImage: "repeating-linear-gradient(90deg, currentColor 0, currentColor 1px, transparent 1px, transparent 48px)" }}

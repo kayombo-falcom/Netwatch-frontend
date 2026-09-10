@@ -8,10 +8,7 @@ import { useUsersStore } from "@/hooks/use-users-store";
 
 type Result = { id: string; label: string; sub: string; href: string; icon: React.ReactNode };
 
-/**
- * Jump-anywhere search, distinct from the per-page filter inputs (Users,
- * Devices tables) which only narrow rows already loaded on that page.
- */
+// Jump-anywhere search, distinct from the per-page filters that only narrow rows already loaded.
 export const GlobalSearch = () => {
   const router = useRouter();
   const { users } = useUsersStore();

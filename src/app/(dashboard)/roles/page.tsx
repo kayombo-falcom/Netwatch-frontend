@@ -234,8 +234,7 @@ export default function RolesPermissionsPage() {
     if (!ok) return;
     setEditTarget(null);
     selectRole(name);
-    // The rename cascades to every user on that role — refresh the users list
-    // so their role label doesn't keep showing the old name.
+    // Renaming a role cascades to its users, so refresh the users list too.
     await Promise.all([loadMatrix(), refetchUsers()]);
   };
 
@@ -274,7 +273,6 @@ export default function RolesPermissionsPage() {
       </div>
 
       <div className="space-y-4">
-        {/* Role rail */}
         <Card className="overflow-hidden">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Roles</h3>
@@ -358,7 +356,6 @@ export default function RolesPermissionsPage() {
           </div>
         </Card>
 
-        {/* Permission detail */}
         <Card className="min-h-[420px] lg:min-h-[520px] xl:min-h-[600px] flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-border">
             {loading ? (

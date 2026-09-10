@@ -25,13 +25,7 @@ const refreshAccessToken = async (refreshToken: string): Promise<string | null> 
   return access;
 };
 
-/**
- * Gates every dashboard route behind a real backend check: the access token must
- * be valid AND its user must still exist and be active. A merely-present cookie
- * isn't enough — Django's /me/ endpoint re-queries the user per request, so a
- * deleted or deactivated account is kicked out immediately, not just when its
- * token happens to expire.
- */
+// Re-checks against Django's /me/ endpoint, not just the cookie, so a deleted or deactivated account is kicked out immediately.
 export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
   if (!accessToken) return redirectToLogin(request);

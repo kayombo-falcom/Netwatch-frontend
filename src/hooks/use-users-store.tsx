@@ -52,11 +52,7 @@ const firstApiError = (body: Record<string, unknown>) => {
   return firstField?.[0] ?? (body.error as string) ?? (body.detail as string) ?? "Please try again.";
 };
 
-/**
- * Lives above the routed page (see `(dashboard)/layout.tsx`) so the user
- * list survives page navigation — otherwise a minimized "Add/Edit User"
- * dialog would submit into a users list that's already been unmounted.
- */
+// Lives above the routed page so the user list survives navigation, for a minimized dialog to submit into.
 const UsersStoreContext = createContext<{
   users: StoreUser[];
   loading: boolean;

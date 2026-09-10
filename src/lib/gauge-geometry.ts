@@ -7,8 +7,7 @@ export function polarToCartesian(cx: number, cy: number, r: number, angleDeg: nu
 }
 
 export function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
-  // A full-circle arc (sweep === 360) has identical start/end points, which SVG renders as
-  // nothing — nudge just short of a full turn so the track/fill always stays visible.
+  // A full 360° arc has identical start/end points, which SVG renders as nothing — nudge short of it.
   const clampedEnd = endAngle - startAngle >= 360 ? startAngle + 359.99 : endAngle;
   const start = polarToCartesian(cx, cy, r, startAngle);
   const end = polarToCartesian(cx, cy, r, clampedEnd);
@@ -16,12 +15,7 @@ export function describeArc(cx: number, cy: number, r: number, startAngle: numbe
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
 }
 
-/**
- * Maps a value to an angle along a piecewise-linear (non-uniform) scale, so
- * breakpoints like [0, 5, 10, 50, 100, 250, 500, 750, 1000] each get an equal
- * angular slice — giving low speeds far more needle resolution than a plain
- * linear 0..max scale would.
- */
+// Maps a value to an angle on a piecewise-linear scale, so low values get more needle resolution than a plain linear scale would.
 export function valueToAngle(value: number, breakpoints: number[], startAngle: number, sweepDegrees: number) {
   const last = breakpoints.length - 1;
   const clamped = Math.min(Math.max(value, breakpoints[0]), breakpoints[last]);

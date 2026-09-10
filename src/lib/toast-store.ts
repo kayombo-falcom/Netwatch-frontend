@@ -12,8 +12,7 @@ const DEFAULT_DURATION = 4000;
 let toasts: ToastItem[] = [];
 const listeners = new Set<() => void>();
 
-/** Tracks each toast's auto-dismiss timer so it can be paused (hover) and resumed
- * without losing the time already elapsed. */
+// Tracks each toast's auto-dismiss timer so it can be paused (hover) and resumed without losing elapsed time.
 type TimerEntry = { timeoutId: ReturnType<typeof setTimeout> | null; remaining: number; startedAt: number };
 const timers = new Map<string, TimerEntry>();
 

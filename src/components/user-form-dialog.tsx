@@ -18,7 +18,7 @@ const labelClass = "text-xs font-medium text-muted-foreground mb-1 block";
 
 export type UserFormValues = { name: string; email: string; role: string; status: UserStatus; password: string };
 
-/** Draft shape mirrors the form fields (name split, status optional) so a dialog can be reopened mid-edit — from a minimized bar or a persisted session — without having produced a valid `UserFormValues` yet. */
+// Mirrors the form fields (name split, status optional) so the dialog can be reopened mid-edit, before a valid UserFormValues exists.
 export type UserFormDraft = { firstName: string; lastName: string; email: string; role: string; status: UserStatus | ""; password: string };
 
 export const emptyUserDraft: UserFormDraft = { firstName: "", lastName: "", email: "", role: "", status: "", password: "" };

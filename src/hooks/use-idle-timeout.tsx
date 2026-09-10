@@ -7,9 +7,7 @@ import { SessionTimeoutDialog } from "@/components/session-timeout-dialog";
 
 const ACTIVITY_EVENTS = ["mousedown", "mousemove", "keydown", "wheel", "touchstart"] as const;
 
-/** Mount once inside an authenticated layout. Tracks user activity against the
- * idle-session policy and, as the timeout approaches, shows a countdown prompt to
- * stay signed in or log out — mirroring the backend's SECURITY_IDLE_SESSION_TIMEOUT_MINUTES. */
+// Mirrors the backend's SECURITY_IDLE_SESSION_TIMEOUT_MINUTES; mount once inside an authenticated layout.
 export const IdleSessionGuard = () => {
   const lastActivityRef = useRef(0);
   const warningOpenRef = useRef(false);
@@ -24,8 +22,7 @@ export const IdleSessionGuard = () => {
   useEffect(() => {
     lastActivityRef.current = Date.now();
 
-    // Ambient activity only resets the clock before the warning appears — once it's
-    // up, only an explicit "stay signed in" click should extend the session.
+    // Once the warning is up, only an explicit "stay signed in" click should extend the session.
     const registerActivity = () => {
       if (!warningOpenRef.current) lastActivityRef.current = Date.now();
     };

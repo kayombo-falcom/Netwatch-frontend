@@ -1,8 +1,6 @@
 import { proxyToBackend } from "@/lib/backend-proxy";
 
-/** Proxies to the backend, then clears the session cookies server-side on success —
- * a changed password must force logout even if the client never gets to run its
- * own follow-up logic. */
+// Clears session cookies server-side so a password change always forces logout, even if the client never runs its follow-up logic.
 export async function POST(request: Request) {
   const res = await proxyToBackend("/auth/change-password/", {
     method: "POST",

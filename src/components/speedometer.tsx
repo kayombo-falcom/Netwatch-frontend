@@ -7,7 +7,7 @@ const SWEEP_DEGREES = 270;
 /** Non-uniform scale so low speeds (typical home broadband) get most of the dial's resolution. */
 export const MBPS_BREAKPOINTS = [0, 5, 10, 50, 100, 250, 500, 750, 1000];
 
-/** Needle drawn pointing straight up (12 o'clock); rotated into position via CSS transform. */
+// Needle drawn pointing straight up; rotated into position via CSS transform.
 function needlePath(cx: number, cy: number, tipRadius: number, baseHalfWidth: number) {
   const tip = { x: cx, y: cy - tipRadius };
   const base1 = { x: cx + baseHalfWidth, y: cy };
@@ -15,19 +15,7 @@ function needlePath(cx: number, cy: number, tipRadius: number, baseHalfWidth: nu
   return `M ${base1.x} ${base1.y} L ${tip.x} ${tip.y} L ${base2.x} ${base2.y} Z`;
 }
 
-/**
- * A speedtest.net-style needle dial: a non-linear tick scale, a gradient arc
- * filled from rest up to the needle, and a tapered needle pointing at the
- * live value. Reusable for any breakpoint-scaled live metric (defaults to a
- * 0–1000 Mbps scale) — pass `icon`/`label`/`unit` to relabel it.
- *
- * The fill arc's `d` never changes — only `stroke-dashoffset` animates — and
- * the needle only ever rotates. Animating the arc's endpoint directly (a
- * changing `d`) looks fine most of the time, but once the sweep crosses 180°
- * its `large-arc-flag` flips, and browsers don't interpolate between two
- * structurally different arc commands correctly — mid-transition the arc can
- * flash out to a wildly wrong shape that appears to swing outside the ring.
- */
+// The fill arc's d never changes and only stroke-dashoffset animates, since animating d directly glitches once the sweep crosses 180°.
 export const Speedometer = ({
   value, breakpoints = MBPS_BREAKPOINTS, unit = "Mbps", label, icon: Icon,
   size = 200, colorFrom = "var(--chart-3)", colorTo = "var(--chart-4)",
