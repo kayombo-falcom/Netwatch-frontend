@@ -2,11 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Prerequisites (first-time setup)
 
-This app reads live network state from the host it runs on, so beyond `npm install` it needs a couple of things already on the machine:
+This frontend is a thin proxy — all live network state (device discovery, OS detection, Wi-Fi/adapter info, packet loss) comes from the Django backend in `Netwach-backend/`, which runs in Docker with `network_mode: host` so it can see the real LAN instead of Docker's isolated bridge network. Start the backend first (`docker compose up` from `Netwach-backend/`), then `npm install && npm run dev` here.
 
-- **Windows or Linux.** Device/Wi-Fi status shells out to the OS directly — `netsh`/`powershell` on Windows, `ip`/`iw`/`ethtool` (iproute2 + wireless-tools) on Linux. macOS isn't supported yet.
-- **[Nmap](https://nmap.org/download.html)** (Windows installer/`winget install --id Insecure.Nmap -e`, or your distro's package on Linux, e.g. `apt install nmap`) — one of several signals the "Detect OS" feature (`/api/network/os-detect`) fuses together, and the strongest one when available. On Windows, make sure its installer option for **Npcap** is checked; without Npcap, OS detection can't send the raw packets it needs even though the `nmap` command itself will run. Nmap isn't strictly required, though: OS detection also grabs SSH/HTTP banners (ports 22/80) and reads mDNS/NetBIOS presence — signals that already ride on ports and protocols the app touches elsewhere, so they need no new privileges or firewall exceptions. If nmap is missing, detection still works off those, just with less headroom for a confident result. Everything else in the app (device discovery, Wi-Fi status, speed test) works fine without nmap too.
-- **Elevated privileges**, only when you want nmap's raw-packet probes to work: this needs an elevated process on Windows (`npm run dev:admin` launches one automatically, self-relaunching via a UAC prompt if the current terminal isn't already elevated) or `CAP_NET_RAW`/root on Linux (e.g. `sudo setcap cap_net_raw,cap_net_admin+eip $(which nmap)` once, so `npm run dev` doesn't need to run as root at all). OS detection's other signals (banners, mDNS, NetBIOS) work unprivileged either way.
+The backend container is Linux either way, so the same Docker setup works on a Linux or Windows host — but on Windows, `network_mode: host` needs two one-time settings so the container actually reaches the physical LAN instead of sitting behind Docker Desktop's own NAT:
+
+- **Docker Desktop → Settings → Resources → Network → enable Host Networking.**
+- **WSL2 mirrored networking**: add `networkingMode=mirrored` under `[wsl2]` in `%UserProfile%\.wslconfig`, then restart WSL (`wsl --shutdown`) and Docker Desktop.
+
+Known caveat: Wi-Fi-specific fields (signal %, channel, band) may not fully populate on Windows even with the above, since mirrored networking mainly shares IP-level connectivity rather than low-level wireless radio info — device discovery, OS detection, and DNS capture are expected to work regardless. macOS isn't supported.
 
 ## Getting Started
 
