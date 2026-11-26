@@ -1,47 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Netwatch — Network Monitoring Dashboard
 
-## Prerequisites (first-time setup)
+> See every device on your LAN: who's connected, what OS they run, how fast the link is and what they're doing.
 
-This frontend is a thin proxy — all live network state (device discovery, OS detection, Wi-Fi/adapter info, packet loss) comes from the Django backend in `Netwach-backend/`, which runs in Docker with `network_mode: host` so it can see the real LAN instead of Docker's isolated bridge network. Start the backend first (`docker compose up` from `Netwach-backend/`), then `npm install && npm run dev` here.
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)
+![Status](https://img.shields.io/badge/status-in_development-orange)
 
-The backend container is Linux either way, so the same Docker setup works on a Linux or Windows host — but on Windows, `network_mode: host` needs two one-time settings so the container actually reaches the physical LAN instead of sitting behind Docker Desktop's own NAT:
+> 🚧 Active work is on the [`development`](https://github.com/kayombo-falcom/Netwatch-frontend/tree/development) branch.
 
-- **Docker Desktop → Settings → Resources → Network → enable Host Networking.**
-- **WSL2 mirrored networking**: add `networkingMode=mirrored` under `[wsl2]` in `%UserProfile%\.wslconfig`, then restart WSL (`wsl --shutdown`) and Docker Desktop.
+Netwatch is a dashboard for home and office networks. The frontend is a thin layer: all live network data comes from the [Netwatch backend](https://github.com/kayombo-falcom/Netwach-backend) (Django), which scans the real LAN.
 
-Known caveat: Wi-Fi-specific fields (signal %, channel, band) may not fully populate on Windows even with the above, since mirrored networking mainly shares IP-level connectivity rather than low-level wireless radio info — device discovery, OS detection, and DNS capture are expected to work regardless. macOS isn't supported.
+## ✨ Features
 
-## Getting Started
+- **Overview:** key metrics, bandwidth chart, active devices, AP health, recent alerts
+- **Devices:** live discovery with IP, hostname, OS detection and activity per device
+- **Network & Wi-Fi:** adapter info, signal, channel, band and packet loss
+- **Speed test:** built-in test powered by Cloudflare Speedtest
+- **Traffic & DNS:** which domains devices are looking up
+- **Alerts, Users & Policies:** events, accounts and rules
+- **Secure sign-in:** JWT login and logout through Next.js API routes
 
-First, run the development server:
+## 🛠 Tech Stack
+
+| Area | Tools |
+| --- | --- |
+| Framework | Next.js 16 (App Router, API routes), React 19, TypeScript 5 |
+| UI | Tailwind CSS 4, shadcn/ui, Base UI, tw-animate-css, Geist font |
+| Styling helpers | class-variance-authority, clsx, tailwind-merge |
+| Charts & icons | Recharts, lucide-react |
+| Speed test | @cloudflare/speedtest |
+| Auth | JWT from the Django API (login, refresh, logout) |
+| Quality | ESLint 9 |
+
+**Backend platform:** Django 6 · Django REST Framework · SimpleJWT · PostgreSQL 16 · Docker (host networking) · nmap
+
+## 🚀 Getting Started
+
+**1. Start the backend first** (`docker compose up` in [Netwach-backend](https://github.com/kayombo-falcom/Netwach-backend)). It runs in Docker with `network_mode: host` so it can see the real LAN.
+
+**2. Run the frontend**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/kayombo-falcom/Netwatch-frontend.git
+cd Netwatch-frontend
+git checkout development
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🪟 Windows hosts (one-time)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The backend container is Linux, so it works on Linux and Windows. On Windows, host networking needs two settings:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Docker Desktop** → Settings → Resources → Network → enable **Host Networking**
+2. **WSL2 mirrored networking:** add `networkingMode=mirrored` under `[wsl2]` in `%UserProfile%\.wslconfig`, then run `wsl --shutdown` and restart Docker Desktop
 
-## Learn More
+> Wi-Fi details (signal %, channel, band) may not fully show on Windows. Device discovery, OS detection and DNS capture still work. macOS isn't supported.
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/app/
+├─ (auth)/        # login
+├─ (dashboard)/   # overview, devices, access-points, traffic,
+│                 # alerts, users, policies, settings
+├─ api/           # route handlers that proxy to the Django API
+├─ _lib/          # hooks, types, API helpers, speed test
+└─ fonts/
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 👤 Author
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Hirorims Kayombo** · [Portfolio](https://hirorims.netlify.app/) · [GitHub](https://github.com/kayombo-falcom)
