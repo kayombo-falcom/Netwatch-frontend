@@ -9,11 +9,11 @@
 ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)
 ![Status](https://img.shields.io/badge/status-in_development-orange)
 
-> 🚧 Active work is on the [`development`](https://github.com/kayombo-falcom/Netwatch-frontend/tree/development) branch.
+> Active work is on the [`development`](https://github.com/kayombo-falcom/Netwatch-frontend/tree/development) branch.
 
 Netwatch is a dashboard for home and office networks. The frontend is a thin layer: all live network data comes from the [Netwatch backend](https://github.com/kayombo-falcom/Netwach-backend) (Django), which scans the real LAN.
 
-## ✨ Features
+## Features
 
 - **Overview:** key metrics, bandwidth chart, active devices, AP health, recent alerts
 - **Devices:** live discovery with IP, hostname, OS detection and activity per device
@@ -23,7 +23,7 @@ Netwatch is a dashboard for home and office networks. The frontend is a thin lay
 - **Alerts, Users & Policies:** events, accounts and rules
 - **Secure sign-in:** JWT login and logout through Next.js API routes
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Area | Tools |
 | --- | --- |
@@ -37,7 +37,7 @@ Netwatch is a dashboard for home and office networks. The frontend is a thin lay
 
 **Backend platform:** Django 6 · Django REST Framework · SimpleJWT · PostgreSQL 16 · Docker (host networking) · nmap
 
-## 🚀 Getting Started
+## Getting Started
 
 **1. Start the backend first** (`docker compose up` in [Netwach-backend](https://github.com/kayombo-falcom/Netwach-backend)). It runs in Docker with `network_mode: host` so it can see the real LAN.
 
@@ -51,7 +51,7 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-### 🪟 Windows hosts (one-time)
+### Windows hosts (one-time)
 
 The backend container is Linux, so it works on Linux and Windows. On Windows, host networking needs two settings:
 
@@ -60,7 +60,7 @@ The backend container is Linux, so it works on Linux and Windows. On Windows, ho
 
 > Wi-Fi details (signal %, channel, band) may not fully show on Windows. Device discovery, OS detection and DNS capture still work. macOS isn't supported.
 
-## 📁 Structure
+## Structure
 
 ```
 src/app/
@@ -72,6 +72,6 @@ src/app/
 └─ fonts/
 ```
 
-## 👤 Author
+## Author
 
 **Hirorims Kayombo** · [Portfolio](https://hirorims.netlify.app/) · [GitHub](https://github.com/kayombo-falcom)
