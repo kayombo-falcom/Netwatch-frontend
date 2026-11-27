@@ -2,46 +2,69 @@
 
 import { useState } from "react";
 import { CheckCircle, Save } from "lucide-react";
-import { Card, CardHeader, Btn } from "@/app/_components/dashboard-ui";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { Btn } from "@/components/btn";
+import { Skeleton, SkeletonText } from "@/components/skeleton";
+import { SegmentedToggle } from "@/components/segmented-toggle";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+
+type Toggle = { label: string; desc: string; on: boolean };
+
+const TOGGLE_SECTIONS: { title: string; toggles: Toggle[] }[] = [
+  {
+    title: "Alerts & Notifications Preferences",
+    toggles: [
+      { label: "Email alerts", desc: "Receive alerts via email", on: true },
+      { label: "Push notifications", desc: "Receive real-time push notifications for critical events", on: true },
+      { label: "Critical alerts only", desc: "Only notify for high and critical severity events", on: false },
+      { label: "Weekly summary report", desc: "Send a weekly digest of network activity", on: true },
+    ],
+  },
+];
+
+const ALL_TOGGLES = TOGGLE_SECTIONS.flatMap(s => s.toggles);
 
 export default function SettingsPage() {
+  const loading = useSimulatedLoading();
   const [saved, setSaved] = useState(false);
+  const [toggleValues, setToggleValues] = useState<Record<string, boolean>>(
+    Object.fromEntries(ALL_TOGGLES.map(t => [t.label, t.on]))
+  );
 
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleDiscard = () => {
+    setToggleValues(Object.fromEntries(ALL_TOGGLES.map(t => [t.label, t.on])));
+  };
+
   return (
-    <div className="max-w-2xl space-y-6">
-      {[
-        {
-          title: "Network Configuration",
-          fields: [
-            { label: "Network Name (SSID)", value: "NetWatch-Main", type: "text" },
-            { label: "Admin Email", value: "admin@netwatch.local", type: "email" },
-            { label: "DNS Primary", value: "8.8.8.8", type: "text" },
-            { label: "DNS Secondary", value: "1.1.1.1", type: "text" },
-          ]
-        },
-        {
-          title: "Alerts & Notifications",
-          fields: [
-            { label: "Alert Email", value: "alerts@netwatch.local", type: "email" },
-            { label: "High Load Threshold (%)", value: "75", type: "number" },
-          ]
-        },
-      ].map(section => (
+    <div className="space-y-6">
+      {TOGGLE_SECTIONS.map(section => (
         <Card key={section.title}>
           <CardHeader title={section.title} />
-          <div className="p-5 space-y-4">
-            {section.fields.map(f => (
-              <div key={f.label}>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">{f.label}</label>
-                <input
-                  type={f.type}
-                  defaultValue={f.value}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-card transition-colors"
+          <div className="p-5 space-y-3">
+            {loading ? Array.from({ length: section.toggles.length }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div className="space-y-1.5">
+                  <SkeletonText width="180px" />
+                  <SkeletonText width="240px" />
+                </div>
+                <Skeleton className="w-16 h-6.5 rounded-lg" />
+              </div>
+            )) : section.toggles.map(t => (
+              <div key={t.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{t.label}</p>
+                  <p className="text-xs text-muted-foreground/60">{t.desc}</p>
+                </div>
+                <SegmentedToggle
+                  on={toggleValues[t.label]}
+                  label={t.label}
+                  onChange={() => setToggleValues(v => ({ ...v, [t.label]: !v[t.label] }))}
                 />
               </div>
             ))}
@@ -49,35 +72,11 @@ export default function SettingsPage() {
         </Card>
       ))}
 
-      <Card>
-        <CardHeader title="Toggles" />
-        <div className="p-5 space-y-3">
-          {[
-            { label: "Auto-block unknown devices", desc: "Automatically block devices not in the allowlist", on: true },
-            { label: "Guest network isolation", desc: "Guests cannot reach internal network segments", on: true },
-            { label: "Firmware auto-update", desc: "Install AP firmware updates during off-hours", on: false },
-            { label: "Audit logging", desc: "Log all admin actions to the audit trail", on: true },
-          ].map(t => (
-            <div key={t.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-              <div>
-                <p className="text-sm font-medium text-foreground">{t.label}</p>
-                <p className="text-xs text-muted-foreground/60">{t.desc}</p>
-              </div>
-              <button className={`relative w-10 h-5.5 rounded-full transition-colors ${t.on ? "bg-primary" : "bg-muted"}`}
-                style={{ height: 22 }}>
-                <span className={`absolute top-0.5 w-4.5 h-4.5 bg-card rounded-full shadow transition-transform ${t.on ? "translate-x-5" : "translate-x-0.5"}`}
-                  style={{ width: 18, height: 18, transform: t.on ? "translateX(20px)" : "translateX(2px)" }} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </Card>
-
       <div className="flex gap-2">
         <Btn variant="primary" size="md" onClick={handleSave}>
           {saved ? <><CheckCircle size={14} /> Saved!</> : <><Save size={14} /> Save Changes</>}
         </Btn>
-        <Btn variant="secondary" size="md">Discard</Btn>
+        <Btn variant="secondary" size="md" onClick={handleDiscard}>Discard</Btn>
       </div>
     </div>
   );

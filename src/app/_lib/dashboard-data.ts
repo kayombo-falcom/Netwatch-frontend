@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Monitor, Users, Radio, ShieldCheck, BarChart2, Bell, Settings } from "lucide-react";
+import { LayoutDashboard, Monitor, Users, Radio, ShieldCheck, BarChart2, Bell, Settings, Activity, KeyRound } from "lucide-react";
+import type { TintColor } from "@/lib/colors";
 
 export type NavItem = {
   href: string;
@@ -9,11 +10,13 @@ export type NavItem = {
 
 export type DeviceStatus = "online" | "idle" | "blocked" | "paused";
 export type Severity = "critical" | "warning" | "info";
+export type UserStatus = "active" | "suspended";
 
 export const navItems: NavItem[] = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
   { href: "/devices", label: "Devices", icon: Monitor },
   { href: "/users", label: "Users", icon: Users },
+  { href: "/roles", label: "Roles & Permissions", icon: KeyRound },
   { href: "/access-points", label: "Access Points", icon: Radio },
   { href: "/policies", label: "Policies", icon: ShieldCheck },
   { href: "/traffic", label: "Traffic Reports", icon: BarChart2 },
@@ -25,14 +28,35 @@ export const screenTitles: Record<string, string> = {
   overview: "Network Overview",
   devices: "Devices",
   users: "Users",
+  roles: "Roles & Permissions",
   "access-points": "Access Points",
   policies: "Policies",
   traffic: "Traffic Reports",
   alerts: "Alerts",
   settings: "Settings",
+  profile: "My Profile",
 };
 
 export const networks = ["Main Office", "Branch – Downtown", "Warehouse", "Guest Network"];
+
+export type PolicyCategory = "User Management" | "Device Management" | "Monitoring" | "Alerts" | "Reports";
+
+export const policyCategories: { name: PolicyCategory; icon: LucideIcon; color: TintColor }[] = [
+  { name: "User Management", icon: Users, color: "navy" },
+  { name: "Device Management", icon: Monitor, color: "aqua" },
+  { name: "Monitoring", icon: Activity, color: "teal" },
+  { name: "Alerts", icon: Bell, color: "amber" },
+  { name: "Reports", icon: BarChart2, color: "muted" },
+];
+
+export const policiesData: { name: string; category: PolicyCategory; group: string }[] = [
+  { name: "Admin Full Access", category: "User Management", group: "Admins" },
+  { name: "Guest Wi-Fi", category: "User Management", group: "Guests" },
+  { name: "IoT Isolated", category: "Device Management", group: "IoT" },
+  { name: "Bandwidth Threshold", category: "Monitoring", group: "Staff" },
+  { name: "Alert Escalation", category: "Alerts", group: "Admins" },
+  { name: "Report Retention", category: "Reports", group: "Staff" },
+];
 
 export const bwData = [
   { t: "08:00", down: 12, up: 4 },
@@ -49,33 +73,56 @@ export const bwData = [
   { t: "19:00", down: 18, up: 6 },
 ];
 
+export type ConnectionType = "Wi-Fi" | "Ethernet";
+
 export const devicesData = [
-  { id: 1, name: "MacBook Pro – Sarah", user: "Sarah Chen", type: "Laptop", ip: "10.0.1.42", mac: "A4:C3:F0:1B:2D:8E", ap: "Reception", session: "4h 12m", data: "2.1 GB", status: "online" as DeviceStatus },
-  { id: 2, name: "iPhone 15 – Marcus", user: "Marcus Webb", type: "Phone", ip: "10.0.1.87", mac: "3C:22:FB:4A:9D:01", ap: "Meeting Rm", session: "1h 45m", data: "340 MB", status: "online" as DeviceStatus },
-  { id: 3, name: "AXIS-Cam-3F", user: "IoT", type: "Camera", ip: "10.0.2.11", mac: "00:40:8C:88:1E:4F", ap: "Warehouse", session: "18d 4h", data: "48.3 GB", status: "online" as DeviceStatus },
-  { id: 4, name: "iPad – Reception", user: "Front Desk", type: "Tablet", ip: "10.0.1.23", mac: "DC:A9:04:B2:3C:77", ap: "Reception", session: "6h 58m", data: "890 MB", status: "idle" as DeviceStatus },
-  { id: 5, name: "Dell XPS – Tom K.", user: "Tom Kowalski", type: "Laptop", ip: "10.0.1.55", mac: "E8:6A:64:9F:12:BA", ap: "Lobby", session: "2h 03m", data: "1.4 GB", status: "online" as DeviceStatus },
-  { id: 6, name: "Unknown Android", user: "Guest", type: "Phone", ip: "10.0.3.99", mac: "B8:27:EB:CC:50:3D", ap: "Lobby", session: "0h 22m", data: "55 MB", status: "blocked" as DeviceStatus },
-  { id: 7, name: "Surface Pro – Lena", user: "Lena Morales", type: "Laptop", ip: "10.0.1.61", mac: "60:45:CB:1A:FF:2E", ap: "Meeting Rm", session: "3h 17m", data: "780 MB", status: "paused" as DeviceStatus },
-  { id: 8, name: "Sonos-Living", user: "IoT", type: "Speaker", ip: "10.0.2.44", mac: "94:9F:3E:12:CD:88", ap: "Lobby", session: "21d 2h", data: "12.7 GB", status: "online" as DeviceStatus },
+  { id: 1, name: "MacBook Pro – Sarah", user: "Sarah Chen", type: "Laptop", os: "macOS", ip: "10.0.1.42", mac: "A4:C3:F0:1B:2D:8E", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "4h 12m", lastSeen: "now", data: "2.1 GB", status: "online" as DeviceStatus },
+  { id: 2, name: "iPhone 15 – Marcus", user: "Marcus Webb", type: "Phone", os: "iOS", ip: "10.0.1.87", mac: "3C:22:FB:4A:9D:01", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "1h 45m", lastSeen: "now", data: "340 MB", status: "online" as DeviceStatus },
+  { id: 3, name: "AXIS-Cam-3F", user: "IoT", type: "Camera", os: "Linux", ip: "10.0.2.11", mac: "00:40:8C:88:1E:4F", connectionType: "Ethernet" as ConnectionType, connectedSince: "18d 4h", lastSeen: "now", data: "48.3 GB", status: "online" as DeviceStatus },
+  { id: 4, name: "iPad – Reception", user: "Front Desk", type: "Tablet", os: "iPadOS", ip: "10.0.1.23", mac: "DC:A9:04:B2:3C:77", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "6h 58m", lastSeen: "8m ago", data: "890 MB", status: "idle" as DeviceStatus },
+  { id: 5, name: "Dell XPS – Tom K.", user: "Tom Kowalski", type: "Laptop", os: "Windows", ip: "10.0.1.55", mac: "E8:6A:64:9F:12:BA", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "2h 03m", lastSeen: "now", data: "1.4 GB", status: "online" as DeviceStatus },
+  { id: 6, name: "Unknown Android", user: "Guest", type: "Phone", os: "Android", ip: "10.0.3.99", mac: "B8:27:EB:CC:50:3D", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "0h 22m", lastSeen: "3h ago", data: "55 MB", status: "blocked" as DeviceStatus },
+  { id: 7, name: "Surface Pro – Lena", user: "Lena Morales", type: "Laptop", os: "Windows", ip: "10.0.1.61", mac: "60:45:CB:1A:FF:2E", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "3h 17m", lastSeen: "45m ago", data: "780 MB", status: "paused" as DeviceStatus },
+  { id: 8, name: "Sonos-Living", user: "IoT", type: "Speaker", os: "Linux", ip: "10.0.2.44", mac: "94:9F:3E:12:CD:88", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "21d 2h", lastSeen: "now", data: "12.7 GB", status: "online" as DeviceStatus },
+  { id: 9, name: "ThinkPad – Elena", user: "Elena Vasquez", type: "Laptop", os: "Windows", ip: "10.0.1.63", mac: "5C:F9:38:0A:6B:12", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "5h 21m", lastSeen: "now", data: "1.8 GB", status: "online" as DeviceStatus },
+  { id: 10, name: "Galaxy S24 – David", user: "David Kim", type: "Phone", os: "Android", ip: "10.0.1.71", mac: "8C:79:F5:2D:44:9A", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "0h 48m", lastSeen: "15m ago", data: "210 MB", status: "idle" as DeviceStatus },
+  { id: 11, name: "Smart TV – Lobby", user: "IoT", type: "TV", os: "Android TV", ip: "10.0.2.20", mac: "F0:B4:29:6E:11:C3", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "9d 14h", lastSeen: "now", data: "31.2 GB", status: "online" as DeviceStatus },
+  { id: 12, name: "HP LaserJet – 2F", user: "IoT", type: "Printer", os: "Embedded", ip: "10.0.2.31", mac: "30:9C:23:88:5F:D4", connectionType: "Ethernet" as ConnectionType, connectedSince: "2d 6h", lastSeen: "2h ago", data: "410 MB", status: "paused" as DeviceStatus },
+  { id: 13, name: "MacBook Air – Olivia", user: "Olivia Bennett", type: "Laptop", os: "macOS", ip: "10.0.1.66", mac: "AC:BC:32:7A:1D:E6", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "3h 09m", lastSeen: "now", data: "960 MB", status: "online" as DeviceStatus },
+  { id: 14, name: "iPad – Noah", user: "Noah Whitfield", type: "Tablet", os: "iPadOS", ip: "10.0.1.74", mac: "D0:C5:F3:19:8B:2A", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "1h 32m", lastSeen: "22m ago", data: "540 MB", status: "idle" as DeviceStatus },
+  { id: 15, name: "Pixel 8 – Ava", user: "Ava Thompson", type: "Phone", os: "Android", ip: "10.0.1.82", mac: "44:65:0D:9C:73:F1", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "0h 12m", lastSeen: "1d ago", data: "48 MB", status: "blocked" as DeviceStatus },
+  { id: 16, name: "Chromebook – Ethan", user: "Ethan Brooks", type: "Laptop", os: "ChromeOS", ip: "10.0.1.90", mac: "18:A6:F7:2B:5E:9C", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "2h 40m", lastSeen: "now", data: "620 MB", status: "online" as DeviceStatus },
+  { id: 17, name: "Unknown iPhone", user: "Guest", type: "Phone", os: "iOS", ip: "10.0.3.14", mac: "9C:2A:70:E1:4C:88", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "0h 06m", lastSeen: "6h ago", data: "22 MB", status: "blocked" as DeviceStatus },
+  { id: 18, name: "Nest-Thermostat-2F", user: "IoT", type: "Thermostat", os: "Embedded", ip: "10.0.2.55", mac: "64:16:66:D3:8A:57", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "14d 8h", lastSeen: "now", data: "1.1 GB", status: "online" as DeviceStatus },
+  { id: 19, name: "Surface Go – Isabella", user: "Isabella Rodriguez", type: "Tablet", os: "Windows", ip: "10.0.1.95", mac: "7C:D9:5C:41:2F:B0", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "4h 55m", lastSeen: "now", data: "1.3 GB", status: "online" as DeviceStatus },
+  { id: 20, name: "Dell Latitude – Liam", user: "Liam Foster", type: "Laptop", os: "Windows", ip: "10.0.1.101", mac: "F4:5C:89:D6:33:7E", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "1d 3h", lastSeen: "5h ago", data: "2.4 GB", status: "paused" as DeviceStatus },
+  { id: 21, name: "iPhone 14 – Mia", user: "Mia Chen", type: "Phone", os: "iOS", ip: "10.0.1.108", mac: "B0:35:9F:6C:82:1A", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "2h 17m", lastSeen: "now", data: "480 MB", status: "online" as DeviceStatus },
+  { id: 22, name: "MacBook Pro – Zara", user: "Zara Ahmed", type: "Laptop", os: "macOS", ip: "10.0.1.115", mac: "E4:8D:8C:3A:97:60", connectionType: "Wi-Fi" as ConnectionType, connectedSince: "6h 02m", lastSeen: "now", data: "1.9 GB", status: "online" as DeviceStatus },
 ];
 
 export const usersData = [
-  { id: 1, name: "Sarah Chen", initials: "SC", group: "Admins", devices: 3, data: "8.4 GB", policy: "Full Access", lastSeen: "now", color: "#6366f1" },
-  { id: 2, name: "Marcus Webb", initials: "MW", group: "Staff", devices: 2, data: "2.1 GB", policy: "Staff Default", lastSeen: "12m ago", color: "#2563eb" },
-  { id: 3, name: "Tom Kowalski", initials: "TK", group: "Staff", devices: 1, data: "1.4 GB", policy: "Staff Default", lastSeen: "2h ago", color: "#0891b2" },
-  { id: 4, name: "Lena Morales", initials: "LM", group: "Staff", devices: 2, data: "990 MB", policy: "Staff Default", lastSeen: "5m ago", color: "#7c3aed" },
-  { id: 5, name: "James Park", initials: "JP", group: "Students", devices: 1, data: "450 MB", policy: "Student Tier", lastSeen: "1h ago", color: "#059669" },
-  { id: 6, name: "Priya Nair", initials: "PN", group: "Students", devices: 2, data: "310 MB", policy: "Student Tier", lastSeen: "30m ago", color: "#d97706" },
-  { id: 7, name: "Guest #4821", initials: "G", group: "Guests", devices: 1, data: "55 MB", policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "#64748b" },
-  { id: 8, name: "Thermostat Hub", initials: "T", group: "IoT", devices: 4, data: "61 GB", policy: "IoT Isolated", lastSeen: "now", color: "#dc2626" },
-];
-
-export const apsData = [
-  { id: 1, name: "AP-Reception-01", location: "Reception", status: "online" as DeviceStatus, clients: 14, signal: -52, channel: 6, load: 42, firmware: "6.4.1", ip: "10.0.0.10", model: "UniFi U6 Pro" },
-  { id: 2, name: "AP-MeetingRm-02", location: "Meeting Room", status: "online" as DeviceStatus, clients: 11, signal: -48, channel: 36, load: 61, firmware: "6.4.1", ip: "10.0.0.11", model: "UniFi U6 Lite" },
-  { id: 3, name: "AP-Warehouse-03", location: "Warehouse", status: "idle" as DeviceStatus, clients: 3, signal: -67, channel: 11, load: 18, firmware: "6.3.9", ip: "10.0.0.12", model: "UniFi U6 Mesh" },
-  { id: 4, name: "AP-Lobby-04", location: "Lobby", status: "online" as DeviceStatus, clients: 14, signal: -55, channel: 1, load: 73, firmware: "6.4.1", ip: "10.0.0.13", model: "UniFi U6 Pro" },
+  { id: 1, name: "Sarah Chen", email: "sarah.chen@netwatch.io", initials: "SC", role: "Admins", status: "active" as UserStatus, policy: "Full Access", lastSeen: "now", color: "var(--chart-1)" },
+  { id: 2, name: "Marcus Webb", email: "marcus.webb@netwatch.io", initials: "MW", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "12m ago", color: "var(--chart-4)" },
+  { id: 3, name: "Tom Kowalski", email: "tom.kowalski@netwatch.io", initials: "TK", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "2h ago", color: "var(--chart-4)" },
+  { id: 4, name: "Lena Morales", email: "lena.morales@netwatch.io", initials: "LM", role: "Staff", status: "suspended" as UserStatus, policy: "Staff Default", lastSeen: "5m ago", color: "var(--chart-4)" },
+  { id: 5, name: "James Park", email: "james.park@student.netwatch.io", initials: "JP", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "1h ago", color: "var(--chart-3)" },
+  { id: 6, name: "Priya Nair", email: "priya.nair@student.netwatch.io", initials: "PN", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "30m ago", color: "var(--chart-3)" },
+  { id: 7, name: "Guest #4821", email: "guest4821@netwatch.io", initials: "G", role: "Guests", status: "active" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "22m ago", color: "var(--chart-2)" },
+  { id: 8, name: "Thermostat Hub", email: "thermostat-hub@iot.netwatch.io", initials: "T", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
+  { id: 9, name: "Elena Vasquez", email: "elena.vasquez@netwatch.io", initials: "EV", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "5h ago", color: "var(--chart-4)" },
+  { id: 10, name: "David Kim", email: "david.kim@netwatch.io", initials: "DK", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "48m ago", color: "var(--chart-4)" },
+  { id: 11, name: "Olivia Bennett", email: "olivia.bennett@netwatch.io", initials: "OB", role: "Admins", status: "active" as UserStatus, policy: "Full Access", lastSeen: "3h ago", color: "var(--chart-1)" },
+  { id: 12, name: "Noah Whitfield", email: "noah.whitfield@student.netwatch.io", initials: "NW", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "1h ago", color: "var(--chart-3)" },
+  { id: 13, name: "Ava Thompson", email: "ava.thompson@student.netwatch.io", initials: "AT", role: "Students", status: "suspended" as UserStatus, policy: "Student Tier", lastSeen: "2d ago", color: "var(--chart-3)" },
+  { id: 14, name: "Ethan Brooks", email: "ethan.brooks@student.netwatch.io", initials: "EB", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "2h ago", color: "var(--chart-3)" },
+  { id: 15, name: "Guest #5190", email: "guest5190@netwatch.io", initials: "G", role: "Guests", status: "active" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "6m ago", color: "var(--chart-2)" },
+  { id: 16, name: "Guest #5533", email: "guest5533@netwatch.io", initials: "G", role: "Guests", status: "suspended" as UserStatus, policy: "Guest Wi-Fi", lastSeen: "1d ago", color: "var(--chart-2)" },
+  { id: 17, name: "Security Camera Hub", email: "security-camera-hub@iot.netwatch.io", initials: "S", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "now", color: "var(--chart-2)" },
+  { id: 18, name: "Printer-2F", email: "printer-2f@iot.netwatch.io", initials: "P", role: "IoT", status: "active" as UserStatus, policy: "IoT Isolated", lastSeen: "2d ago", color: "var(--chart-2)" },
+  { id: 19, name: "Isabella Rodriguez", email: "isabella.rodriguez@netwatch.io", initials: "IR", role: "Staff", status: "active" as UserStatus, policy: "Staff Default", lastSeen: "4h ago", color: "var(--chart-4)" },
+  { id: 20, name: "Liam Foster", email: "liam.foster@netwatch.io", initials: "LF", role: "Staff", status: "suspended" as UserStatus, policy: "Staff Default", lastSeen: "1d ago", color: "var(--chart-4)" },
+  { id: 21, name: "Mia Chen", email: "mia.chen@student.netwatch.io", initials: "MC", role: "Students", status: "active" as UserStatus, policy: "Student Tier", lastSeen: "2h ago", color: "var(--chart-3)" },
+  { id: 22, name: "Zara Ahmed", email: "zara.ahmed@netwatch.io", initials: "ZA", role: "Admins", status: "active" as UserStatus, policy: "Full Access", lastSeen: "22m ago", color: "var(--chart-1)" },
 ];
 
 export const alertsData = [
@@ -100,11 +147,11 @@ export const trafficBwData = [
 ];
 
 export const trafficCategoryData = [
-  { name: "Video Streaming", value: 38, color: "#2563eb" },
-  { name: "Web Browsing", value: 22, color: "#22c55e" },
-  { name: "Cloud Storage", value: 17, color: "#f59e0b" },
-  { name: "Video Calls", value: 14, color: "#8b5cf6" },
-  { name: "Other", value: 9, color: "#64748b" },
+  { name: "Video Streaming", value: 38, color: "var(--chart-1)" },
+  { name: "Web Browsing", value: 22, color: "var(--chart-3)" },
+  { name: "Cloud Storage", value: 17, color: "var(--chart-2)" },
+  { name: "Video Calls", value: 14, color: "var(--chart-4)" },
+  { name: "Other", value: 9, color: "var(--chart-5)" },
 ];
 
 export const topUsersTraffic = [

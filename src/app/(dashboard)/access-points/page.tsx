@@ -1,130 +1,326 @@
 "use client";
 
-import { useState } from "react";
-import { Radio, X, RefreshCw, Download, BarChart2 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Card, CardHeader, Btn, StatusBadge } from "@/app/_components/dashboard-ui";
-import { apsData } from "@/app/_lib/dashboard-data";
+import { useSyncExternalStore } from "react";
+import { Radio, EthernetPort, RefreshCw, ArrowDown, ArrowUp, Globe, AlertTriangle, Info, Loader2 } from "lucide-react";
+import { Card } from "@/components/card";
+import { CardHeader } from "@/components/card-header";
+import { IconSwatch } from "@/components/icon-swatch";
+import { IconButton } from "@/components/icon-button";
+import { Tag } from "@/components/tag";
+import { Btn } from "@/components/btn";
+import { Speedometer } from "@/components/speedometer";
+import { SpeedGauge } from "@/components/speed-gauge";
+import { QualityDot } from "@/components/quality-dot";
+import { TooltipWrap } from "@/components/tooltip-wrap";
+import { Skeleton, SkeletonText } from "@/components/skeleton";
+import { useCurrentAp } from "@/hooks/use-current-ap";
+import { useSpeedTest } from "@/hooks/use-speed-test";
+import { useNetworkMeta } from "@/hooks/use-network-meta";
+import { signalQuality, rssiQuality, pingQuality, jitterQuality, packetLossQuality, qualityStrokeColor, bandInfo, linkRateQuality } from "@/lib/wifi-quality";
+
+// SVG pixel size can't scale via CSS breakpoints, so pick it from viewport width instead.
+function subscribeWindowWidth(callback: () => void) {
+  window.addEventListener("resize", callback);
+  return () => window.removeEventListener("resize", callback);
+}
+const getWindowWidth = () => window.innerWidth;
+const getWindowWidthServer = () => 1024;
+
+function useGaugeSize() {
+  const width = useSyncExternalStore(subscribeWindowWidth, getWindowWidth, getWindowWidthServer);
+  if (width >= 1280) return 240;
+  if (width >= 1024) return 210;
+  return 180;
+}
 
 export default function AccessPointsPage() {
-  const [selected, setSelected] = useState<typeof apsData[0] | null>(null);
+  const { data: ap, loading, refreshing, error, refresh } = useCurrentAp();
+  const speedTest = useSpeedTest();
+  const { data: meta, refresh: refreshMeta } = useNetworkMeta();
+  const gaugeSize = useGaugeSize();
+  const miniGaugeSize = Math.round(gaugeSize * 0.5);
 
-  const apDetailData = [
-    { t: "10m", v: 35 }, { t: "20m", v: 48 }, { t: "30m", v: 61 },
-    { t: "40m", v: 55 }, { t: "50m", v: 70 }, { t: "60m", v: 73 },
+  const refreshAll = () => {
+    refresh();
+    refreshMeta();
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Card className="p-5 space-y-5">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-9 h-9 rounded-lg" />
+              <div className="space-y-1.5">
+                <SkeletonText width="140px" />
+                <SkeletonText width="180px" />
+              </div>
+            </div>
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, j) => (
+              <div key={j} className="text-center space-y-1.5">
+                <Skeleton className="h-5 w-10 mx-auto" />
+                <SkeletonText width="40px" className="mx-auto" />
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
+          </div>
+        </Card>
+        <Card className="p-5 space-y-3">
+          <SkeletonText width="100px" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Array.from({ length: 3 }).map((_, j) => (
+              <div key={j} className="space-y-1.5">
+                <SkeletonText width="80px" />
+                <SkeletonText width="120px" />
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-5 space-y-3">
+          <SkeletonText width="100px" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Array.from({ length: 7 }).map((_, j) => (
+              <div key={j} className="space-y-1.5">
+                <SkeletonText width="80px" />
+                <SkeletonText width="120px" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error || !ap?.connected) {
+    return (
+      <div>
+        <Card className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground/60">
+          <Radio size={32} className="mb-3 opacity-30" />
+          <p className="text-sm">{error ?? "Not connected to a network"}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  const isWifi = ap.type === "wifi";
+  const ConnectionIcon = isWifi ? Radio : EthernetPort;
+
+  const signal = ap.signalPercent != null ? signalQuality(ap.signalPercent) : null;
+  const rssi = ap.rssiDbm != null ? rssiQuality(ap.rssiDbm) : null;
+  const band = ap.band ? bandInfo(ap.band) : null;
+  const receiveDot = ap.receiveRateMbps != null ? linkRateQuality(ap.receiveRateMbps) : null;
+  const transmitDot = ap.transmitRateMbps != null ? linkRateQuality(ap.transmitRateMbps) : null;
+
+  const metrics = isWifi
+    ? [
+        { label: "Signal", value: ap.signalPercent != null ? `${ap.signalPercent}%` : "—", dot: signal },
+        { label: "RSSI", value: ap.rssiDbm != null ? `${ap.rssiDbm} dBm` : "—", dot: rssi },
+        { label: "Channel", value: ap.channel ?? "—" },
+        { label: "Band", value: ap.band ?? "—", info: band },
+        { label: "Receive", value: ap.receiveRateMbps != null ? `${ap.receiveRateMbps} Mbps` : "—", dot: receiveDot },
+        { label: "Transmit", value: ap.transmitRateMbps != null ? `${ap.transmitRateMbps} Mbps` : "—", dot: transmitDot },
+      ]
+    : [
+        { label: "Receive", value: ap.receiveRateMbps != null ? `${ap.receiveRateMbps} Mbps` : "—", dot: receiveDot },
+        { label: "Transmit", value: ap.transmitRateMbps != null ? `${ap.transmitRateMbps} Mbps` : "—", dot: transmitDot },
+      ];
+
+  const networkInfoFields: [string, string | null][] = [
+    ["IP Address", ap.ip],
+    ["MAC Address", ap.mac],
+    ...(isWifi ? ([["AP BSSID", ap.bssid]] as [string, string | null][]) : []),
+    ["Gateway", ap.gateway],
+    ["Subnet Mask", ap.subnet],
+    ["Link-Local IPv6", ap.linkLocalIPv6],
+    ["DNS Servers", ap.dnsServers],
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-      <div className="lg:col-span-3 space-y-4">
-        {apsData.map(ap => (
-          <Card
-            key={ap.id}
-            className={`cursor-pointer transition-all hover:border-blue-300 ${selected?.id === ap.id ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
-            onClick={() => setSelected(ap)}
-          >
-            <div className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg ${ap.status === "online" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
-                    <Radio size={18} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm">{ap.name}</h3>
-                    <p className="text-xs text-muted-foreground">{ap.location} · {ap.model}</p>
-                  </div>
-                </div>
-                <StatusBadge status={ap.status} />
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {[
-                  { label: "Clients", value: ap.clients },
-                  { label: "Signal", value: `${ap.signal} dBm` },
-                  { label: "Channel", value: ap.channel },
-                  { label: "Load", value: `${ap.load}%` },
-                ].map(m => (
-                  <div key={m.label} className="text-center">
-                    <div className={`text-lg font-bold tabular-nums ${m.label === "Load" && ap.load > 70 ? "text-amber-600" : "text-foreground"}`}>
-                      {m.value}
-                    </div>
-                    <div className="text-xs text-muted-foreground/60">{m.label}</div>
-                  </div>
-                ))}
-              </div>
-              {/* Load bar */}
-              <div className="mt-4">
-                <div className="flex justify-between text-xs text-muted-foreground/60 mb-1">
-                  <span>Load</span><span>{ap.load}%</span>
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${ap.load > 80 ? "bg-red-500" : ap.load > 60 ? "bg-amber-400" : "bg-green-500"}`}
-                    style={{ width: `${ap.load}%` }}
-                  />
-                </div>
-              </div>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="font-mono text-xs text-muted-foreground/60">{ap.ip}</span>
-                <span className={`text-xs px-2 py-0.5 rounded ${ap.firmware === "6.4.1" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
-                  fw {ap.firmware} {ap.firmware !== "6.4.1" && "· update available"}
-                </span>
-              </div>
-            </div>
-          </Card>
-        ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-end">
+        <IconButton
+          icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />}
+          title="Refresh page"
+          onClick={refreshAll}
+        />
       </div>
 
-      <div className="lg:col-span-2">
-        {selected ? (
-          <Card className="sticky top-4">
-            <CardHeader
-              title={selected.location}
-              subtitle={selected.model}
-              action={<button onClick={() => setSelected(null)} className="p-1 rounded hover:bg-muted text-muted-foreground/60"><X size={14} /></button>}
-            />
-            <div className="p-5 space-y-5">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Load — Last Hour</p>
-                <ResponsiveContainer width="100%" height={120}>
-                  <LineChart data={apDetailData}>
-                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} domain={[0, 100]} />
-                    <Tooltip contentStyle={{ fontSize: 11 }} formatter={(v: number) => [`${v}%`]} />
-                    <Line type="monotone" dataKey="v" stroke="#2563eb" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                {[
-                  ["IP", selected.ip],
-                  ["Channel", selected.channel],
-                  ["Signal", `${selected.signal} dBm`],
-                  ["Clients", selected.clients],
-                  ["Firmware", selected.firmware],
-                  ["Status", selected.status],
-                ].map(([l, v]) => (
-                  <div key={l as string}>
-                    <p className="text-muted-foreground/60 text-xs mb-0.5">{l as string}</p>
-                    <p className="font-mono font-medium text-foreground">{v as string}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Btn variant="secondary" size="sm"><RefreshCw size={13} /> Restart AP</Btn>
-                <Btn variant="secondary" size="sm"><Download size={13} /> Update Firmware</Btn>
-                <Btn variant="secondary" size="sm"><BarChart2 size={13} /> Full Report</Btn>
-              </div>
+      <Card>
+        <CardHeader
+          title={ap.networkName ?? (isWifi ? "Unknown network" : "Wired connection")}
+          subtitle={ap.interfaceName ?? undefined}
+          action={<Tag color="teal"><ConnectionIcon size={12} /> Connected</Tag>}
+        />
+        <div className="p-5 space-y-5">
+          {isWifi && (ap.protocol || ap.authentication) && (
+            <div className="flex items-center gap-2">
+              {ap.protocol && <Tag color="muted" bordered={false}>{ap.protocol}</Tag>}
+              {ap.authentication && <Tag color="muted" bordered={false}>{ap.authentication}</Tag>}
             </div>
-          </Card>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center text-muted-foreground/60">
-            <Radio size={32} className="mb-3 opacity-30" />
-            <p className="text-sm">Select an access point to view details</p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <IconSwatch color="teal">
+              <ConnectionIcon size={18} />
+            </IconSwatch>
+            <div className={`grid grid-cols-2 ${isWifi ? "sm:grid-cols-3" : ""} gap-3 flex-1`}>
+              {metrics.map(m => (
+                <div key={m.label} className="text-center">
+                  <div className="text-lg font-bold tabular-nums text-foreground">
+                    {m.value}
+                  </div>
+                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
+                    {m.label}
+                    {"dot" in m && m.dot && <QualityDot label={m.dot.label} colorClass={m.dot.colorClass} />}
+                    {"info" in m && m.info && (
+                      <TooltipWrap label={m.info}>
+                        <Info size={11} className="text-muted-foreground/50" />
+                      </TooltipWrap>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Speed Test"
+          subtitle={
+            speedTest.status === "error" ? undefined
+            : speedTest.status === "running" ? `Measuring ${speedTest.phase ?? "…"}… (${speedTest.elapsedSeconds}s)`
+            : speedTest.summary ? "Test complete"
+            : "Check your real download and upload speed"
+          }
+          action={
+            <Btn variant="secondary" size="xs" onClick={speedTest.toggle}>
+              {speedTest.status === "running" ? "Cancel" : speedTest.summary ? "Run Again" : "Run Test"}
+            </Btn>
+          }
+        />
+        <div className="p-6">
+          {speedTest.status === "error" && (
+            <div className="flex items-start gap-2.5 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-3 mb-5">
+              <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold">Speed test failed</p>
+                <p className="text-xs opacity-80 mt-0.5">{speedTest.error}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center sm:items-center justify-center gap-6 sm:gap-10">
+            <div className="flex flex-col items-center sm:items-start gap-4 shrink-0">
+              <div className="flex gap-4">
+                <SpeedGauge
+                  value={speedTest.summary?.latencyMs ?? null}
+                  max={200}
+                  unit="ms"
+                  label="Ping"
+                  size={miniGaugeSize}
+                  color={speedTest.summary?.latencyMs != null ? qualityStrokeColor(pingQuality(speedTest.summary.latencyMs).colorClass) : undefined}
+                  dot={speedTest.summary?.latencyMs != null ? pingQuality(speedTest.summary.latencyMs) : undefined}
+                />
+                <SpeedGauge
+                  value={speedTest.summary?.jitterMs ?? null}
+                  max={30}
+                  unit="ms"
+                  label="Jitter"
+                  size={miniGaugeSize}
+                  color={speedTest.summary?.jitterMs != null ? qualityStrokeColor(jitterQuality(speedTest.summary.jitterMs).colorClass) : undefined}
+                  dot={speedTest.summary?.jitterMs != null ? jitterQuality(speedTest.summary.jitterMs) : undefined}
+                />
+                <SpeedGauge
+                  value={speedTest.packetLoss.status === "done" ? speedTest.packetLoss.percent : null}
+                  max={10}
+                  unit="%"
+                  label="Packet Loss"
+                  size={miniGaugeSize}
+                  color={speedTest.packetLoss.status === "done" ? qualityStrokeColor(packetLossQuality(speedTest.packetLoss.percent).colorClass) : undefined}
+                  dot={speedTest.packetLoss.status === "done" ? packetLossQuality(speedTest.packetLoss.percent) : undefined}
+                  valueContent={speedTest.packetLoss.status === "loading" ? <Loader2 size={14} className="animate-spin text-muted-foreground/60" /> : undefined}
+                />
+              </div>
+
+              {(meta?.isp || meta?.city) && (
+                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3 w-full sm:w-auto">
+                  <IconSwatch color="teal">
+                    <Globe size={16} />
+                  </IconSwatch>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-foreground truncate">
+                      {meta.isp}
+                      {meta.isp && meta.city && " · "}
+                      {meta.city}{meta.region && !meta.region.toLowerCase().includes((meta.city ?? "").toLowerCase()) ? `, ${meta.region}` : ""}
+                    </div>
+                    {meta.publicIp && <div className="text-[11px] font-mono text-muted-foreground/70">{meta.publicIp}</div>}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10">
+              <Speedometer
+                value={speedTest.summary?.downloadMbps ?? null}
+                icon={ArrowDown}
+                label="Download"
+                colorFrom="var(--chart-3)"
+                colorTo="var(--chart-4)"
+                size={gaugeSize}
+              />
+              <Speedometer
+                value={speedTest.summary?.uploadMbps ?? null}
+                icon={ArrowUp}
+                label="Upload"
+                colorFrom="var(--chart-2)"
+                colorTo="var(--chart-2)"
+                size={gaugeSize}
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="Adapter" />
+        <div className="p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {[
+              ["Manufacturer", ap.manufacturer],
+              ["Driver Version", ap.driverVersion],
+              ["Description", ap.description],
+            ].map(([l, v]) => (
+              <div key={l as string}>
+                <p className="text-muted-foreground/60 text-xs mb-0.5">{l as string}</p>
+                <p className="font-mono font-medium text-foreground">{v ?? "—"}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="Network Info" />
+        <div className="p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {networkInfoFields.map(([l, v]) => (
+              <div key={l}>
+                <p className="text-muted-foreground/60 text-xs mb-0.5">{l}</p>
+                <p className="font-mono font-medium text-foreground">{v ?? "—"}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

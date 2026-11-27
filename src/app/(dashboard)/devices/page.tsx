@@ -1,223 +1,392 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronLeft, ChevronRight, WifiOff, Pause, Ban, X, Shield } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Card, Btn, StatusBadge, ConfirmDialog } from "@/app/_components/dashboard-ui";
-import { devicesData, type DeviceStatus } from "@/app/_lib/dashboard-data";
+import { Search, RefreshCw, X, Laptop, WifiOff, Fingerprint, IdCard, Loader2, Network, AlertTriangle, Radio } from "lucide-react";
+import { Card } from "@/components/card";
+import { Tag } from "@/components/tag";
+import { IconButton } from "@/components/icon-button";
+import { IconSwatch } from "@/components/icon-swatch";
+import { Pagination } from "@/components/pagination";
+import { Modal } from "@/components/modal";
+import { Skeleton, SkeletonText, SkeletonTableRows } from "@/components/skeleton";
+import { TooltipWrap } from "@/components/tooltip-wrap";
+import { useHostnameLookup, type HostnameLookupState } from "@/hooks/use-hostname-lookup";
+import { useNetworkDevices } from "@/hooks/use-network-devices";
+import { useCurrentAp } from "@/hooks/use-current-ap";
+import { useOsDetection, type OsDetectionState } from "@/hooks/use-os-detection";
+import { useDeviceActivity } from "@/hooks/use-device-activity";
+import type { DiscoveredDevice } from "@/lib/network-types";
+import { maskToCidr } from "@/lib/ip";
+
+const activityTimeFormat: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+
+// Recent activity list stays empty until DNS/traffic-capture logging feeds DeviceActivity.
+function DeviceActivitySection({ mac }: { mac: string }) {
+  const activity = useDeviceActivity(mac);
+
+  return (
+    <div className="px-5 pb-5 pt-4 border-t border-border">
+      <p className="text-xs text-muted-foreground/60 mb-2 flex items-center gap-1.5">
+        <Radio size={12} /> Recent activity
+      </p>
+      {activity.status === "loading" ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}
+        </div>
+      ) : activity.status === "error" ? (
+        <p className="text-xs text-muted-foreground">{activity.message}</p>
+      ) : activity.status === "not-detected" ? (
+        <p className="text-xs text-muted-foreground/60">Run detection on this device to enable activity tracking.</p>
+      ) : activity.entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground/60">No recent activity recorded for this device.</p>
+      ) : (
+        <ul className="space-y-2 max-h-48 overflow-y-auto">
+          {activity.entries.map(entry => (
+            <li key={entry.id} className="flex items-center justify-between gap-2 text-xs">
+              <div className="min-w-0 flex items-center gap-1.5">
+                {entry.flagged && (
+                  <TooltipWrap label="Flagged">
+                    <AlertTriangle size={12} className="text-destructive shrink-0" />
+                  </TooltipWrap>
+                )}
+                <span className="font-mono text-foreground truncate">{entry.domain}</span>
+                <Tag color="muted" bordered={false}>{entry.source}</Tag>
+              </div>
+              <span className="text-muted-foreground/60 shrink-0 whitespace-nowrap">
+                {new Date(entry.timestamp).toLocaleString(undefined, activityTimeFormat)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Falls back to an on-demand lookup, since the bulk scan no longer resolves hostnames automatically.
+function hostnameLabel(device: DiscoveredDevice, lookup: HostnameLookupState | undefined): string {
+  if (device.hostname) return device.hostname;
+  if (!lookup) return "Unknown device";
+  switch (lookup.status) {
+    case "loading": return "Resolving…";
+    case "resolved": return lookup.hostname;
+    case "not_found": return "Unknown device";
+    case "out_of_scope": return "Unknown device";
+  }
+}
+
+// Reused across the desktop table, mobile cards, and the detail drawer.
+function DeviceNameCell({
+  device, lookup, onLookup,
+}: {
+  device: DiscoveredDevice; lookup: HostnameLookupState | undefined; onLookup: () => void;
+}) {
+  const resolving = lookup?.status === "loading";
+  const alreadyNamed = !!device.hostname || lookup?.status === "resolved";
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <Laptop size={14} className="text-muted-foreground/60 shrink-0" />
+      <span className="font-medium text-foreground text-xs truncate">{hostnameLabel(device, lookup)}</span>
+      {device.isCurrentDevice && <Tag color="aqua">This device</Tag>}
+      {!alreadyNamed && (
+        <TooltipWrap label="Resolve device name">
+          <button
+            onClick={e => { e.stopPropagation(); onLookup(); }}
+            disabled={resolving}
+            className="p-0.5 rounded text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 shrink-0"
+          >
+            {resolving ? <Loader2 size={12} className="animate-spin" /> : <IdCard size={12} />}
+          </button>
+        </TooltipWrap>
+      )}
+    </div>
+  );
+}
+
+// Falls back to the passive TTL guess (device.os) until an active nmap detection has run.
+function osDetectionLabel(device: DiscoveredDevice, detection: OsDetectionState | undefined): string {
+  if (!detection) return device.os ? `${device.os} (estimated)` : "Unknown";
+  switch (detection.status) {
+    case "loading": return "Detecting…";
+    case "detected": return `${detection.osName} (${detection.confidence}%)`;
+    case "unknown": return detection.confidence != null ? `Inconclusive (${detection.confidence}%)` : "Inconclusive";
+    case "unreachable": return "Host unreachable";
+    case "out_of_scope": return "Outside local network";
+    case "engine_unavailable": return detection.reason;
+  }
+}
+
+// Shown so a detection isn't a black box: lists every signal that agreed, plus any diagnostic note.
+function signalsSummary(detection: OsDetectionState | undefined): string | null {
+  if (!detection || (detection.status !== "detected" && detection.status !== "unknown")) return null;
+  const notes = detection.status === "unknown" ? (detection.notes ?? []) : [];
+  const parts = [...detection.signals.map(s => s.detail), ...notes];
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+// Reused across the desktop table, mobile cards, and the detail drawer.
+function OsDetectionCell({
+  device, detection, onDetect,
+}: {
+  device: DiscoveredDevice; detection: OsDetectionState | undefined; onDetect: () => void;
+}) {
+  const detecting = detection?.status === "loading";
+  const signals = signalsSummary(detection);
+  // engine_unavailable's `reason` is a free-text backend message with no length cap —
+  // truncate it so one long reason can't stretch the table wider than the page.
+  const label = <span className="truncate">{osDetectionLabel(device, detection)}</span>;
+  return (
+    <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
+      {signals ? <TooltipWrap label={signals}>{label}</TooltipWrap> : label}
+      <TooltipWrap label="Run active OS detection">
+        <button
+          onClick={e => { e.stopPropagation(); onDetect(); }}
+          disabled={detecting}
+          className="p-0.5 rounded text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 shrink-0"
+        >
+          {detecting ? <Loader2 size={12} className="animate-spin" /> : <Fingerprint size={12} />}
+        </button>
+      </TooltipWrap>
+    </span>
+  );
+}
+
+// Rough family split from the passive TTL guess, not a real fingerprint.
+function osBreakdown(devices: DiscoveredDevice[]) {
+  const windows = devices.filter(d => d.os === "Windows").length;
+  const unixLike = devices.filter(d => d.os === "Linux / macOS / Android").length;
+  const gear = devices.filter(d => d.os === "Network device").length;
+  return { windows, unixLike, gear };
+}
 
 export default function DevicesPage() {
-  const [filter, setFilter] = useState<"all" | DeviceStatus>("all");
+  const { data, loading, refreshing, error, refresh } = useNetworkDevices();
+  const { data: ap } = useCurrentAp();
+  const { results: osResults, detect: detectOs } = useOsDetection();
+  const { results: hostnameResults, lookup: lookupHostname } = useHostnameLookup();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [drawer, setDrawer] = useState<typeof devicesData[0] | null>(null);
-  const [confirm, setConfirm] = useState<{ type: string; device: typeof devicesData[0] } | null>(null);
-  const perPage = 5;
+  const [perPage, setPerPage] = useState(10);
+  const [drawer, setDrawer] = useState<DiscoveredDevice | null>(null);
 
-  const filtered = devicesData.filter(d => {
-    if (filter !== "all" && d.status !== filter) return false;
-    if (search && !d.name.toLowerCase().includes(search.toLowerCase()) && !d.user.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
+  const devices = data?.devices ?? [];
+  const unnamed = devices.filter(d => !d.hostname && hostnameResults[d.mac]?.status !== "resolved");
+  const resolvingAll = unnamed.some(d => hostnameResults[d.mac]?.status === "loading");
+  const resolveAllNames = () => unnamed.forEach(d => { if (hostnameResults[d.mac]?.status !== "loading") lookupHostname(d.ip, d.mac); });
+
+  // Only confidently-detected devices are excluded — other statuses can be transient, so stay retryable.
+  const unfingerprinted = devices.filter(d => osResults[d.mac]?.status !== "detected");
+  const detectingAll = devices.some(d => osResults[d.mac]?.status === "loading");
+  const detectAllOs = () => unfingerprinted.forEach(d => { if (osResults[d.mac]?.status !== "loading") detectOs(d.ip, d.mac); });
+  const q = search.trim().toLowerCase();
+  const filtered = !q ? devices : devices.filter(d => {
+    const lookup = hostnameResults[d.mac];
+    const name = d.hostname ?? (lookup?.status === "resolved" ? lookup.hostname : null);
+    return (name?.toLowerCase().includes(q) ?? false) || d.ip.includes(q) || d.mac.includes(q);
   });
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
   const pages = Math.max(1, Math.ceil(filtered.length / perPage));
 
-  const deviceUsageData = [
-    { t: "Mon", v: 0.4 }, { t: "Tue", v: 0.9 }, { t: "Wed", v: 0.6 },
-    { t: "Thu", v: 1.2 }, { t: "Fri", v: 2.1 }, { t: "Sat", v: 0.3 }, { t: "Sun", v: 0.1 },
+  const { windows, unixLike, gear } = osBreakdown(devices);
+  const overviewStats = [
+    { label: "Devices", value: devices.length },
+    { label: "Windows", value: windows },
+    { label: "Apple / Linux", value: unixLike },
+    { label: "Network gear", value: gear },
   ];
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      <Card className="p-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <IconSwatch color="teal">
+            <Network size={18} />
+          </IconSwatch>
+
+          <div className="min-w-0">
+            {loading && !data ? (
+              <>
+                <SkeletonText width="140px" className="mb-1" />
+                <SkeletonText width="180px" />
+              </>
+            ) : data?.localIp && data?.subnetMask ? (
+              <>
+                <div className="text-sm font-semibold text-foreground font-mono">
+                  {data.localIp}/{maskToCidr(data.subnetMask)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Mask {data.subnetMask}
+                  {ap?.gateway && ` · Gateway ${ap.gateway}`}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">Not connected to a network</div>
+            )}
+          </div>
+
+          <div className="ml-auto flex items-center gap-5">
+            {overviewStats.map(s => (
+              <TooltipWrap key={s.label} label={s.label === "Devices" ? "Devices seen on this scan" : `${s.label} — estimated from ping response`}>
+                <div className="text-center min-w-10">
+                  <div className="text-lg font-bold tabular-nums text-foreground">
+                    {loading && !data ? <Skeleton className="h-5 w-6 mx-auto" /> : s.value}
+                  </div>
+                  <div className="text-xs text-muted-foreground/60 whitespace-nowrap">{s.label}</div>
+                </div>
+              </TooltipWrap>
+            ))}
+          </div>
+
+          <IconButton icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />} title="Rescan network" onClick={refresh} />
+        </div>
+      </Card>
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search devices or users…"
-            className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-60"
+            placeholder="Search by hostname, IP, or MAC…"
+            className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-64"
           />
         </div>
-        <div className="flex gap-1">
-          {(["all", "online", "idle", "blocked", "paused"] as const).map(s => (
+        {q && !loading && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            {filtered.length} of {devices.length} device{devices.length !== 1 ? "s" : ""} match
+          </span>
+        )}
+        {!loading && unnamed.length > 0 && (
+          <TooltipWrap label={`Look up all ${unnamed.length} unresolved device name${unnamed.length !== 1 ? "s" : ""} at once`} className={q ? "" : "ml-auto"}>
             <button
-              key={s}
-              onClick={() => { setFilter(s); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === s ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"}`}
+              onClick={resolveAllNames}
+              disabled={resolvingAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
             >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {resolvingAll ? <Loader2 size={13} className="animate-spin" /> : <IdCard size={13} />}
+              Resolve all names
             </button>
-          ))}
-        </div>
-        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} device{filtered.length !== 1 ? "s" : ""}</div>
+          </TooltipWrap>
+        )}
+        {!loading && unfingerprinted.length > 0 && (
+          <TooltipWrap
+            label={`Run active OS detection on all ${unfingerprinted.length} device${unfingerprinted.length !== 1 ? "s" : ""} without a result yet — an nmap scan per device, can take a while`}
+            className={q || unnamed.length > 0 ? "" : "ml-auto"}
+          >
+            <button
+              onClick={detectAllOs}
+              disabled={detectingAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              {detectingAll ? <Loader2 size={13} className="animate-spin" /> : <Fingerprint size={13} />}
+              Detect all OS
+            </button>
+          </TooltipWrap>
+        )}
       </div>
 
-      {/* Table — desktop */}
-      <Card className="hidden md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                {["Status", "Device", "User", "Type", "IP / MAC", "AP", "Session", "Data", "Actions"].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {paged.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your filters.</td></tr>
-              ) : paged.map(d => (
-                <tr key={d.id} className="hover:bg-muted transition-colors">
-                  <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => setDrawer(d)} className="text-left hover:text-blue-600 transition-colors">
-                      <div className="font-medium text-foreground text-xs">{d.name}</div>
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.user}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.type}</td>
-                  <td className="px-4 py-3">
-                    <div className="font-mono text-xs text-foreground/80">{d.ip}</div>
-                    <div className="font-mono text-xs text-muted-foreground/60">{d.mac}</div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{d.ap}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.session}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground/80">{d.data}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => setConfirm({ type: "disconnect", device: d })}
-                        className="p-1.5 rounded hover:bg-red-50 hover:text-red-600 text-muted-foreground/60 transition-colors"
-                        title="Disconnect"
-                      ><WifiOff size={13} /></button>
-                      <button
-                        onClick={() => setConfirm({ type: "pause", device: d })}
-                        className="p-1.5 rounded hover:bg-amber-50 hover:text-amber-600 text-muted-foreground/60 transition-colors"
-                        title="Pause"
-                      ><Pause size={13} /></button>
-                      <button
-                        onClick={() => setConfirm({ type: "block", device: d })}
-                        className="p-1.5 rounded hover:bg-red-50 hover:text-red-600 text-muted-foreground/60 transition-colors"
-                        title="Block"
-                      ><Ban size={13} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-          <p className="text-xs text-muted-foreground">Showing {Math.min((page - 1) * perPage + 1, filtered.length)}–{Math.min(page * perPage, filtered.length)} of {filtered.length}</p>
-          <div className="flex gap-1">
-            <Btn variant="secondary" size="xs" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}><ChevronLeft size={12} /></Btn>
-            {Array.from({ length: pages }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`w-7 h-7 rounded text-xs font-medium transition-colors ${page === i + 1 ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}
-              >{i + 1}</button>
-            ))}
-            <Btn variant="secondary" size="xs" onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}><ChevronRight size={12} /></Btn>
-          </div>
-        </div>
-      </Card>
-
-      {/* Cards — mobile */}
-      <div className="md:hidden space-y-3">
-        {paged.map(d => (
-          <Card key={d.id} className="p-4">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="font-medium text-sm text-foreground">{d.name}</div>
-                <div className="text-xs text-muted-foreground">{d.user} · {d.type}</div>
-              </div>
-              <StatusBadge status={d.status} />
+      {error ? (
+        <Card className="p-10 flex flex-col items-center gap-2 text-center">
+          <WifiOff size={20} className="text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </Card>
+      ) : !loading && devices.length === 0 ? (
+        <Card className="p-10 flex flex-col items-center gap-2 text-center">
+          <WifiOff size={20} className="text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">Not connected to a network.</p>
+        </Card>
+      ) : (
+        <>
+          <Card className="hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    {["Device", "OS", "IP Address", "MAC Address"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                        {loading ? <Skeleton className="h-3 w-12" /> : h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {loading ? (
+                    <SkeletonTableRows columns={4} rows={perPage} />
+                  ) : paged.length === 0 ? (
+                    <tr><td colSpan={4} className="px-4 py-10 text-center text-muted-foreground/60 text-sm">No devices match your search.</td></tr>
+                  ) : paged.map(d => (
+                    <tr key={d.mac} onClick={() => setDrawer(d)} className="cursor-pointer hover:bg-tint-aqua-bg/40 transition-colors">
+                      <td className="px-4 py-3">
+                        <DeviceNameCell device={d} lookup={hostnameResults[d.mac]} onLookup={() => lookupHostname(d.ip, d.mac)} />
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        <OsDetectionCell device={d} detection={osResults[d.mac]} onDetect={() => detectOs(d.ip, d.mac)} />
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-foreground/80">{d.ip}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">{d.mac}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground font-mono mb-3">
-              <span>{d.ip}</span>
-              <span>{d.ap}</span>
-              <span>{d.mac}</span>
-              <span>{d.data}</span>
-            </div>
-            <div className="flex gap-2">
-              <Btn variant="secondary" size="xs" onClick={() => setConfirm({ type: "disconnect", device: d })}><WifiOff size={11} /> Disconnect</Btn>
-              <Btn variant="secondary" size="xs" onClick={() => setConfirm({ type: "pause", device: d })}><Pause size={11} /> Pause</Btn>
-              <Btn variant="outline" size="xs" onClick={() => setConfirm({ type: "block", device: d })}><Ban size={11} /> Block</Btn>
-            </div>
+            {!loading && (
+              <Pagination
+                page={page}
+                pages={pages}
+                total={filtered.length}
+                perPage={perPage}
+                onPageChange={setPage}
+                onPerPageChange={n => { setPerPage(n); setPage(1); }}
+                itemLabel="device"
+              />
+            )}
           </Card>
-        ))}
-      </div>
 
-      {/* Detail Drawer */}
-      {drawer && (
-        <div className="fixed inset-0 z-40 flex justify-end">
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setDrawer(null)} />
-          <div className="relative w-full max-w-md bg-card text-card-foreground h-full shadow-2xl flex flex-col overflow-y-auto z-50">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <h2 className="font-semibold text-foreground text-sm">{drawer.name}</h2>
-              <button onClick={() => setDrawer(null)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><X size={16} /></button>
-            </div>
-            <div className="flex-1 p-5 space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  ["Status", <StatusBadge key="status" status={drawer.status} />],
-                  ["Type", drawer.type],
-                  ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
-                  ["MAC", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
-                  ["Access Point", drawer.ap],
-                  ["Session", drawer.session],
-                  ["Data Used", drawer.data],
-                  ["User", drawer.user],
-                ].map(([label, val]) => (
-                  <div key={label as string}>
-                    <p className="text-xs text-muted-foreground/60 mb-0.5">{label as string}</p>
-                    <div className="text-xs font-medium text-foreground">{val as React.ReactNode}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">7-Day Usage</p>
-                <ResponsiveContainer width="100%" height={120}>
-                  <BarChart data={deviceUsageData}>
-                    <XAxis dataKey="t" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                    <YAxis hide />
-                    <Tooltip contentStyle={{ fontSize: 11 }} formatter={(v: number) => [`${v} GB`]} />
-                    <Bar dataKey="v" fill="#2563eb" radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Applied Policy</p>
-                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2 mb-1"><Shield size={12} className="text-blue-600" /> <span className="font-medium">Staff Default</span></div>
-                  <p className="text-muted-foreground">Bandwidth limit: 20 Mbps · Block: P2P, Streaming (off-hours) · Session: 12h</p>
+          <div className="md:hidden space-y-3">
+            {loading ? Array.from({ length: perPage }).map((_, i) => (
+              <Card key={i} className="p-4 space-y-1.5">
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </Card>
+            )) : paged.map(d => (
+              <Card key={d.mac} onClick={() => setDrawer(d)} className="p-4 cursor-pointer transition-all hover:border-primary">
+                <div className="mb-1.5">
+                  <DeviceNameCell device={d} lookup={hostnameResults[d.mac]} onLookup={() => lookupHostname(d.ip, d.mac)} />
                 </div>
-              </div>
-            </div>
-            <div className="px-5 py-4 border-t border-border flex gap-2">
-              <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "disconnect", device: drawer })}><WifiOff size={13} /> Disconnect</Btn>
-              <Btn variant="secondary" size="sm" onClick={() => setConfirm({ type: "pause", device: drawer })}><Pause size={13} /> Pause</Btn>
-              <Btn variant="danger" size="sm" onClick={() => setConfirm({ type: "block", device: drawer })}><Ban size={13} /> Block</Btn>
-            </div>
+                <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                  <span className="font-mono">{d.ip}</span>
+                  <span className="font-mono">{d.mac}</span>
+                  <OsDetectionCell device={d} detection={osResults[d.mac]} onDetect={() => detectOs(d.ip, d.mac)} />
+                </div>
+              </Card>
+            ))}
           </div>
-        </div>
+        </>
       )}
 
-      <ConfirmDialog
-        open={!!confirm}
-        title={confirm ? `${confirm.type.charAt(0).toUpperCase() + confirm.type.slice(1)} device?` : ""}
-        message={confirm ? `Are you sure you want to ${confirm.type} "${confirm.device.name}"? This action can be reversed from the Devices screen.` : ""}
-        confirmLabel={confirm ? confirm.type.charAt(0).toUpperCase() + confirm.type.slice(1) : ""}
-        variant={confirm?.type === "block" ? "danger" : "primary"}
-        onConfirm={() => setConfirm(null)}
-        onCancel={() => setConfirm(null)}
-      />
+      {drawer && (
+        <Modal open onClose={() => setDrawer(null)} position="center" className="max-w-sm w-full rounded-xl flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border shrink-0">
+            <h2 className="font-semibold text-foreground text-sm truncate min-w-0">{hostnameLabel(drawer, hostnameResults[drawer.mac])}</h2>
+            <button onClick={() => setDrawer(null)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground shrink-0"><X size={16} /></button>
+          </div>
+          <div className="p-5 grid grid-cols-2 gap-3">
+            {[
+              ["Device", <DeviceNameCell key="device" device={drawer} lookup={hostnameResults[drawer.mac]} onLookup={() => lookupHostname(drawer.ip, drawer.mac)} />],
+              ["Status", drawer.isCurrentDevice ? <Tag key="status" color="aqua">This device</Tag> : "On network"],
+              ["OS", <OsDetectionCell key="os" device={drawer} detection={osResults[drawer.mac]} onDetect={() => detectOs(drawer.ip, drawer.mac)} />],
+              ["IP Address", <span key="ip" className="font-mono text-xs">{drawer.ip}</span>],
+              ["MAC Address", <span key="mac" className="font-mono text-xs">{drawer.mac}</span>],
+            ].map(([label, val]) => (
+              <div key={label as string}>
+                <p className="text-xs text-muted-foreground/60 mb-0.5">{label as string}</p>
+                <div className="text-xs font-medium text-foreground">{val as React.ReactNode}</div>
+              </div>
+            ))}
+          </div>
+          <DeviceActivitySection mac={drawer.mac} />
+        </Modal>
+      )}
     </div>
   );
 }

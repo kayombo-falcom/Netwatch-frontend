@@ -7,3 +7,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Where logic belongs
+
+All logic — including live network probing (ARP/ping sweep, OS fingerprinting, mDNS/SSDP/NetBIOS discovery, adapter/Wi-Fi info, packet loss) and anything that reads or writes persisted data — belongs in the Django backend (`Netwach-backend/`), not in the Next.js frontend. Every Next.js API route under `src/app/api/` must be a thin proxy to the backend — see `src/lib/backend-proxy.ts` — never implementing storage logic or shelling out to system commands itself.
+
+This deliberately gives up the frontend's own network position: the backend runs colocated with the frontend on the same LAN-connected host (`docker-compose.yml`'s `web` service uses `network_mode: host` specifically so it can too), so it can do everything the frontend process used to. The container itself is always Linux, on either host OS, so this needs no separate Windows code path — the previous Windows provider (`netsh`/PowerShell) stays retired. Running on a Windows host only needs `network_mode: host` to actually reach the physical LAN, which requires Docker Desktop's host-networking setting and WSL2 mirrored networking mode (`networkingMode=mirrored` in `.wslconfig`) — see README.md.
+
+When adding a new feature, add its models/repositories/services/views to the appropriate Django app (`network` for live probing, or a new one following the existing `users`/`authorization`/`authentication`/`devices` pattern for persisted data) and expose it through `/api/v1/`, then proxy to it from Next.js.
+
+## Code comments
+
+Most code needs no comment at all — well-named functions and variables already say what it does. Only add one when the *why* isn't obvious from the code itself: a non-obvious constraint, a workaround, a gotcha. When a comment is warranted, keep it short, clear, plain language — one line covers most cases; avoid jargon and long sentences.
